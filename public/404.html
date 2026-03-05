@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found | Cube & GSB Test Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="assets/logo.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --warning: #fbbf24;
+            --danger: #ef233c;
+            --info: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border: #dee2e6;
+            --cube-color: #3a0ca3;
+            --gsb-color: #f8961e;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fb 0%, #e3e8f7 100%);
+            color: var(--dark);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .error-container {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(67, 97, 238, 0.15);
+            position: relative;
+            z-index: 2;
+            animation: fadeIn 0.8s ease;
+            border: 1px solid rgba(67, 97, 238, 0.1);
+        }
+
+        .error-icon {
+            font-size: 120px;
+            color: var(--danger);
+            margin-bottom: 30px;
+            animation: bounce 2s infinite;
+            display: inline-block;
+        }
+
+        .error-code {
+            font-size: 5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 10px;
+            line-height: 1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .error-message {
+            font-size: 1.2rem;
+            color: var(--gray);
+            margin-bottom: 40px;
+            line-height: 1.6;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .error-details {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 40px;
+            text-align: left;
+            border-left: 4px solid var(--warning);
+        }
+
+        .error-details h3 {
+            color: var(--warning);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .error-details p {
+            color: var(--dark);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .error-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            min-width: 180px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .footer-note {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-note a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer-note a:hover {
+            text-decoration: underline;
+        }
+
+        /* Background elements */
+        .background-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 20s infinite linear;
+        }
+
+        .shape-1 {
+            width: 300px;
+            height: 300px;
+            background: var(--cube-color);
+            top: -150px;
+            left: -150px;
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            width: 200px;
+            height: 200px;
+            background: var(--gsb-color);
+            bottom: -100px;
+            right: -100px;
+            animation-delay: -5s;
+            animation-duration: 25s;
+        }
+
+        .shape-3 {
+            width: 150px;
+            height: 150px;
+            background: var(--primary);
+            top: 50%;
+            right: -75px;
+            animation-delay: -10s;
+            animation-duration: 30s;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(100px, 100px) rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.15; }
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .error-container {
+                padding: 40px 20px;
+                margin: 20px;
+            }
+
+            .error-code {
+                font-size: 4rem;
+            }
+
+            .error-title {
+                font-size: 2rem;
+            }
+
+            .error-message {
+                font-size: 1rem;
+            }
+
+            .error-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .shape {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .error-code {
+                font-size: 3rem;
+            }
+
+            .error-title {
+                font-size: 1.5rem;
+            }
+
+            .error-icon {
+                font-size: 80px;
+            }
+
+            body {
+                padding: 10px;
+            }
+        }
+
+        /* Loading animation for links */
+        .loading {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Shapes -->
+    <div class="background-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="error-container">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h1 class="error-code">404</h1>
+        
+        <h2 class="error-title">Page Not Found</h2>
+        
+        <p class="error-message">
+            Oops! The page you're looking for seems to have vanished into thin air. 
+            It might have been moved, deleted, or never existed in the first place.
+        </p>
+        
+        <div class="error-details">
+            <h3>
+                <i class="fas fa-info-circle"></i>
+                What could have happened?
+            </h3>
+            <p>
+                • The page may have been moved or renamed<br>
+                • You might have typed the URL incorrectly<br>
+                • The page could be temporarily unavailable<br>
+                • Or maybe it's just playing hide and seek!
+            </p>
+        </div>
+        
+        <div class="error-actions">
+            <a href="dashboard.html" class="btn btn-primary" id="goHomeBtn">
+                <i class="fas fa-home"></i> Back to Dashboard
+            </a>
+            <a href="index.html" class="btn btn-outline" id="goLoginBtn">
+                <i class="fas fa-sign-in-alt"></i> Go to Login
+            </a>
+            <button onclick="goBack()" class="btn btn-outline" id="goBackBtn">
+                <i class="fas fa-arrow-left"></i> Go Back
+            </button>
+        </div>
+        
+        <div class="footer-note">
+            <p>
+                © 2026 College of Engineering Vadakara | Cube & GSB Test Dashboard<br>
+                Created by <a href="https://www.instagram.com/faseeh_vp?igsh=YmZubHVsZXVtYTRs" target="_blank">@faseeh_vp</a> • 
+                <a href="mailto:admin@example.com">Report Issue</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Smooth loading animation for buttons
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                // Only add loading animation for valid links
+                if (this.getAttribute('href') && !this.classList.contains('loading')) {
+                    this.classList.add('loading');
+                    this.innerHTML = '<span style="opacity: 0;">' + this.innerHTML + '</span>';
+                    
+                    // Remove loading state after navigation (if not already navigated)
+                    setTimeout(() => {
+                        this.classList.remove('loading');
+                        this.innerHTML = this.querySelector('span').innerHTML;
+                    }, 2000);
+                }
+            });
+        });
+
+        // Go back function with history check
+        function goBack() {
+            const goBackBtn = document.getElementById('goBackBtn');
+            goBackBtn.classList.add('loading');
+            goBackBtn.innerHTML = '<span style="opacity: 0;">' + goBackBtn.innerHTML + '</span>';
+            
+            setTimeout(() => {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
+            }, 300);
+        }
+
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate error code with slight delay
+            const errorCode = document.querySelector('.error-code');
+            setTimeout(() => {
+                errorCode.style.transform = 'scale(1.1)';
+                errorCode.style.color = '#3a0ca3';
+                setTimeout(() => {
+                    errorCode.style.transform = 'scale(1)';
+                    errorCode.style.color = '';
+                }, 300);
+            }, 1000);
+
+            // Add hover effect to error icon
+            const errorIcon = document.querySelector('.error-icon');
+            errorIcon.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.2) rotate(10deg)';
+                this.style.color = '#ef233c';
+            });
+            
+            errorIcon.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1) rotate(0deg)';
+                this.style.color = '';
+            });
+        });
+
+        // Check if user is logged in (for demo purposes)
+        function checkAuthStatus() {
+            // This is a simplified check - in real app, you'd check Firebase auth
+            const isLoggedIn = localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
+            
+            if (isLoggedIn) {
+                document.getElementById('goLoginBtn').style.display = 'none';
+            } else {
+                document.getElementById('goHomeBtn').style.display = 'none';
+            }
+        }
+
+        // Run auth check on load
+        checkAuthStatus();
+    </script>
+</body>
+</html>

@@ -1,0 +1,2814 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Customer Workspace | Cube & GSB Test Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="assets/logo.png">
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --warning: #fbbf24;
+            --danger: #ef233c;
+            --info: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border: #dee2e6;
+            --cube-color: #3a0ca3;
+            --gsb-color: #f8961e;
+            --status-red: #ef233c;
+            --status-yellow: #fbbf24;
+            --status-green: #15803d;
+            --revenue-color: #15803d;
+            --bg-color: #f5f7fb;
+        }
+
+        /* Dark theme variables */
+        .dark-theme {
+            --primary: #6c8eff;
+            --primary-dark: #5a7eff;
+            --secondary: #9d4edd;
+            --success: #5ac8fa;
+            --warning: #ffd166;
+            --danger: #ff6b6b;
+            --info: #64d2ff;
+            --light: #1a1a1a;
+            --dark: #ffffff;
+            --gray: #a0a0a0;
+            --light-gray: #2d2d2d;
+            --border: #404040;
+            --cube-color: #8a5cf5;
+            --gsb-color: #ffb347;
+            --status-red: #ff6b6b;
+            --status-yellow: #ffd166;
+            --status-green: #4caf50;
+            --revenue-color: #4caf50;
+            --bg-color: #121212;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--dark);
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+        }
+
+        /* Simple Loading */
+        .loading-simple {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-box {
+            background: var(--light);
+            padding: 30px 40px;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .dark-theme .loading-box {
+            background: #1e1e1e;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--light-gray);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Alert Toast */
+        .alert-toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+            opacity: 0;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, var(--status-green), #16a34a);
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, var(--info), #2563eb);
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, var(--warning), #ea580c);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* Header & Navigation */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 25px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            background: rgba(67, 97, 238, 0.05);
+            transition: background-color 0.2s ease;
+        }
+
+        .dark-theme .back-button {
+            background: rgba(108, 142, 255, 0.1);
+        }
+
+        .back-button:hover {
+            background: rgba(67, 97, 238, 0.1);
+            text-decoration: none;
+        }
+
+        .dark-theme .back-button:hover {
+            background: rgba(108, 142, 255, 0.2);
+        }
+
+        /* Workspace Header */
+        .workspace-header {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .dark-theme .workspace-header {
+            background: #1e1e1e;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .customer-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .customer-progress {
+            display: flex;
+            gap: 25px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .customer-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            width: fit-content;
+            font-size: 0.95rem;
+        }
+
+        .status-red-bg {
+            background: linear-gradient(135deg, rgba(239, 35, 60, 0.1), rgba(239, 35, 60, 0.05));
+            color: var(--status-red);
+            border: 1px solid rgba(239, 35, 60, 0.2);
+        }
+
+        .status-yellow-bg {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 191, 36, 0.05));
+            color: var(--warning);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .status-green-bg {
+            background: linear-gradient(135deg, rgba(21, 128, 61, 0.1), rgba(21, 128, 61, 0.05));
+            color: var(--status-green);
+            border: 1px solid rgba(21, 128, 61, 0.2);
+        }
+
+        .info-item h4 {
+            color: var(--gray);
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .info-item p {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-grow: 1;
+        }
+
+        .progress-bar {
+            flex-grow: 1;
+            height: 10px;
+            background-color: var(--light-gray);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-fill.cube {
+            background: linear-gradient(90deg, var(--cube-color), #6d28d9);
+        }
+
+        .progress-fill.gsb {
+            background: linear-gradient(90deg, var(--gsb-color), #f59e0b);
+        }
+
+        /* Fee Display - Updated with cubes per set in same row */
+        .fee-display {
+            background: linear-gradient(135deg, rgba(76, 201, 240, 0.05), rgba(21, 128, 61, 0.05));
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            border: 1px solid rgba(76, 201, 240, 0.2);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .dark-theme .fee-display {
+            background: linear-gradient(135deg, rgba(90, 200, 250, 0.1), rgba(76, 175, 80, 0.1));
+            border: 1px solid rgba(90, 200, 250, 0.3);
+        }
+
+        .fee-display .form-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .fee-display .info-item {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .fee-amount-large {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--revenue-color);
+            margin: 10px 0;
+        }
+
+        
+
+        /* Created By Badge - Glass effect, 50% opacity */
+        .created-by-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            color: var(--dark);
+            font-size: 0.85rem;
+            font-weight: 500;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .created-by-badge:hover {
+            opacity: 1;
+        }
+
+        .dark-theme .created-by-badge {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        .dark-theme .created-by-badge span {
+            color: #ffffff;
+        }
+
+        .created-by-badge i {
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        /* Action Buttons Row */
+        .action-buttons-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .action-buttons-row .btn {
+            white-space: nowrap;
+        }
+
+        /* DOCUMENTS GALLERY - SINGLE ROW SWIPEABLE */
+        .documents-gallery-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .documents-gallery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .documents-gallery-header h3 {
+            font-size: 1.1rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .documents-gallery-header h3 i {
+            color: var(--primary);
+        }
+
+        .documents-gallery-count {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Horizontal scroll container - swipeable */
+        .gallery-scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            padding-bottom: 15px;
+        }
+
+        .gallery-scroll-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .gallery-scroll-container::-webkit-scrollbar-track {
+            background: var(--light-gray);
+            border-radius: 10px;
+        }
+
+        .gallery-scroll-container::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .gallery-row {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+            padding: 5px 2px;
+        }
+
+        .document-card {
+            flex: 0 0 auto;
+            width: 175px;
+            background: var(--light);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            cursor: default;
+        }
+
+        .dark-theme .document-card {
+            background: #1e1e1e;
+        }
+
+        .document-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .document-preview {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--light-gray);
+            position: relative;
+        }
+
+        .document-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .document-icon {
+            font-size: 48px;
+            color: var(--danger);
+        }
+
+        .document-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: var(--danger);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .document-badge.image {
+            background: var(--primary);
+        }
+
+        .document-info {
+            padding: 12px;
+        }
+
+        .document-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+
+        .document-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7rem;
+            color: var(--gray);
+        }
+
+        .document-time {
+            font-size: 0.68rem;
+            color: var(--gray);
+            margin-top: 3px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            opacity: 0.8;
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 6px;
+            padding: 6px 12px 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-doc-download {
+            flex: 1;
+            padding: 5px 8px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-doc-download:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+
+        .btn-doc-view {
+            flex: 1;
+            padding: 5px 8px;
+            background: var(--info);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-doc-view:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+
+        .no-documents {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--light-gray);
+            border-radius: 12px;
+            color: var(--gray);
+        }
+
+        .no-documents i {
+            font-size: 48px;
+            margin-bottom: 10px;
+            color: var(--gray);
+            opacity: 0.5;
+        }
+
+        .documents-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: var(--gray);
+        }
+
+        .documents-loading i {
+            margin-right: 10px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Image Preview Modal */
+        .preview-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+            backdrop-filter: blur(10px);
+        }
+
+        .preview-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+
+        .preview-content img {
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .preview-pdf {
+            width: 90%;
+            height: 90vh;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-pdf-header {
+            background: var(--primary);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-pdf-body {
+            flex: 1;
+            background: #f0f0f0;
+        }
+
+        .preview-pdf-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .preview-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .preview-pdf .preview-close {
+            position: static;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            width: auto;
+            height: auto;
+            padding: 8px 16px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: var(--status-green);
+            color: white;
+        }
+
+        .btn-info {
+            background-color: var(--info);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #6409a9;
+            transform: translateY(-2px);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .btn-xs {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        .btn-icon {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-eye {
+            background: var(--info);
+            color: white;
+        }
+
+        .btn-eye:hover {
+            background: #3a7bc8;
+            transform: translateY(-2px);
+        }
+
+        .btn-eye.active {
+            background: var(--primary-dark);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .workspace-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Test History - EXACT OLD STYLE */
+        .test-history {
+            background: var(--light);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 25px;
+        }
+
+        .dark-theme .test-history {
+            background: #1e1e1e;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .history-header {
+            padding: 22px 25px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border);
+            transition: background-color 0.3s ease;
+        }
+
+        .history-header h3 {
+            color: white !important;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dark-theme .history-header {
+            background: linear-gradient(135deg, #3a56d4, #7209b7);
+        }
+
+        .history-item {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item:hover {
+            background-color: rgba(67, 97, 238, 0.03);
+        }
+
+        .dark-theme .history-item:hover {
+            background-color: rgba(108, 142, 255, 0.05);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-item-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-grow: 1;
+        }
+
+        .test-number {
+            font-weight: 800;
+            color: var(--primary);
+            min-width: 35px;
+            font-size: 1.1rem;
+            background: rgba(67, 97, 238, 0.1);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .dark-theme .test-number {
+            background: rgba(108, 142, 255, 0.2);
+        }
+
+        .history-info h4 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .history-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 8px 0;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .history-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .history-detail-item i {
+            color: var(--primary);
+            font-size: 0.8rem;
+        }
+
+        .history-date {
+            color: var(--gray);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* History Actions - Always Visible */
+        .history-actions {
+            display: flex;
+            gap: 10px;
+            opacity: 1;
+        }
+
+        /* History Header Badges */
+        .history-header .test-badge {
+            border: 1.5px solid rgba(255,255,255,0.5) !important;
+            background: rgba(255,255,255,0.15) !important;
+            color: white !important;
+        }
+        .test-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .cube-badge {
+            background-color: rgba(58, 12, 163, 0.1);
+            color: var(--cube-color);
+            border: 1px solid rgba(58, 12, 163, 0.2);
+        }
+
+        .dark-theme .cube-badge {
+            background-color: rgba(138, 92, 245, 0.2);
+            border: 1px solid rgba(138, 92, 245, 0.3);
+        }
+
+        .gsb-badge {
+            background-color: rgba(248, 150, 30, 0.1);
+            color: var(--gsb-color);
+            border: 1px solid rgba(248, 150, 30, 0.2);
+        }
+
+        .dark-theme .gsb-badge {
+            background-color: rgba(255, 179, 71, 0.2);
+            border: 1px solid rgba(255, 179, 71, 0.3);
+        }
+
+        /* Status Dots */
+        .status-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .status-red {
+            background-color: var(--status-red);
+        }
+
+        .status-yellow {
+            background-color: var(--status-yellow);
+        }
+
+        .status-green {
+            background-color: var(--status-green);
+        }
+
+        /* Payment Status */
+        .payment-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .payment-pending {
+            background-color: rgba(251, 191, 36, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .dark-theme .payment-pending {
+            background-color: rgba(255, 209, 102, 0.2);
+            border: 1px solid rgba(255, 209, 102, 0.3);
+        }
+
+        .payment-paid {
+            background-color: rgba(21, 128, 61, 0.1);
+            color: var(--status-green);
+            border: 1px solid rgba(21, 128, 61, 0.2);
+        }
+
+        .dark-theme .payment-paid {
+            background-color: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        /* Approval Badge */
+        .approval-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .approved {
+            background: linear-gradient(135deg, rgba(21, 128, 61, 0.1), rgba(21, 128, 61, 0.05));
+            color: var(--status-green);
+            border: 1px solid rgba(21, 128, 61, 0.2);
+        }
+
+        .dark-theme .approved {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .pending {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 191, 36, 0.05));
+            color: var(--warning);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .dark-theme .pending {
+            background: linear-gradient(135deg, rgba(255, 209, 102, 0.2), rgba(255, 209, 102, 0.1));
+            border: 1px solid rgba(255, 209, 102, 0.3);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 30px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 5rem;
+            margin-bottom: 25px;
+            opacity: 0.2;
+        }
+
+        .empty-state h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
+        }
+
+        .dark-theme .modal-content {
+            background: #1e1e1e;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            color: var(--danger);
+        }
+
+        .modal-header i {
+            font-size: 1.8rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .modal-body {
+            margin-bottom: 25px;
+        }
+
+        .modal-body p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: var(--dark);
+        }
+
+        .modal-body strong {
+            color: var(--primary);
+        }
+
+        .modal-body .warning-note {
+            background: rgba(251, 191, 36, 0.1);
+            border-left: 4px solid var(--warning);
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-size: 0.95rem;
+        }
+
+        .dark-theme .warning-note {
+            background: rgba(255, 209, 102, 0.1);
+            border-left-color: var(--warning);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn-cancel {
+            background: var(--light-gray);
+            color: var(--gray);
+            border: 2px solid var(--border);
+        }
+
+        .modal-btn-cancel:hover {
+            background: var(--border);
+        }
+
+        .modal-btn-delete {
+            background: var(--danger);
+            color: white;
+        }
+
+        .modal-btn-delete:hover {
+            background: #d12b2b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 35, 60, 0.3);
+        }
+
+        /* Verification Input */
+        .verification-step {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .verification-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .verification-input input {
+            width: 80px;
+            padding: 10px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .verification-input input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        .verification-hint {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 8px;
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .mt-30 {
+            margin-top: 30px;
+        }
+
+        /* Toast Notification for PDF Generation */
+        .pdf-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease;
+        }
+
+        /* Mobile Responsive - UPDATED */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .workspace-header {
+                padding: 20px;
+            }
+
+            .customer-progress {
+                flex-direction: column;
+            }
+
+            .progress-container {
+                width: 100%;
+            }
+
+            .fee-display .form-row {
+                gap: 15px;
+            }
+
+            .fee-display .info-item {
+                min-width: 120px;
+            }
+
+            .fee-amount-large {
+                font-size: 1.3rem;
+            }
+
+            .cubes-per-set-badge {
+                padding: 6px 12px;
+                font-size: 0.9rem;
+            }
+
+            .cubes-per-set-badge i {
+                font-size: 1rem;
+            }
+
+            .action-buttons-row {
+                flex-direction: row;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .action-buttons-row .btn {
+                flex: 1;
+                width: auto;
+                justify-content: center;
+                padding: 12px 10px;
+                font-size: 0.85rem;
+                white-space: normal;
+                word-break: break-word;
+            }
+
+            .created-by-badge {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .workspace-actions {
+                flex-direction: row;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .workspace-actions .btn {
+                flex: 1;
+                width: auto;
+                justify-content: center;
+                padding: 12px 10px;
+                font-size: 0.85rem;
+            }
+
+            .history-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .document-card {
+                width: 140px;
+            }
+
+            .document-preview {
+                height: 100px;
+            }
+
+            .alert-toast {
+                top: 20px;
+                right: 20px;
+                left: 20px;
+            }
+
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+            }
+
+            .modal-footer {
+                flex-direction: column;
+            }
+
+            .verification-input input {
+                width: 60px;
+                font-size: 1rem;
+            }
+
+            .preview-pdf {
+                width: 95vw;
+                height: 95vh;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .fee-display .form-row {
+                flex-direction: row;
+                gap: 10px;
+            }
+
+            .fee-display .info-item h4 {
+                font-size: 0.7rem;
+            }
+
+            .fee-display .info-item p {
+                font-size: 0.9rem;
+            }
+
+            .fee-amount-large {
+                font-size: 1.1rem;
+            }
+
+            .cubes-per-set-badge {
+                padding: 4px 8px;
+                font-size: 0.8rem;
+            }
+
+            .action-buttons-row .btn {
+                padding: 10px 6px;
+                font-size: 0.75rem;
+            }
+
+            .workspace-actions .btn {
+                padding: 10px 6px;
+                font-size: 0.75rem;
+            }
+
+            .created-by-badge {
+                font-size: 0.7rem;
+                padding: 4px 8px;
+            }
+
+            .document-card {
+                width: 130px;
+            }
+
+            .document-preview {
+                height: 90px;
+            }
+
+            .document-icon {
+                font-size: 36px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .fee-display .form-row {
+                flex-wrap: wrap;
+            }
+
+            .fee-display .info-item {
+                min-width: 100%;
+            }
+
+            .action-buttons-row {
+                flex-wrap: wrap;
+            }
+
+            .workspace-actions {
+                flex-wrap: wrap;
+            }
+
+            .workspace-actions .btn {
+                flex: 1 1 calc(50% - 5px);
+                min-width: 120px;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+
+            .btn:hover,
+            .btn-icon:hover,
+            .document-card:hover {
+                transform: none;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.3);
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Simple Loading Overlay -->
+    <div id="loading-simple" class="loading-simple hidden">
+        <div class="loading-box">
+            <div class="loading-spinner"></div>
+            <div class="loading-text" id="loading-text"
+                style="font-size: 1.2rem; font-weight: 600; color: var(--primary); margin-bottom: 10px;">Loading...
+            </div>
+            <div class="loading-subtext" id="loading-subtext" style="color: var(--gray); font-size: 0.9rem;">Please wait
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="main-content">
+        <a href="#" onclick="goBack(); return false;" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+
+        <div class="workspace-header">
+            <div id="workspace-status-indicator" class="customer-status status-red-bg">
+                <div class="status-dot status-red"></div>
+                <span>Active</span>
+            </div>
+
+            <div class="customer-info" id="workspace-customer-info">
+                <!-- Customer info will be inserted here -->
+            </div>
+
+            <div class="customer-progress" id="workspace-progress">
+                <!-- Progress indicators will be inserted here -->
+            </div>
+
+            <!-- Fee Display with Cubes per Set in same row -->
+            <div class="fee-display">
+                <div class="form-row">
+                    <div class="info-item">
+                        <h4>Total Tests Done</h4>
+                        <p id="total-tests-done">0</p>
+                    </div>
+                    
+                    
+                    
+                    <div class="info-item">
+                        <h4>Total Fee</h4>
+                        <p class="fee-amount-large" id="total-fee-amount">₹0/₹0</p>
+                    </div>
+                    <div class="info-item">
+                        <h4>Payment Status</h4>
+                        <p id="payment-status-display">Pending</p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons Row with Created By -->
+                <div class="action-buttons-row">
+                    <button class="btn btn-success btn-sm" onclick="markAsPaid()" id="mark-paid-btn">
+                        <i class="fas fa-check-circle"></i> Mark as Paid
+                    </button>
+
+                    <button class="btn-icon btn-eye" onclick="toggleDocumentsGallery()" id="documents-gallery-btn">
+                        <i class="fas fa-eye"></i>
+                    </button>
+
+                    <!-- Cubes per Set Badge -->
+                    <div class="created-by-badge" id="cubes-per-set-display">
+                        <i class="fas fa-cubes"></i>
+                        <span>3 cubes/set</span>
+                    </div>
+
+                    <!-- Created By Badge - Glass effect, 50% opacity -->
+                    <div class="created-by-badge" id="created-by-badge">
+                        <i class="fas fa-user-plus"></i>
+                        <span id="created-by-text">Added by: Loading...</span>
+                    </div>
+                </div>
+
+                <!-- Documents Gallery Section - Horizontal Swipeable -->
+                <div id="documents-gallery-section" class="documents-gallery-section hidden">
+                    <div class="documents-gallery-header">
+                        <h3>
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            Uploaded Documents
+                        </h3>
+                        <span class="documents-gallery-count" id="documents-count">0 files</span>
+                    </div>
+
+                    <!-- Horizontal scrollable container - swipeable -->
+                    <div id="gallery-scroll-container" class="gallery-scroll-container">
+                        <div id="gallery-row" class="gallery-row">
+                            <!-- Documents will be inserted here -->
+                        </div>
+                    </div>
+
+                    <div id="no-documents-message" class="no-documents hidden">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>No documents uploaded yet</p>
+                    </div>
+
+                    <div id="documents-loading" class="documents-loading hidden">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Loading documents...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit and Delete Customer in same row -->
+            <div class="workspace-actions">
+                <button class="btn btn-primary" onclick="goToAddTestPage()" id="add-test-btn">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button class="btn btn-info" onclick="editCustomer()">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-danger" onclick="confirmDeleteCustomer()">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Test History - PRESERVED EXACTLY -->
+        <div class="test-history">
+            <div class="history-header">
+                <h3><i class="fas fa-history"></i> Test History</h3>
+                <div style="display:flex; gap:8px;">
+                    <span class="test-badge cube-badge" id="workspace-cube-count">0 Cube Tests</span>
+                    <span class="test-badge gsb-badge" id="workspace-gsb-count">0 GSB Tests</span>
+                </div>
+            </div>
+            <div id="test-history-list">
+                <!-- Test history items will be inserted here -->
+            </div>
+            <div id="empty-tests-state" class="empty-state">
+                <i class="fas fa-vial"></i>
+                <h3>No Tests Yet</h3>
+                <p>Add your first test result to get started.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <!-- Cloudinary Config -->
+    <script src="cloudinary-config.js"></script>
+
+    <script>
+        // ==================== GLOBAL VARIABLES ====================
+        let currentCustomer = null;
+        let settings = null;
+        let currentCustomerId = localStorage.getItem('currentCustomerId');
+        let isDarkTheme = false;
+        let showDocumentsGallery = false;
+        let currentUserEmail = '';
+
+        // ==================== SIMPLE LOADING ====================
+        function showLoading(message = 'Loading...', subtext = 'Please wait') {
+            const overlay = document.getElementById('loading-simple');
+            document.getElementById('loading-text').textContent = message;
+            document.getElementById('loading-subtext').textContent = subtext;
+            if (overlay) overlay.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById('loading-simple');
+            if (overlay) overlay.classList.add('hidden');
+        }
+
+        // ==================== THEME MANAGEMENT ====================
+        function applyTheme() {
+            const storedSettings = JSON.parse(localStorage.getItem('cube_gsb_settings_v2')) || {};
+            const theme = storedSettings.theme || 'light';
+
+            if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+                isDarkTheme = true;
+            } else if (theme === 'auto') {
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.body.classList.add('dark-theme');
+                    isDarkTheme = true;
+                } else {
+                    document.body.classList.remove('dark-theme');
+                    isDarkTheme = false;
+                }
+            } else {
+                document.body.classList.remove('dark-theme');
+                isDarkTheme = false;
+            }
+        }
+
+        // ==================== ALERT FUNCTIONS ====================
+        function showAlert(message, type = 'success', duration = 3000) {
+            const alert = document.createElement('div');
+            alert.className = `alert-toast alert-${type}`;
+            alert.textContent = message;
+            document.body.appendChild(alert);
+
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.style.animation = 'fadeOut 0.3s ease';
+                    setTimeout(() => {
+                        if (alert.parentNode) alert.parentNode.removeChild(alert);
+                    }, 300);
+                }
+            }, duration);
+        }
+
+        // ==================== CLOUDINARY HELPER FUNCTIONS ====================
+        function getCloudinaryThumbnail(url) {
+            if (!url) return url;
+
+            if (url.includes('cloudinary.com')) {
+                try {
+                    if (url.toLowerCase().includes('.pdf') || url.includes('/raw/upload/')) {
+                        let transformedUrl = url
+                            .replace('/raw/upload/', '/image/upload/')
+                            .replace('/upload/', '/upload/c_thumb,w_300,h_200,g_auto,f_auto,q_auto/');
+
+                        if (url.toLowerCase().includes('.pdf') || transformedUrl.includes('/image/upload/')) {
+                            transformedUrl += '?pg=1';
+                        }
+                        return transformedUrl;
+                    }
+
+                    if (url.includes('/image/upload/')) {
+                        return url.replace('/upload/', '/upload/c_thumb,w_300,h_200,g_auto,f_auto,q_auto/');
+                    }
+                } catch (e) {
+                    console.error('Error generating Cloudinary thumbnail:', e);
+                    return url;
+                }
+            }
+
+            return url;
+        }
+
+        function isPDFFile(url, fileName) {
+            if (!url && !fileName) return false;
+
+            if (url) {
+                if (url.toLowerCase().includes('.pdf') ||
+                    url.includes('/raw/upload/') ||
+                    url.includes('pdf')) {
+                    return true;
+                }
+            }
+
+            if (fileName) {
+                if (fileName.toLowerCase().endsWith('.pdf')) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function isImageFile(url, fileName) {
+            if (!url && !fileName) return false;
+
+            if (url) {
+                if (url.includes('/image/upload/') ||
+                    url.toLowerCase().match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)(\?|$)/)) {
+                    return true;
+                }
+            }
+
+            if (fileName) {
+                if (fileName.toLowerCase().match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // ==================== DOCUMENTS GALLERY FUNCTIONS ====================
+        async function toggleDocumentsGallery() {
+            const gallerySection = document.getElementById('documents-gallery-section');
+            const galleryBtn = document.getElementById('documents-gallery-btn');
+
+            if (gallerySection.classList.contains('hidden')) {
+                gallerySection.classList.remove('hidden');
+                galleryBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                galleryBtn.classList.add('active');
+                showDocumentsGallery = true;
+                await loadDocumentsGallery();
+            } else {
+                gallerySection.classList.add('hidden');
+                galleryBtn.innerHTML = '<i class="fas fa-eye"></i>';
+                galleryBtn.classList.remove('active');
+                showDocumentsGallery = false;
+            }
+        }
+
+        async function loadDocumentsGallery() {
+            if (!currentCustomer || !currentCustomerId) return;
+
+            const galleryRow = document.getElementById('gallery-row');
+            const noDocsMsg = document.getElementById('no-documents-message');
+            const loadingIndicator = document.getElementById('documents-loading');
+            const documentsCount = document.getElementById('documents-count');
+
+            loadingIndicator.classList.remove('hidden');
+            galleryRow.innerHTML = '';
+            noDocsMsg.classList.add('hidden');
+
+            try {
+                let documents = [];
+
+                if (currentCustomer.documents && Array.isArray(currentCustomer.documents)) {
+                    documents = currentCustomer.documents;
+                }
+
+                documentsCount.textContent = `${documents.length} file${documents.length !== 1 ? 's' : ''}`;
+                loadingIndicator.classList.add('hidden');
+
+                if (documents.length === 0) {
+                    noDocsMsg.classList.remove('hidden');
+                    return;
+                }
+
+                let html = '';
+
+                documents.forEach((doc, index) => {
+                    const fileName = doc.name || `Document ${index + 1}`;
+                    const fileUrl = doc.url || '';
+
+                    if (!fileUrl) return;
+
+                    const shortName = fileName.length > 18 ? fileName.substring(0, 15) + '...' : fileName;
+
+                    const isPDF = isPDFFile(fileUrl, fileName);
+                    const isImage = isImageFile(fileUrl, fileName);
+
+                    const thumbnailUrl = getCloudinaryThumbnail(fileUrl);
+
+                    // Format upload time
+                    let uploadTimeHtml = '';
+                    if (doc.uploadedAt) {
+                        try {
+                            let uploadDate;
+                            if (doc.uploadedAt?.toDate) uploadDate = doc.uploadedAt.toDate();
+                            else if (doc.uploadedAt?.seconds) uploadDate = new Date(doc.uploadedAt.seconds * 1000);
+                            else uploadDate = new Date(doc.uploadedAt);
+                            if (!isNaN(uploadDate.getTime())) {
+                                const timeStr = uploadDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                                uploadTimeHtml = `<div class="document-time"><i class="far fa-clock"></i> ${timeStr}</div>`;
+                            }
+                        } catch(e) {}
+                    }
+
+                    const safeUrl = fileUrl.replace(/'/g, "\\'");
+                    const safeName = fileName.replace(/'/g, "\\'");
+
+                    html += `
+                        <div class="document-card">
+                            <div class="document-preview" onclick="previewDocument('${safeUrl}', ${isPDF}, '${safeName}')" style="cursor:pointer;">
+                                ${isPDF ?
+                            `<img src="${thumbnailUrl}" 
+                                          alt="${fileName}" 
+                                          onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-file-pdf document-icon\\' style=\\'color: #dc3545;\\'></i>';">` :
+                            isImage ?
+                                `<img src="${thumbnailUrl}" 
+                                          alt="${fileName}" 
+                                          onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-file-image document-icon\\' style=\\'color: var(--primary);\\'></i>';">` :
+                                `<i class="fas fa-file document-icon" style="color: var(--gray);"></i>`
+                        }
+                                <span class="document-badge ${isPDF ? '' : 'image'}">
+                                    ${isPDF ? 'PDF' : (isImage ? 'IMG' : 'FILE')}
+                                </span>
+                            </div>
+                            <div class="document-info">
+                                <div class="document-name" title="${fileName}">${shortName}</div>
+                                <div class="document-meta">
+                                    <span><i class="far fa-file"></i> ${isPDF ? 'PDF' : (isImage ? 'Image' : 'File')}</span>
+                                </div>
+                                ${uploadTimeHtml}
+                            </div>
+                            <div class="document-actions">
+                                <button class="btn-doc-view" onclick="previewDocument('${safeUrl}', ${isPDF}, '${safeName}')" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-doc-download" onclick="downloadDocument('${safeUrl}', '${safeName}')" title="Download">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                galleryRow.innerHTML = html;
+
+            } catch (error) {
+                console.error("Error loading documents gallery:", error);
+                loadingIndicator.classList.add('hidden');
+                noDocsMsg.classList.remove('hidden');
+                noDocsMsg.innerHTML = `<i class="fas fa-exclamation-circle"></i><p>Error loading documents</p><p style="font-size:0.8rem; margin-top:5px;">${error.message}</p>`;
+            }
+        }
+
+        async function downloadDocument(url, fileName) {
+            if (!url) { showAlert('Download URL not available', 'error'); return; }
+            showAlert('Downloading...', 'info');
+            try {
+                const response = await fetch(url, { mode: 'cors' });
+                if (!response.ok) throw new Error('Fetch failed');
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = fileName || 'document';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+                showAlert('Download complete!', 'success');
+            } catch (err) {
+                // Fallback: open in new tab if CORS blocks blob fetch
+                window.open(url, '_blank');
+                showAlert('Opened in new tab — use browser Save to download.', 'warning');
+            }
+        }
+
+        function previewDocument(url, isPDF, fileName) {
+            if (!url || url === '') {
+                showAlert('Document URL not available', 'error');
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'preview-modal';
+
+            if (isPDF) {
+                modal.innerHTML = `
+                    <div class="preview-pdf">
+                        <div class="preview-pdf-header">
+                            <h4 style="display: flex; align-items: center; gap: 10px; margin: 0;">
+                                <i class="fas fa-file-pdf"></i>
+                                ${fileName || 'PDF Document'}
+                            </h4>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <button class="preview-close" style="background: rgba(255,255,255,0.2); border-radius:8px; width:auto; height:auto; padding:8px 14px; position:static;" onclick="downloadDocument('${url.replace(/'/g, "\\'")}', '${(fileName||'document').replace(/'/g, "\\'")}')">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                                <button class="preview-close" onclick="this.closest('.preview-modal').remove()">
+                                    <i class="fas fa-times"></i> Close
+                                </button>
+                            </div>
+                        </div>
+                        <div class="preview-pdf-body">
+                            <iframe src="${url}" title="${fileName}"></iframe>
+                        </div>
+                    </div>
+                `;
+            } else {
+                modal.innerHTML = `
+                    <div class="preview-content">
+                        <img src="${url}" alt="${fileName || 'Image'}">
+                        <button class="preview-close" onclick="this.closest('.preview-modal').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <button onclick="downloadDocument('${url.replace(/'/g, "\\'")}', '${(fileName||'image').replace(/'/g, "\\'")}'); event.stopPropagation();" style="position:absolute; bottom:-45px; left:50%; transform:translateX(-50%); background: var(--primary); color:white; border:none; border-radius:8px; padding:10px 20px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; white-space:nowrap; font-size:0.9rem;">
+                            <i class="fas fa-download"></i> Download Image
+                        </button>
+                    </div>
+                `;
+            }
+
+            document.body.appendChild(modal);
+
+            modal.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.remove();
+                }
+            });
+
+            const escHandler = (e) => {
+                if (e.key === 'Escape') {
+                    modal.remove();
+                    document.removeEventListener('keydown', escHandler);
+                }
+            };
+            document.addEventListener('keydown', escHandler);
+        }
+
+        // ==================== BACK NAVIGATION ====================
+        function goBack() {
+            // Go back to the previously opened page (not open a new dashboard)
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        // Handle mobile hardware back button
+        window.addEventListener('popstate', function(e) {
+            // If popstate fires and we're still on workspace page, navigate back
+            if (window.location.pathname.includes('workspace') || window.location.href.includes('workspace')) {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
+            }
+        });
+
+        // Push a state so mobile back button is interceptable
+        window.addEventListener('load', function() {
+            if (!window.history.state || !window.history.state.workspace) {
+                window.history.pushState({ workspace: true }, '', window.location.href);
+            }
+        });
+        async function initApp() {
+            try {
+                showLoading('Loading Workspace...', 'Please wait');
+
+                applyTheme();
+
+                // 🔐 Check authentication and user active status
+                const user = await firebaseHelpers.checkAuthAndRedirect();
+                if (!user) return;
+
+                const userProfile = await firebaseHelpers.getUserProfile();
+                if (!userProfile || userProfile.status === 'inactive') {
+                    await firebaseHelpers.signOut();
+                    window.location.href = 'index.html?error=inactive';
+                    return;
+                }
+
+                currentUserEmail = user.email;
+
+                if (!currentCustomerId) {
+                    showAlert('No customer selected. Redirecting to dashboard.', 'error');
+                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+                    hideLoading();
+                    return;
+                }
+
+                await loadData();
+                setupRealtimeListener();
+
+            } catch (error) {
+                console.error("Error initializing workspace:", error);
+                if (error.message !== 'Not authenticated') {
+                    showAlert('Error loading workspace: ' + error.message, 'error');
+                }
+                hideLoading();
+            }
+        }
+
+        async function loadData() {
+            try {
+                settings = await firebaseHelpers.getSettings();
+                if (!settings) {
+                    settings = {
+                        rates: {
+                            cubeSet: { 1: 400, 2: 800, 3: 1000 },
+                            gsbTest: 1500
+                        }
+                    };
+                }
+                if (!settings.rates?.cubeSet) {
+                    if (!settings.rates) settings.rates = {};
+                    settings.rates.cubeSet = { 1: 400, 2: 800, 3: 1000 };
+                }
+                await loadCustomerData();
+            } catch (error) {
+                console.error("Error loading data:", error);
+                showAlert('Error loading data: ' + error.message, 'error');
+                hideLoading();
+            }
+        }
+
+        async function loadCustomerData() {
+            try {
+                const db = firebase.firestore();
+                const customerDoc = await db.collection(firebaseHelpers.CUSTOMERS_COLLECTION)
+                    .doc(currentCustomerId)
+                    .get();
+
+                if (!customerDoc.exists) {
+                    showAlert('Customer not found. Redirecting to dashboard.', 'error');
+                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+                    return;
+                }
+
+                currentCustomer = {
+                    id: customerDoc.id,
+                    ...customerDoc.data()
+                };
+
+                loadWorkspace(currentCustomer);
+
+                if (showDocumentsGallery) {
+                    await loadDocumentsGallery();
+                }
+
+                hideLoading();
+
+            } catch (error) {
+                console.error("Error loading customer:", error);
+                showAlert('Error loading customer: ' + error.message, 'error');
+                hideLoading();
+            }
+        }
+
+        function setupRealtimeListener() {
+            const db = firebase.firestore();
+            db.collection(firebaseHelpers.CUSTOMERS_COLLECTION)
+                .doc(currentCustomerId)
+                .onSnapshot(snapshot => {
+                    if (snapshot.exists) {
+                        currentCustomer = {
+                            id: snapshot.id,
+                            ...snapshot.data()
+                        };
+                        loadWorkspace(currentCustomer);
+                        if (showDocumentsGallery) {
+                            loadDocumentsGallery();
+                        }
+                    }
+                }, error => {
+                    console.error("Error listening to customer updates:", error);
+                });
+        }
+
+        // ==================== WORKSPACE FUNCTIONS ====================
+        function loadWorkspace(customer) {
+            if (!customer) return;
+
+            document.getElementById('workspace-customer-info').innerHTML = `
+                <div class="info-item">
+                    <h4>Customer Name</h4>
+                    <p>${customer.name || ''}</p>
+                </div>
+                <div class="info-item">
+                    <h4>Phone Number</h4>
+                    <p>${customer.phone || ''}</p>
+                </div>
+                <div class="info-item">
+                    <h4>Remark</h4>
+                    <p>${customer.remark || 'Not specified'}</p>
+                </div>
+                <div class="info-item">
+                    <h4>Workspace Created</h4>
+                    <p>${formatDate(customer.createdDate)}</p>
+                </div>
+            `;
+
+            const status = getCustomerStatus(customer);
+            const statusIndicator = document.getElementById('workspace-status-indicator');
+            statusIndicator.className = `customer-status status-${status}-bg`;
+            statusIndicator.innerHTML = `
+                <div class="status-dot status-${status}"></div>
+                <span>${getStatusText(status)}</span>
+            `;
+
+            const cubeCompleted = customer.cubeTests?.length || 0;
+            const gsbCompleted = customer.gsbTests?.length || 0;
+            const cubeExpected = customer.expectedCubeTests || 0;
+            const gsbExpected = customer.expectedGSBTests || 0;
+
+            const cubeWidth = cubeExpected > 0 ? Math.min(100, (cubeCompleted / cubeExpected) * 100) : 100;
+            const gsbWidth = gsbExpected > 0 ? Math.min(100, (gsbCompleted / gsbExpected) * 100) : 100;
+
+            document.getElementById('workspace-progress').innerHTML = `
+                <div class="progress-container">
+                    <span class="test-badge cube-badge">
+                        <i class="fas fa-cube"></i> Cube: ${cubeCompleted}/${cubeExpected || '∞'}
+                    </span>
+                    <div class="progress-bar">
+                        <div class="progress-fill cube" style="width: ${cubeWidth}%"></div>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <span class="test-badge gsb-badge">
+                        <i class="fas fa-filter"></i> GSB: ${gsbCompleted}/${gsbExpected || '∞'}
+                    </span>
+                    <div class="progress-bar">
+                        <div class="progress-fill gsb" style="width: ${gsbWidth}%"></div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('workspace-cube-count').textContent = `${cubeCompleted} Cube Tests`;
+            document.getElementById('workspace-gsb-count').textContent = `${gsbCompleted} GSB Tests`;
+
+            const totalTests = cubeCompleted + gsbCompleted;
+
+            // 🔥 FIXED: Cube Set Rate Calculation
+            const cubeSetPerTest = customer.cubeSetPerTest || 3; // Default to 3 if not set
+            const cubeRates = settings?.rates?.cubeSet || { 1: 400, 2: 800, 3: 1000 };
+            const cubeRate = cubeRates[cubeSetPerTest] || 1000;
+            
+            const completedCubeFee = cubeCompleted * cubeRate;
+            const completedGSBFee = gsbCompleted * (settings?.rates?.gsbTest || 1500);
+            const completedFee = completedCubeFee + completedGSBFee;
+
+            const expectedCubeFee = (cubeExpected || 0) * cubeRate;
+            const expectedGSBFee = (gsbExpected || 0) * (settings?.rates?.gsbTest || 1500);
+            const expectedFee = expectedCubeFee + expectedGSBFee;
+
+            const totalExpected = cubeExpected + gsbExpected;
+            document.getElementById('total-tests-done').textContent = totalExpected > 0 ? `${totalTests}/${totalExpected}` : totalTests;
+            
+            // Update Cubes per Set Display
+            const cubesPerSetDisplay = document.getElementById('cubes-per-set-display');
+            cubesPerSetDisplay.innerHTML = `
+                <i class="fas fa-cubes"></i>
+                <span>${cubeSetPerTest} cube${cubeSetPerTest > 1 ? 's' : ''}/set</span>
+            `;
+            
+            document.getElementById('total-fee-amount').textContent = `₹${completedFee.toLocaleString()}/${expectedFee.toLocaleString()}`;
+
+            const paymentStatus = customer.paymentStatus || 'pending';
+            document.getElementById('payment-status-display').innerHTML = `
+                <span class="payment-status payment-${paymentStatus}">
+                    ${paymentStatus === 'paid' ? '✅ Paid' : '⏳ Pending'}
+                </span>
+            `;
+
+            const markPaidBtn = document.getElementById('mark-paid-btn');
+            if (paymentStatus === 'paid') {
+                markPaidBtn.disabled = true;
+                markPaidBtn.innerHTML = '<i class="fas fa-check-circle"></i> Paid';
+                markPaidBtn.className = 'btn btn-success btn-sm';
+            } else {
+                markPaidBtn.disabled = false;
+                markPaidBtn.innerHTML = '<i class="fas fa-check-circle"></i> Mark as Paid';
+                markPaidBtn.className = 'btn btn-success btn-sm';
+            }
+
+            // Update Created By Badge
+            const createdByText = document.getElementById('created-by-text');
+            if (customer.createdBy) {
+                createdByText.textContent = `Added by: ${customer.createdBy}`;
+            } else {
+                createdByText.textContent = 'Added by: Unknown';
+            }
+
+            const addTestBtn = document.getElementById('add-test-btn');
+            const canAddMoreTests = canAddMoreTestsCheck(customer);
+
+            if (!canAddMoreTests) {
+                addTestBtn.disabled = true;
+                addTestBtn.innerHTML = '<i class="fas fa-ban"></i> All Tests Completed';
+                addTestBtn.title = 'All expected tests have been completed';
+            } else {
+                addTestBtn.disabled = false;
+                addTestBtn.innerHTML = '<i class="fas fa-plus"></i>';
+                addTestBtn.title = 'Add new test result';
+            }
+
+            loadTestHistory(customer);
+        }
+
+        function canAddMoreTestsCheck(customer) {
+            const cubeTestsDone = customer.cubeTests?.length || 0;
+            const gsbTestsDone = customer.gsbTests?.length || 0;
+            const expectedCube = customer.expectedCubeTests || 0;
+            const expectedGSB = customer.expectedGSBTests || 0;
+
+            if (expectedCube === 0 && expectedGSB === 0) return true;
+            const canAddCube = expectedCube === 0 || cubeTestsDone < expectedCube;
+            const canAddGSB = expectedGSB === 0 || gsbTestsDone < expectedGSB;
+            return canAddCube || canAddGSB;
+        }
+
+        function loadTestHistory(customer) {
+            const historyList = document.getElementById('test-history-list');
+            const emptyState = document.getElementById('empty-tests-state');
+
+            const allTests = [
+                ...(customer.cubeTests || []).map(test => ({ ...test, testType: 'cube' })),
+                ...(customer.gsbTests || []).map(test => ({ ...test, testType: 'gsb' }))
+            ];
+
+            if (allTests.length === 0) {
+                historyList.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            historyList.innerHTML = '';
+
+            allTests.forEach((test, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+
+                let details = '';
+                let projectName = test.projectName || '';
+                let clientDepartment = test.clientDepartment || '';
+
+                if (test.testType === 'cube') {
+                    const castingDate = test.castingDate ? formatDate(test.castingDate) : 'N/A';
+                    details = `
+                        ${projectName ? `<span class="history-detail-item"><i class="fas fa-building"></i> Pname: ${projectName}</span>` : ''}
+                        ${clientDepartment ? `<span class="history-detail-item"><i class="fas fa-user-tie"></i> Client: ${clientDepartment}</span>` : ''}
+                        <span class="history-detail-item"><i class="fas fa-layer-group"></i> Grade: ${test.grade}</span>
+                        <span class="history-detail-item"><i class="fas fa-calendar-alt"></i> Age: ${test.testAge} day</span>
+                        <span class="history-detail-item"><i class="fas fa-calendar-plus"></i> Casting: ${castingDate}</span>
+                    `;
+                } else {
+                    details = `
+                        ${projectName ? `<span class="history-detail-item"><i class="fas fa-building"></i> Pname: ${projectName}</span>` : ''}
+                        ${clientDepartment ? `<span class="history-detail-item"><i class="fas fa-user-tie"></i> Client: ${clientDepartment}</span>` : ''}
+                        <span class="history-detail-item"><i class="fas fa-filter"></i> Sieve Analysis Test</span>
+                    `;
+                }
+
+                const hasLinkedFile = test.linkedFileUrl ? true : false;
+
+                // Build smart filename: CustomerName_TestNo_ProjectName.ext
+                const customerName = (customer.name || 'Customer').replace(/[^a-zA-Z0-9\u0900-\u097F\u0D00-\u0D7F]/g, '_');
+                const testNo = index + 1;
+                const projName = (test.projectName || '').replace(/[^a-zA-Z0-9\u0900-\u097F\u0D00-\u0D7F]/g, '_');
+                const testTypeLbl = test.testType === 'cube' ? 'Cube' : 'GSB';
+                // Get original file extension
+                const origExt = (() => {
+                    const src = test.linkedFileUrl || test.linkedFileName || '';
+                    const m = src.match(/\.([a-zA-Z0-9]+)(\?|$)/);
+                    return m ? '.' + m[1] : '';
+                })();
+                const smartFileName = projName
+                    ? `${customerName}_${testTypeLbl}${testNo}_${projName}${origExt}`
+                    : `${customerName}_${testTypeLbl}${testNo}${origExt}`;
+                const safeSmartName = smartFileName.replace(/'/g, "\\'");
+                const safeLinkedUrl = (test.linkedFileUrl || '').replace(/'/g, "\\'");
+
+                historyItem.innerHTML = `
+                    <div class="history-item-content">
+                        <div class="test-number">${index + 1}</div>
+                        <div style="flex-grow: 1;">
+                            <h4>
+                                <span class="test-badge ${test.testType === 'cube' ? 'cube-badge' : 'gsb-badge'}">
+                                    <i class="fas ${test.testType === 'cube' ? 'fa-cube' : 'fa-filter'}"></i>
+                                    ${test.testType === 'cube' ? 'Cube Test' : 'GSB Test'}
+                                </span>
+                                <span class="approval-badge ${test.status === 'approved' ? 'approved' : 'pending'}">
+                                    ${test.status === 'approved' ? '✅ Approved' : '⏳ Pending'}
+                                </span>
+                            </h4>
+                            <div class="history-details">
+                                ${details}
+                            </div>
+                            <p class="history-date">
+                                <i class="far fa-calendar"></i> Test Date: ${formatDate(test.testDate || test.date)}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="history-actions">
+                        ${hasLinkedFile ? 
+                            `<button class="btn btn-info btn-xs" onclick="previewSimpleDocument('${safeLinkedUrl}', ${isPDFFile(test.linkedFileUrl, test.linkedFileName)}, '${safeSmartName}'); event.stopPropagation();" title="View Document">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-xs" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color:white;" onclick="downloadDocument('${safeLinkedUrl}', '${safeSmartName}'); event.stopPropagation();" title="Download: ${safeSmartName}">
+                                <i class="fas fa-download"></i>
+                            </button>` : ''}
+                        <button class="btn btn-info btn-xs" onclick="editTest('${test.id}', '${test.testType}')" title="Edit Test">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-xs" onclick="confirmDeleteTest('${test.id}', '${test.testType}')" title="Delete Test">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+
+                historyItem.onclick = (e) => {
+                    if (e.target.closest('.history-actions') || e.target.closest('button')) {
+                        e.stopPropagation();
+                        return;
+                    }
+                    localStorage.setItem('currentTestId', test.id);
+                    localStorage.setItem('currentTestType', test.testType);
+                    window.location.href = 'result.html';
+                };
+
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        function goToAddTestPage() {
+            if (!currentCustomer) return;
+            const canAddMoreTests = canAddMoreTestsCheck(currentCustomer);
+            if (!canAddMoreTests) {
+                showAlert('All expected tests have been completed. Cannot add more tests.', 'warning');
+                return;
+            }
+            window.location.href = 'add-test.html';
+        }
+
+        function editCustomer() {
+            window.location.href = 'edit-customer.html';
+        }
+
+        async function markAsPaid() {
+            if (!currentCustomer) return;
+            try {
+                await firebaseHelpers.updateCustomer(currentCustomer.id, { paymentStatus: 'paid' });
+                currentCustomer.paymentStatus = 'paid';
+                loadWorkspace(currentCustomer);
+                showAlert('Payment status updated to Paid!');
+            } catch (error) {
+                console.error("Error updating payment status:", error);
+                showAlert('Error updating payment status: ' + error.message, 'error');
+            }
+        }
+
+        function editTest(testId, testType) {
+            if (event) event.stopPropagation();
+            localStorage.setItem('currentTestId', testId);
+            localStorage.setItem('currentTestType', testType);
+            window.location.href = 'edit-test.html';
+        }
+
+        // ==================== TEST DELETE WITH DOUBLE CONFIRMATION ====================
+        function confirmDeleteTest(testId, testType) {
+            if (!currentCustomer) return;
+            if (event) event.stopPropagation();
+
+            let test;
+            if (testType === 'cube') {
+                test = currentCustomer.cubeTests?.find(t => t.id === testId);
+            } else {
+                test = currentCustomer.gsbTests?.find(t => t.id === testId);
+            }
+
+            if (!test) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Confirm Test Deletion</h3>
+                    </div>
+                    <div class="modal-body">
+                        <p>You are about to delete this ${testType === 'cube' ? 'Cube' : 'GSB'} Test:</p>
+                        <p style="font-size: 1.1rem; font-weight: 600; color: var(--primary); margin: 10px 0;">
+                            ${testType === 'cube' ? `Grade: ${test.grade || 'N/A'}, Age: ${test.testAge || 'N/A'} days` : `Sieve Analysis Test`}
+                        </p>
+                        <div class="warning-note">
+                            <i class="fas fa-exclamation-circle"></i>
+                            This action cannot be undone!
+                        </div>
+                        <p>Are you sure you want to proceed?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-btn modal-btn-cancel" id="cancelDeleteTest">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button class="modal-btn modal-btn-delete" id="proceedDeleteTest">
+                            <i class="fas fa-trash"></i> Yes, Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            document.getElementById('cancelDeleteTest').addEventListener('click', () => modal.remove());
+
+            document.getElementById('proceedDeleteTest').addEventListener('click', () => {
+                modal.remove();
+                showTestDeleteVerification(testId, testType);
+            });
+        }
+
+        function showTestDeleteVerification(testId, testType) {
+            const verificationCode = Math.floor(1000 + Math.random() * 9000);
+            sessionStorage.setItem('testDeleteVerificationCode', verificationCode);
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header" style="color: var(--primary);">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>Final Verification</h3>
+                    </div>
+                    <div class="modal-body">
+                        <p>Enter verification code to delete this test:</p>
+                        <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary); letter-spacing: 5px; text-align: center; margin: 20px 0;">
+                            ${verificationCode}
+                        </div>
+                        <div class="verification-input">
+                            <input type="number" id="testVerificationInput" placeholder="____" maxlength="4" autocomplete="off">
+                        </div>
+                        <div id="testVerificationError" style="color: var(--danger); text-align: center; margin-top: 10px; display: none;">
+                            <i class="fas fa-exclamation-circle"></i> Invalid verification code
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-btn modal-btn-cancel" id="cancelTestVerification">
+                            <i class="fas fa-arrow-left"></i> Go Back
+                        </button>
+                        <button class="modal-btn modal-btn-delete" id="confirmTestVerification" disabled>
+                            <i class="fas fa-check-double"></i> Confirm Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            const verificationInput = document.getElementById('testVerificationInput');
+            const confirmBtn = document.getElementById('confirmTestVerification');
+            const errorMsg = document.getElementById('testVerificationError');
+
+            verificationInput.addEventListener('input', function () {
+                const enteredCode = this.value;
+                confirmBtn.disabled = enteredCode.length !== 4;
+                errorMsg.style.display = 'none';
+
+                if (enteredCode.length === 4) {
+                    if (enteredCode === verificationCode.toString()) {
+                        this.style.borderColor = 'var(--status-green)';
+                    } else {
+                        this.style.borderColor = 'var(--danger)';
+                    }
+                } else {
+                    this.style.borderColor = 'var(--border)';
+                }
+            });
+
+            setTimeout(() => verificationInput.focus(), 100);
+
+            let expirationTimer = setTimeout(() => {
+                modal.remove();
+                showAlert('Verification code expired. Please try again.', 'error');
+            }, 120000);
+
+            document.getElementById('cancelTestVerification').addEventListener('click', () => {
+                clearTimeout(expirationTimer);
+                modal.remove();
+                confirmDeleteTest(testId, testType);
+            });
+
+            document.getElementById('confirmTestVerification').addEventListener('click', async () => {
+                const enteredCode = verificationInput.value;
+                const storedCode = sessionStorage.getItem('testDeleteVerificationCode');
+
+                if (enteredCode === storedCode) {
+                    clearTimeout(expirationTimer);
+                    modal.remove();
+                    sessionStorage.removeItem('testDeleteVerificationCode');
+                    await deleteTest(testId, testType);
+                } else {
+                    errorMsg.style.display = 'block';
+                    verificationInput.value = '';
+                    verificationInput.focus();
+                    confirmBtn.disabled = true;
+                }
+            });
+        }
+
+        async function deleteTest(testId, testType) {
+            if (!currentCustomer) return;
+
+            try {
+                let testArray;
+                if (testType === 'cube') {
+                    testArray = currentCustomer.cubeTests || [];
+                } else {
+                    testArray = currentCustomer.gsbTests || [];
+                }
+
+                const index = testArray.findIndex(t => t.id === testId);
+                if (index !== -1) {
+                    testArray.splice(index, 1);
+
+                    await firebaseHelpers.updateCustomer(currentCustomer.id, {
+                        cubeTests: currentCustomer.cubeTests || [],
+                        gsbTests: currentCustomer.gsbTests || [],
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    if (testType === 'cube') {
+                        currentCustomer.cubeTests = testArray;
+                    } else {
+                        currentCustomer.gsbTests = testArray;
+                    }
+
+                    loadWorkspace(currentCustomer);
+                    showAlert(`${testType === 'cube' ? 'Cube' : 'GSB'} Test deleted successfully!`, 'success');
+                }
+            } catch (error) {
+                console.error("Error deleting test:", error);
+                showAlert('Error deleting test: ' + error.message, 'error');
+            }
+        }
+
+        // ==================== CUSTOMER DELETE WITH DOUBLE CONFIRMATION ====================
+        function confirmDeleteCustomer() {
+            if (!currentCustomer) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Confirm Customer Deletion</h3>
+                    </div>
+                    <div class="modal-body">
+                        <p>You are about to delete customer: <strong>"${currentCustomer.name}"</strong></p>
+                        <div class="warning-note">
+                            <i class="fas fa-exclamation-circle"></i>
+                            This will permanently delete ALL test data and documents!
+                        </div>
+                        <p>Are you sure you want to proceed?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-btn modal-btn-cancel" id="cancelDeleteCustomer">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button class="modal-btn modal-btn-delete" id="proceedDeleteCustomer">
+                            <i class="fas fa-trash"></i> Yes, Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            document.getElementById('cancelDeleteCustomer').addEventListener('click', () => modal.remove());
+
+            document.getElementById('proceedDeleteCustomer').addEventListener('click', () => {
+                modal.remove();
+                setTimeout(() => showCustomerDeleteVerification(), 100);
+            });
+        }
+
+        function showCustomerDeleteVerification() {
+            const verificationCode = Math.floor(1000 + Math.random() * 9000);
+            sessionStorage.setItem('customerDeleteVerificationCode', verificationCode);
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header" style="color: var(--primary);">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>Final Verification</h3>
+                    </div>
+                    <div class="modal-body">
+                        <p>Enter verification code to delete <strong>"${currentCustomer.name}"</strong>:</p>
+                        <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary); letter-spacing: 5px; text-align: center; margin: 20px 0;">
+                            ${verificationCode}
+                        </div>
+                        <div class="verification-input">
+                            <input type="number" id="customerVerificationInput" placeholder="____" maxlength="4" autocomplete="off">
+                        </div>
+                        <div id="customerVerificationError" style="color: var(--danger); text-align: center; margin-top: 10px; display: none;">
+                            <i class="fas fa-exclamation-circle"></i> Invalid verification code
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-btn modal-btn-cancel" id="cancelCustomerVerification">
+                            <i class="fas fa-arrow-left"></i> Go Back
+                        </button>
+                        <button class="modal-btn modal-btn-delete" id="confirmCustomerVerification" disabled>
+                            <i class="fas fa-check-double"></i> Confirm Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            const verificationInput = document.getElementById('customerVerificationInput');
+            const confirmBtn = document.getElementById('confirmCustomerVerification');
+            const errorMsg = document.getElementById('customerVerificationError');
+
+            verificationInput.addEventListener('input', function () {
+                const enteredCode = this.value;
+                confirmBtn.disabled = enteredCode.length !== 4;
+                errorMsg.style.display = 'none';
+
+                if (enteredCode.length === 4) {
+                    if (enteredCode === verificationCode.toString()) {
+                        this.style.borderColor = 'var(--status-green)';
+                    } else {
+                        this.style.borderColor = 'var(--danger)';
+                    }
+                } else {
+                    this.style.borderColor = 'var(--border)';
+                }
+            });
+
+            setTimeout(() => verificationInput.focus(), 100);
+
+            let expirationTimer = setTimeout(() => {
+                modal.remove();
+                showAlert('Verification code expired. Please try again.', 'error');
+            }, 120000);
+
+            document.getElementById('cancelCustomerVerification').addEventListener('click', () => {
+                clearTimeout(expirationTimer);
+                modal.remove();
+                confirmDeleteCustomer();
+            });
+
+            document.getElementById('confirmCustomerVerification').addEventListener('click', async () => {
+                const enteredCode = verificationInput.value;
+                const storedCode = sessionStorage.getItem('customerDeleteVerificationCode');
+
+                if (enteredCode === storedCode) {
+                    clearTimeout(expirationTimer);
+                    modal.remove();
+                    sessionStorage.removeItem('customerDeleteVerificationCode');
+                    await performDeleteCustomer();
+                } else {
+                    errorMsg.style.display = 'block';
+                    verificationInput.value = '';
+                    verificationInput.focus();
+                    confirmBtn.disabled = true;
+                }
+            });
+        }
+
+        async function performDeleteCustomer() {
+            try {
+                await firebaseHelpers.deleteCustomer(currentCustomer.id);
+                showAlert(`Customer "${currentCustomer.name}" has been permanently deleted!`, 'success');
+                setTimeout(() => window.location.href = 'dashboard.html', 2000);
+            } catch (error) {
+                console.error("Error deleting customer:", error);
+                showAlert('Error deleting customer: ' + error.message, 'error');
+            }
+        }
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function getCustomerStatus(customer) {
+            const cubeTests = customer.cubeTests || [];
+            const gsbTests = customer.gsbTests || [];
+            const cubeExpected = customer.expectedCubeTests || 0;
+            const gsbExpected = customer.expectedGSBTests || 0;
+
+            const testsCompleted =
+                (cubeExpected === 0 || cubeTests.length >= cubeExpected) &&
+                (gsbExpected === 0 || gsbTests.length >= gsbExpected);
+
+            if (!testsCompleted) return 'red';
+
+            const allTestsApproved =
+                cubeTests.every(t => t.status === 'approved') &&
+                gsbTests.every(t => t.status === 'approved');
+
+            if (testsCompleted && customer.paymentStatus === 'paid' && allTestsApproved) return 'green';
+            else if (testsCompleted) return 'yellow';
+            else return 'red';
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 'red': return 'Active (Tests in Progress)';
+                case 'yellow': return 'Complete (Awaiting Payment/Approval)';
+                case 'green': return 'Closed (Paid & Approved)';
+                default: return 'Unknown';
+            }
+        }
+
+        function formatDate(dateInput) {
+            if (!dateInput) return 'N/A';
+            try {
+                let date;
+                if (dateInput?.toDate) date = dateInput.toDate();
+                else if (dateInput?.seconds) date = new Date(dateInput.seconds * 1000);
+                else if (typeof dateInput === 'string') date = new Date(dateInput);
+                else if (dateInput instanceof Date) date = dateInput;
+                else return 'N/A';
+
+                if (isNaN(date.getTime())) return 'N/A';
+                return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            } catch (e) {
+                return 'N/A';
+            }
+        }
+
+        function previewSimpleDocument(url, isPDF, fileName) {
+            previewDocument(url, isPDF, fileName);
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,2461 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis | Cube & GSB Test Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2canvas for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="icon" type="image/x-icon" href="assets/logo.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --primary-gradient: linear-gradient(135deg, #4361ee, #3a0ca3);
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --warning: #fbbf24;
+            --danger: #ef233c;
+            --info: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border: #dee2e6;
+            --cube-color: #3a0ca3;
+            --gsb-color: #f8961e;
+            --status-red: #ef233c;
+            --status-yellow: #fbbf24;
+            --status-green: #15803d;
+            --revenue-color: #15803d;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --hover-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--card-shadow);
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 30px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            text-decoration: none;
+        }
+
+        /* Premium Form Styles */
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            max-width: 1400px;
+            margin: 0 auto;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .form-header {
+            margin-bottom: 40px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid rgba(67, 97, 238, 0.1);
+            position: relative;
+        }
+
+        .form-header h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+
+            /* The Fix: Gradient Text Logic */
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+
+            -webkit-background-clip: text;
+            /* Chrome, Safari, Edge prefix */
+            background-clip: text;
+            /* Standard property for compatibility */
+
+            -webkit-text-fill-color: transparent;
+            /* Required for Webkit browsers */
+            color: transparent;
+            /* Standard fallback */
+        }
+
+        .form-header p {
+            color: var(--gray);
+            font-size: 1.1rem;
+            max-width: 800px;
+            line-height: 1.6;
+        }
+
+        .settings-section {
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .settings-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-section h3 {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(67, 97, 238, 0.1);
+        }
+
+        /* Premium KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .kpi-card {
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(114, 9, 183, 0.05));
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid rgba(67, 97, 238, 0.15);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.05), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(67, 97, 238, 0.15);
+            border-color: rgba(67, 97, 238, 0.3);
+        }
+
+        .kpi-card:hover::before {
+            opacity: 1;
+        }
+
+        .kpi-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+
+        .kpi-title {
+            flex: 1;
+        }
+
+        .kpi-title h4 {
+            font-size: 1rem;
+            color: var(--gray);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .kpi-title .period {
+            font-size: 0.85rem;
+            color: var(--gray);
+            opacity: 0.8;
+        }
+
+        .kpi-value {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .kpi-trend {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: rgba(21, 128, 61, 0.1);
+            color: var(--status-green);
+        }
+
+        .kpi-trend.negative {
+            background: rgba(239, 35, 60, 0.1);
+            color: var(--status-red);
+        }
+
+        /* Glass Effect for Test Analysis */
+        .test-analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .glass-card {
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.9), rgba(58, 12, 163, 0.8));
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            min-height: 250px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .glass-card:nth-child(2) {
+            background: linear-gradient(135deg, rgba(248, 150, 30, 0.9), rgba(251, 133, 0, 0.8));
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+        }
+
+        .analysis-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .analysis-header i {
+            font-size: 1.5rem;
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .analysis-header h5 {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        /* Date Filter Premium */
+        .date-filter-section {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 249, 250, 0.9));
+            border-radius: 16px;
+            border: 1px solid rgba(67, 97, 238, 0.1);
+        }
+
+        .date-filter-input {
+            padding: 12px 20px;
+            border: 2px solid rgba(67, 97, 238, 0.2);
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+            color: var(--dark);
+            min-width: 200px;
+            transition: all 0.3s ease;
+        }
+
+        .date-filter-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        /* Premium Charts */
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            height: 420px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .chart-card h4 {
+            font-size: 1.3rem;
+            color: var(--dark);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(67, 97, 238, 0.1);
+        }
+
+        .chart-wrapper {
+            width: 100%;
+            height: calc(100% - 60px);
+            position: relative;
+        }
+
+        /* Revenue Analysis Premium */
+        .revenue-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .revenue-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 249, 250, 0.9));
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid rgba(67, 97, 238, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .revenue-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(67, 97, 238, 0.1);
+        }
+
+        .revenue-card.cube {
+            border-left: 5px solid var(--cube-color);
+        }
+
+        .revenue-card.gsb {
+            border-left: 5px solid var(--gsb-color);
+        }
+
+        .revenue-card.total {
+            border-left: 5px solid var(--revenue-color);
+        }
+
+        /* Export Dropdown Premium - FIXED */
+        .export-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .export-dropdown-content {
+            display: none;
+            /* Fixed: Hide by default */
+            position: absolute;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            min-width: 250px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            border-radius: 16px;
+            overflow: hidden;
+            right: 0;
+            bottom: 100%;
+            margin-bottom: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.2s ease;
+        }
+
+        .export-dropdown-content.show {
+            display: block;
+            /* Show when toggled */
+        }
+
+        .export-option {
+            color: var(--dark);
+            padding: 15px 25px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .export-option:last-child {
+            border-bottom: none;
+        }
+
+        .export-option:hover {
+            background: rgba(67, 97, 238, 0.05);
+            padding-left: 30px;
+        }
+
+        .export-option i {
+            width: 25px;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        /* Premium Buttons */
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--status-green), #0f7a2e);
+            color: white;
+            box-shadow: 0 4px 15px rgba(21, 128, 61, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(21, 128, 61, 0.4);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid rgba(0, 0, 0, 0.05);
+        }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .status-active {
+            background: rgba(239, 35, 60, 0.1);
+            color: var(--status-red);
+        }
+
+        .status-complete {
+            background: rgba(251, 191, 36, 0.1);
+            color: var(--warning);
+        }
+
+        .status-closed {
+            background: rgba(21, 128, 61, 0.1);
+            color: var(--status-green);
+        }
+
+        /* Test Type Breakdown */
+        .test-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .breakdown-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        }
+
+        .toast {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 18px 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: slideIn 0.3s ease;
+            border-left: 5px solid var(--primary);
+            color: var(--dark);
+        }
+
+        .toast.success {
+            border-left-color: var(--status-green);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+
+        .toast.info {
+            border-left-color: var(--info);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-card {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .form-container {
+                padding: 25px;
+            }
+
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .test-analysis-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .revenue-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-card {
+                height: 350px;
+                padding: 20px;
+            }
+
+            .date-filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .form-actions {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .export-dropdown-content {
+                left: 0;
+                right: auto;
+                bottom: auto;
+                top: 100%;
+                margin-top: 10px;
+                margin-bottom: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 20px;
+            }
+
+            .form-header h2 {
+                font-size: 1.8rem;
+            }
+
+            .kpi-value {
+                font-size: 2.2rem;
+            }
+
+            .chart-card {
+                height: 300px;
+            }
+
+            .export-dropdown-content {
+                min-width: 200px;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(67, 97, 238, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <div class="container">
+        <a href="javascript:history.back()" class="back-button glass-effect">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+
+        <div class="form-container">
+            <div class="form-header">
+                <h2><i class="fas fa-chart-network"></i> Advanced Analytics Dashboard</h2>
+                <p>Comprehensive insights, performance metrics, and revenue analysis for your laboratory operations</p>
+            </div>
+
+            <!-- Date Filter Section -->
+            <div class="settings-section">
+                <h3><i class="fas fa-calendar-alt"></i> Analysis Period</h3>
+                <div class="date-filter-section">
+                    <select class="date-filter-input" id="analysis-period" onchange="changeAnalysisPeriod()">
+                        <option value="current_month">Current Month</option>
+                        <option value="last_month">Last Month</option>
+                        <option value="current_quarter">Current Quarter</option>
+                        <option value="last_quarter">Last Quarter</option>
+                        <option value="current_year">Current Year</option>
+                        <option value="last_year">Last Year</option>
+                        <option value="custom">Custom Range</option>
+                        <option value="all_time">All Time</option>
+                    </select>
+
+                    <div id="custom-date-range" class="hidden"
+                        style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <input type="date" id="start-date" class="date-filter-input" onchange="updateCustomDateRange()">
+                        <span>to</span>
+                        <input type="date" id="end-date" class="date-filter-input" onchange="updateCustomDateRange()">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="refreshAnalysis()">
+                        <i class="fas fa-sync-alt"></i> Refresh Analysis
+                    </button>
+                </div>
+            </div>
+
+            <!-- Key Performance Indicators -->
+            <div class="settings-section">
+                <h3><i class="fas fa-tachometer-alt"></i> Key Performance Indicators</h3>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="kpi-title">
+                                <h4>Total Customers</h4>
+                                <div class="period">All Time</div>
+                            </div>
+                        </div>
+                        <div class="kpi-value" id="total-customers-kpi">0</div>
+                        <div class="kpi-trend" id="customers-trend">0% vs last period</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon"
+                                style="background: linear-gradient(135deg, var(--cube-color), #5a1cb3);">
+                                <i class="fas fa-cube"></i>
+                            </div>
+                            <div class="kpi-title">
+                                <h4>Total Cube Tests</h4>
+                                <div class="period">All Time</div>
+                            </div>
+                        </div>
+                        <div class="kpi-value" id="total-cube-tests-kpi">0</div>
+                        <div class="kpi-trend" id="cube-trend">0% vs last period</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon"
+                                style="background: linear-gradient(135deg, var(--gsb-color), #ffaa33);">
+                                <i class="fas fa-filter"></i>
+                            </div>
+                            <div class="kpi-title">
+                                <h4>Total GSB Tests</h4>
+                                <div class="period">All Time</div>
+                            </div>
+                        </div>
+                        <div class="kpi-value" id="total-gsb-tests-kpi">0</div>
+                        <div class="kpi-trend" id="gsb-trend">0% vs last period</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon"
+                                style="background: linear-gradient(135deg, var(--revenue-color), #1a9c4d);">
+                                <i class="fas fa-rupee-sign"></i>
+                            </div>
+                            <div class="kpi-title">
+                                <h4>Total Revenue</h4>
+                                <div class="period">All Time</div>
+                            </div>
+                        </div>
+                        <div class="kpi-value" id="total-revenue-kpi">₹0</div>
+                        <div class="kpi-trend" id="revenue-trend">0% vs last period</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon" style="background: linear-gradient(135deg, #7209b7, #9d4edd);">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="kpi-title">
+                                <h4>Avg. Revenue/Customer</h4>
+                                <div class="period">All Time</div>
+                            </div>
+                        </div>
+                        <div class="kpi-value" id="avg-revenue-kpi">₹0</div>
+                        <div class="kpi-trend" id="avg-revenue-trend">0% vs last period</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon" style="background: linear-gradient(135deg, #f8961e, #fb8500);">
+                                <i class="fas fa-vial"></i>
+                            </div>
+                            <div class="kpi-title">
+                                <h4>Total Tests</h4>
+                                <div class="period">All Time</div>
+                            </div>
+                        </div>
+                        <div class="kpi-value" id="total-tests-kpi">0</div>
+                        <div class="kpi-trend" id="tests-trend">0% vs last period</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="settings-section">
+                <h3><i class="fas fa-chart-pie"></i> Visual Analytics</h3>
+                <div class="charts-container">
+                    <div class="chart-card">
+                        <h4><i class="fas fa-chart-pie"></i> Customer Status Distribution</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="statusPieChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h4><i class="fas fa-chart-bar"></i> Monthly Revenue Trend</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="revenueBarChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h4><i class="fas fa-chart-line"></i> Tests Over Time</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="testsLineChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h4><i class="fas fa-balance-scale"></i> Test Type Comparison</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="testTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Analysis -->
+            <div class="settings-section">
+                <h3><i class="fas fa-rupee-sign"></i> Revenue Analysis</h3>
+                <div class="revenue-grid">
+                    <div class="revenue-card cube">
+                        <h5><i class="fas fa-cube"></i> Cube Test Revenue</h5>
+                        <div class="kpi-value" id="cube-revenue">₹0</div>
+                        <div class="subtitle" id="cube-tests-count">0 tests</div>
+                        <div class="mt-20">
+                            <div class="status-indicator status-active" id="cube-pending">0 pending</div>
+                            <div class="status-indicator status-closed" id="cube-completed">0 completed</div>
+                        </div>
+                    </div>
+                    <div class="revenue-card gsb">
+                        <h5><i class="fas fa-filter"></i> GSB Test Revenue</h5>
+                        <div class="kpi-value" id="gsb-revenue">₹0</div>
+                        <div class="subtitle" id="gsb-tests-count">0 tests</div>
+                        <div class="mt-20">
+                            <div class="status-indicator status-active" id="gsb-pending">0 pending</div>
+                            <div class="status-indicator status-closed" id="gsb-completed">0 completed</div>
+                        </div>
+                    </div>
+                    <div class="revenue-card total">
+                        <h5><i class="fas fa-percentage"></i> Payment Status</h5>
+                        <div class="kpi-value" id="paid-revenue">₹0</div>
+                        <div class="subtitle" id="pending-revenue">₹0 pending</div>
+                        <div class="mt-20">
+                            <div class="status-indicator status-closed">Paid: <span id="paid-percentage">0%</span></div>
+                            <div class="status-indicator status-active">Pending: <span id="pending-percentage">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Analysis with Glass Effect -->
+            <div class="settings-section">
+                <h3><i class="fas fa-vial"></i> Test Analysis</h3>
+                <div class="test-analysis-grid">
+                    <div class="glass-card">
+                        <div class="analysis-header">
+                            <i class="fas fa-cube"></i>
+                            <h5>Cube Tests Breakdown</h5>
+                        </div>
+                        <div class="kpi-value" style="color: white; font-size: 2.5rem;" id="cube-tests-total">0</div>
+                        <div class="subtitle" style="color: rgba(255,255,255,0.8); margin-bottom: 20px;">Total Completed
+                        </div>
+                        <div class="mt-20">
+                            <div style="font-size: 1rem; color: rgba(255,255,255,0.9); margin-bottom: 10px;">By Grade:
+                            </div>
+                            <div id="cube-grades-breakdown" style="font-size: 0.95rem; line-height: 1.8; color: white;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card">
+                        <div class="analysis-header">
+                            <i class="fas fa-filter"></i>
+                            <h5>GSB Tests Breakdown</h5>
+                        </div>
+                        <div class="kpi-value" style="color: white; font-size: 2.5rem;" id="gsb-tests-total">0</div>
+                        <div class="subtitle" style="color: rgba(255,255,255,0.8); margin-bottom: 20px;">Total Completed
+                        </div>
+                        <div class="mt-20">
+                            <div style="font-size: 1rem; color: rgba(255,255,255,0.9); margin-bottom: 10px;">Approval
+                                Status:</div>
+                            <div id="gsb-approval-breakdown"
+                                style="font-size: 0.95rem; line-height: 1.8; color: white;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="test-breakdown mt-30">
+                    <div class="breakdown-card">
+                        <h5><i class="fas fa-chart-bar"></i> Test Performance Metrics</h5>
+                        <div class="mt-20">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <span>Average Tests per Customer:</span>
+                                <strong id="avg-tests-per-customer">0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <span>Test Completion Rate:</span>
+                                <strong id="test-completion-rate">0%</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <span>Revenue per Test:</span>
+                                <strong id="revenue-per-test">₹0</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="breakdown-card">
+                        <h5><i class="fas fa-calendar-check"></i> Monthly Performance</h5>
+                        <div class="mt-20">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <span>Current Month Tests:</span>
+                                <strong id="current-month-tests">0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <span>Current Month Revenue:</span>
+                                <strong id="current-month-revenue">₹0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Monthly Growth:</span>
+                                <strong id="monthly-growth" class="kpi-trend">0%</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-outline" onclick="window.location.href='dashboard.html'">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <div class="export-dropdown">
+                    <button type="button" class="btn btn-primary" onclick="toggleExportDropdown()">
+                        <i class="fas fa-download"></i> Export Report
+                    </button>
+                    <!-- Export dropdown now hidden by default -->
+                    <div class="export-dropdown-content" id="export-dropdown">
+                        <div class="export-option" onclick="exportReport('json')">
+                            <i class="fas fa-file-code"></i> Export as JSON
+                        </div>
+                        <div class="export-option" onclick="exportReport('excel')">
+                            <i class="fas fa-file-excel"></i> Export as Excel (All Records)
+                        </div>
+                        <div class="export-option" onclick="exportReport('excel_summary')">
+                            <i class="fas fa-file-alt"></i> Export Summary Excel
+                        </div>
+                        <div class="export-option" onclick="exportReport('text')">
+                            <i class="fas fa-file-alt"></i> Export as Text
+                        </div>
+                        <div class="export-option" onclick="exportReport('pdf')">
+                            <i class="fas fa-file-pdf"></i> Export as PDF
+                        </div>
+                        <div class="export-option" onclick="exportReport('csv')">
+                            <i class="fas fa-file-csv"></i> Export as CSV
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        // ==================== GLOBAL VARIABLES ====================
+        let customers = [];
+        let settings = null;
+        let analysisData = {
+            period: 'current_month',
+            startDate: null,
+            endDate: null,
+            previousStartDate: null,
+            previousEndDate: null
+        };
+
+        let charts = {
+            statusPieChart: null,
+            revenueBarChart: null,
+            testsLineChart: null,
+            testTypeChart: null
+        };
+
+        let historicalData = {
+            monthlyRevenue: [],
+            monthlyTests: [],
+            labels: []
+        };
+
+        // ==================== TOAST NOTIFICATIONS ====================
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-times-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas ${icons[type]}"></i>
+                </div>
+                <div>${message}</div>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // ==================== INITIALIZATION ====================
+        async function initApp() {
+            try {
+                console.log("Starting analysis initialization...");
+                showToast('Loading analytics dashboard...', 'info');
+
+                // Check authentication
+                await firebaseHelpers.checkAuthAndRedirect();
+
+                // Load settings and customers
+                await loadData();
+
+                // Initialize date range
+                initDateRange();
+
+                // Load historical data
+                await loadHistoricalData();
+
+                // Update analysis
+                updateAnalysis();
+
+                showToast('Dashboard loaded successfully', 'success');
+
+            } catch (error) {
+                console.error("Error initializing analysis:", error);
+                if (error.message !== 'Not authenticated') {
+                    showToast('Error loading analysis: ' + error.message, 'error');
+                }
+            }
+        }
+
+        async function loadData() {
+            try {
+                // Load settings
+                settings = await firebaseHelpers.getSettings();
+                if (!settings) {
+                    showToast('Error loading settings', 'error');
+                    return;
+                }
+
+                // Load customers
+                await loadCustomers();
+
+            } catch (error) {
+                console.error("Error loading data:", error);
+                showToast('Error loading data: ' + error.message, 'error');
+            }
+        }
+
+        // ✅ FIXED: Removed userId filter to show ALL customers
+        async function loadCustomers() {
+            try {
+                const userId = firebaseHelpers.getUserId();
+                if (!userId) {
+                    showToast('User not authenticated', 'error');
+                    return;
+                }
+
+                const db = firebase.firestore();
+                // Get ALL customers - NO userId filter
+                const snapshot = await db.collection("customers").get();
+
+                customers = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                console.log(`Loaded ${customers.length} customers`);
+
+            } catch (error) {
+                console.error("Error loading customers:", error);
+                showToast('Error loading customers: ' + error.message, 'error');
+            }
+        }
+
+        async function loadHistoricalData() {
+            try {
+                const userId = firebaseHelpers.getUserId();
+                if (!userId || customers.length === 0) return;
+
+                // Generate last 12 months of data
+                const now = new Date();
+                historicalData.labels = [];
+                historicalData.monthlyRevenue = [];
+                historicalData.monthlyTests = [];
+                historicalData.monthlyCubeTests = [];
+                historicalData.monthlyGSBTests = [];
+
+                for (let i = 11; i >= 0; i--) {
+                    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                    historicalData.labels.push(monthName);
+
+                    // Calculate data for this month
+                    let monthRevenue = 0;
+                    let monthTests = 0;
+                    let monthCubeTests = 0;
+                    let monthGSBTests = 0;
+
+                    const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+                    const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+                    customers.forEach(customer => {
+                        const customerCubeTests = customer.cubeTests || [];
+                        const customerGSBTests = customer.gsbTests || [];
+
+                        // Get customer-specific cube rate
+                        const custCubeSetKey = customer.cubeSetPerTest || 3;
+                        const custCubeRates = settings.rates.cubeSet || { 1: 400, 2: 800, 3: 1000 };
+                        const custCubeRate = custCubeRates[custCubeSetKey] || settings.rates.cubeTest || 1000;
+
+                        // Check tests in this month
+                        customerCubeTests.forEach(test => {
+                            const testDate = getDateFromFirestore(test.date || test.testDate);
+                            if (testDate >= startOfMonth && testDate <= endOfMonth) {
+                                monthRevenue += custCubeRate;
+                                monthTests++;
+                                monthCubeTests++;
+                            }
+                        });
+
+                        customerGSBTests.forEach(test => {
+                            const testDate = getDateFromFirestore(test.date || test.testDate);
+                            if (testDate >= startOfMonth && testDate <= endOfMonth) {
+                                monthRevenue += settings.rates.gsbTest;
+                                monthTests++;
+                                monthGSBTests++;
+                            }
+                        });
+                    });
+
+                    historicalData.monthlyRevenue.push(monthRevenue);
+                    historicalData.monthlyTests.push(monthTests);
+                    historicalData.monthlyCubeTests.push(monthCubeTests);
+                    historicalData.monthlyGSBTests.push(monthGSBTests);
+                }
+
+                console.log('Historical data loaded:', historicalData);
+
+            } catch (error) {
+                console.error("Error loading historical data:", error);
+            }
+        }
+
+        // ==================== DATE RANGE FUNCTIONS ====================
+        function initDateRange() {
+            const today = new Date();
+            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+            // Set previous period (last month)
+            const startOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+
+            analysisData.startDate = startOfMonth;
+            analysisData.endDate = endOfMonth;
+            analysisData.previousStartDate = startOfLastMonth;
+            analysisData.previousEndDate = endOfLastMonth;
+
+            // Set default values for date inputs
+            document.getElementById('start-date').value = startOfMonth.toISOString().split('T')[0];
+            document.getElementById('end-date').value = endOfMonth.toISOString().split('T')[0];
+        }
+
+        function changeAnalysisPeriod() {
+            const period = document.getElementById('analysis-period').value;
+            const customRangeDiv = document.getElementById('custom-date-range');
+
+            if (period === 'custom') {
+                customRangeDiv.classList.remove('hidden');
+                customRangeDiv.style.display = 'flex';
+                updateCustomDateRange();
+            } else {
+                customRangeDiv.classList.add('hidden');
+                customRangeDiv.style.display = 'none';
+                updateDateRangeByPeriod(period);
+            }
+        }
+
+        function updateDateRangeByPeriod(period) {
+            const today = new Date();
+            let startDate, endDate, previousStartDate, previousEndDate;
+
+            switch (period) {
+                case 'current_month':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                    previousStartDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    previousEndDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                    break;
+                case 'last_month':
+                    startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                    previousStartDate = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+                    previousEndDate = new Date(today.getFullYear(), today.getMonth() - 1, 0);
+                    break;
+                case 'current_quarter':
+                    const currentQuarter = Math.floor(today.getMonth() / 3);
+                    startDate = new Date(today.getFullYear(), currentQuarter * 3, 1);
+                    endDate = new Date(today.getFullYear(), (currentQuarter + 1) * 3, 0);
+                    previousStartDate = new Date(today.getFullYear(), (currentQuarter - 1) * 3, 1);
+                    previousEndDate = new Date(today.getFullYear(), currentQuarter * 3, 0);
+                    break;
+                case 'last_quarter':
+                    const lastQuarter = Math.floor(today.getMonth() / 3) - 1;
+                    startDate = new Date(today.getFullYear(), lastQuarter * 3, 1);
+                    endDate = new Date(today.getFullYear(), (lastQuarter + 1) * 3, 0);
+                    previousStartDate = new Date(today.getFullYear(), (lastQuarter - 1) * 3, 1);
+                    previousEndDate = new Date(today.getFullYear(), lastQuarter * 3, 0);
+                    break;
+                case 'current_year':
+                    startDate = new Date(today.getFullYear(), 0, 1);
+                    endDate = new Date(today.getFullYear(), 11, 31);
+                    previousStartDate = new Date(today.getFullYear() - 1, 0, 1);
+                    previousEndDate = new Date(today.getFullYear() - 1, 11, 31);
+                    break;
+                case 'last_year':
+                    startDate = new Date(today.getFullYear() - 1, 0, 1);
+                    endDate = new Date(today.getFullYear() - 1, 11, 31);
+                    previousStartDate = new Date(today.getFullYear() - 2, 0, 1);
+                    previousEndDate = new Date(today.getFullYear() - 2, 11, 31);
+                    break;
+                case 'all_time':
+                    // For all time, we'll use a very old date and today
+                    startDate = new Date(2000, 0, 1);
+                    endDate = new Date();
+                    previousStartDate = new Date(2000, 0, 1);
+                    previousEndDate = new Date(2000, 11, 31);
+                    break;
+            }
+
+            analysisData.startDate = startDate;
+            analysisData.endDate = endDate;
+            analysisData.previousStartDate = previousStartDate;
+            analysisData.previousEndDate = previousEndDate;
+            analysisData.period = period;
+
+            updateAnalysis();
+        }
+
+        function updateCustomDateRange() {
+            const startInput = document.getElementById('start-date').value;
+            const endInput = document.getElementById('end-date').value;
+
+            if (startInput && endInput) {
+                const startDate = new Date(startInput);
+                const endDate = new Date(endInput);
+
+                // Calculate previous period (same duration before start date)
+                const duration = endDate.getTime() - startDate.getTime();
+                const previousStartDate = new Date(startDate.getTime() - duration);
+                const previousEndDate = new Date(startDate.getTime() - 1);
+
+                analysisData.startDate = startDate;
+                analysisData.endDate = endDate;
+                analysisData.previousStartDate = previousStartDate;
+                analysisData.previousEndDate = previousEndDate;
+                analysisData.period = 'custom';
+                updateAnalysis();
+            }
+        }
+
+        function refreshAnalysis() {
+            updateAnalysis();
+            showToast('Analysis refreshed', 'success');
+        }
+
+        // ==================== ANALYSIS FUNCTIONS ====================
+        function updateAnalysis() {
+            if (customers.length === 0) return;
+
+            const { startDate, endDate, previousStartDate, previousEndDate } = analysisData;
+
+            // Initialize counters
+            let periodCustomers = 0;
+            let periodCubeTests = 0;
+            let periodGSBTests = 0;
+            let periodRevenue = 0;
+            let periodPaidRevenue = 0;
+            let periodPendingRevenue = 0;
+
+            // All-time counters
+            let totalCustomersAllTime = customers.length;
+            let totalCubeTestsAll = 0;
+            let totalGSBTestsAll = 0;
+            let totalRevenueAll = 0;
+            let totalPaidRevenueAll = 0;
+            let totalPendingRevenueAll = 0;
+
+            let cubeRevenue = 0;
+            let gsbRevenue = 0;
+
+            let activeCount = 0;
+            let completeCount = 0;
+            let closedCount = 0;
+
+            const cubeGrades = {};
+            const gsbApproval = { approved: 0, pending: 0 };
+
+            // Previous period counters for comparison
+            let previousPeriodCustomers = 0;
+            let previousPeriodRevenue = 0;
+            let previousPeriodCubeTests = 0;
+            let previousPeriodGSBTests = 0;
+
+            // Process each customer
+            customers.forEach(customer => {
+                const createdDate = getDateFromFirestore(customer.createdDate);
+
+                // Check if customer was created in the period
+                if (createdDate >= startDate && createdDate <= endDate) {
+                    periodCustomers++;
+                }
+
+                // Check for previous period
+                if (createdDate >= previousStartDate && createdDate <= previousEndDate) {
+                    previousPeriodCustomers++;
+                }
+
+                // Calculate status
+                const status = getCustomerStatus(customer);
+                if (status === 'red') activeCount++;
+                else if (status === 'yellow') completeCount++;
+                else if (status === 'green') closedCount++;
+
+                const customerCubeTests = customer.cubeTests || [];
+                const customerGSBTests = customer.gsbTests || [];
+
+                // Get customer-specific cube rate based on cubeSetPerTest
+                const cubeSetKey = customer.cubeSetPerTest || 3;
+                const cubeRates = settings.rates.cubeSet || { 1: 400, 2: 800, 3: 1000 };
+                const customerCubeRate = cubeRates[cubeSetKey] || settings.rates.cubeTest || 1000;
+
+                // Count tests in current period
+                customerCubeTests.forEach(test => {
+                    const testDate = getDateFromFirestore(test.date || test.testDate);
+                    const testValue = customerCubeRate;
+
+                    // All-time totals
+                    totalCubeTestsAll++;
+                    totalRevenueAll += testValue;
+
+                    if (testDate >= startDate && testDate <= endDate) {
+                        periodCubeTests++;
+                        periodRevenue += testValue;
+                        cubeRevenue += testValue;
+
+                        // Track cube grades
+                        const grade = test.grade || 'Unknown';
+                        cubeGrades[grade] = (cubeGrades[grade] || 0) + 1;
+                    }
+
+                    // Previous period
+                    if (testDate >= previousStartDate && testDate <= previousEndDate) {
+                        previousPeriodCubeTests++;
+                        previousPeriodRevenue += testValue;
+                    }
+                });
+
+                customerGSBTests.forEach(test => {
+                    const testDate = getDateFromFirestore(test.date || test.testDate);
+                    const testValue = settings.rates.gsbTest;
+
+                    // All-time totals
+                    totalGSBTestsAll++;
+                    totalRevenueAll += testValue;
+
+                    if (testDate >= startDate && testDate <= endDate) {
+                        periodGSBTests++;
+                        periodRevenue += testValue;
+                        gsbRevenue += testValue;
+
+                        // Track GSB approval status
+                        if (test.status === 'approved') {
+                            gsbApproval.approved++;
+                        } else {
+                            gsbApproval.pending++;
+                        }
+                    }
+
+                    // Previous period
+                    if (testDate >= previousStartDate && testDate <= previousEndDate) {
+                        previousPeriodGSBTests++;
+                        previousPeriodRevenue += testValue;
+                    }
+                });
+
+                // Payment status - All-time revenue per customer (total tests * rate)
+                const customerRevenueAll = (customerCubeTests.length * customerCubeRate) +
+                    (customerGSBTests.length * settings.rates.gsbTest);
+
+                // Period revenue per customer (only tests within selected period)
+                const customerCubePeriodTests = customerCubeTests.filter(test => {
+                    const testDate = getDateFromFirestore(test.date || test.testDate);
+                    return testDate >= startDate && testDate <= endDate;
+                });
+                const customerGSBPeriodTests = customerGSBTests.filter(test => {
+                    const testDate = getDateFromFirestore(test.date || test.testDate);
+                    return testDate >= startDate && testDate <= endDate;
+                });
+                const customerRevenuePeriod = (customerCubePeriodTests.length * customerCubeRate) +
+                    (customerGSBPeriodTests.length * settings.rates.gsbTest);
+
+                if (customer.paymentStatus === 'paid') {
+                    totalPaidRevenueAll += customerRevenueAll;
+                    periodPaidRevenue += customerRevenuePeriod;
+                } else {
+                    totalPendingRevenueAll += customerRevenueAll;
+                    periodPendingRevenue += customerRevenuePeriod;
+                }
+            });
+
+            // Calculate percentages
+            const totalCustomers = customers.length;
+            const activePercentage = totalCustomers > 0 ? Math.round((activeCount / totalCustomers) * 100) : 0;
+            const completePercentage = totalCustomers > 0 ? Math.round((completeCount / totalCustomers) * 100) : 0;
+            const closedPercentage = totalCustomers > 0 ? Math.round((closedCount / totalCustomers) * 100) : 0;
+
+            // Calculate averages
+            const avgRevenuePerCustomer = totalCustomers > 0 ? Math.round(totalRevenueAll / totalCustomers) : 0;
+            const avgTestsPerCustomer = totalCustomers > 0 ? ((totalCubeTestsAll + totalGSBTestsAll) / totalCustomers).toFixed(1) : 0;
+            const revenuePerTest = (totalCubeTestsAll + totalGSBTestsAll) > 0 ?
+                Math.round(totalRevenueAll / (totalCubeTestsAll + totalGSBTestsAll)) : 0;
+
+            // Calculate test completion rate
+            const totalExpectedTests = customers.reduce((sum, customer) => {
+                return sum + (customer.expectedCubeTests || 0) + (customer.expectedGSBTests || 0);
+            }, 0);
+            const testCompletionRate = totalExpectedTests > 0 ?
+                Math.round(((totalCubeTestsAll + totalGSBTestsAll) / totalExpectedTests) * 100) : 0;
+
+            // Calculate payment percentages (use paid+pending as base for accuracy)
+            const totalPaymentBase = totalPaidRevenueAll + totalPendingRevenueAll;
+            const paidPercentage = totalPaymentBase > 0 ? Math.round((totalPaidRevenueAll / totalPaymentBase) * 100) : 0;
+            const pendingPercentage = totalPaymentBase > 0 ? Math.round((totalPendingRevenueAll / totalPaymentBase) * 100) : 0;
+
+            // Calculate growth percentages
+            const customersGrowth = previousPeriodCustomers > 0 ?
+                Math.round(((periodCustomers - previousPeriodCustomers) / previousPeriodCustomers) * 100) : 0;
+            const revenueGrowth = previousPeriodRevenue > 0 ?
+                Math.round(((periodRevenue - previousPeriodRevenue) / previousPeriodRevenue) * 100) : 0;
+            const cubeGrowth = previousPeriodCubeTests > 0 ?
+                Math.round(((periodCubeTests - previousPeriodCubeTests) / previousPeriodCubeTests) * 100) : 0;
+            const gsbGrowth = previousPeriodGSBTests > 0 ?
+                Math.round(((periodGSBTests - previousPeriodGSBTests) / previousPeriodGSBTests) * 100) : 0;
+            const testsGrowth = (previousPeriodCubeTests + previousPeriodGSBTests) > 0 ?
+                Math.round((((periodCubeTests + periodGSBTests) - (previousPeriodCubeTests + previousPeriodGSBTests)) /
+                    (previousPeriodCubeTests + previousPeriodGSBTests)) * 100) : 0;
+            const avgRevenueGrowth = previousPeriodRevenue > 0 && previousPeriodCustomers > 0 ?
+                Math.round((((periodRevenue / Math.max(1, periodCustomers)) - (previousPeriodRevenue / Math.max(1, previousPeriodCustomers))) /
+                    (previousPeriodRevenue / Math.max(1, previousPeriodCustomers))) * 100) : 0;
+
+            // Update UI elements
+            updateKPIs(totalCustomersAllTime, totalCubeTestsAll, totalGSBTestsAll, totalRevenueAll,
+                avgRevenuePerCustomer, totalCubeTestsAll + totalGSBTestsAll,
+                customersGrowth, revenueGrowth, cubeGrowth, gsbGrowth, testsGrowth, avgRevenueGrowth);
+            updateRevenueStats(totalRevenueAll, avgRevenuePerCustomer, revenuePerTest, cubeRevenue, gsbRevenue,
+                periodPaidRevenue, periodPendingRevenue, paidPercentage, pendingPercentage,
+                totalCubeTestsAll, totalGSBTestsAll);
+            updateTestAnalysis(totalCubeTestsAll, totalGSBTestsAll, cubeGrades, gsbApproval);
+            updatePerformanceMetrics(avgTestsPerCustomer, testCompletionRate, revenuePerTest,
+                periodCubeTests + periodGSBTests, periodRevenue, revenueGrowth);
+
+            // Update charts
+            updateCharts(activeCount, completeCount, closedCount, cubeRevenue, gsbRevenue);
+        }
+
+        function getDateFromFirestore(dateField) {
+            if (!dateField) return new Date();
+
+            if (dateField.toDate) {
+                return dateField.toDate();
+            } else if (dateField.seconds) {
+                return new Date(dateField.seconds * 1000);
+            } else if (typeof dateField === 'string') {
+                return new Date(dateField);
+            } else {
+                return new Date();
+            }
+        }
+
+        function getCustomerStatus(customer) {
+            const cubeTests = customer.cubeTests || [];
+            const gsbTests = customer.gsbTests || [];
+
+            const cubeExpected = customer.expectedCubeTests || 0;
+            const gsbExpected = customer.expectedGSBTests || 0;
+
+            const testsCompleted =
+                (cubeExpected === 0 || cubeTests.length >= cubeExpected) &&
+                (gsbExpected === 0 || gsbTests.length >= gsbExpected);
+
+            if (!testsCompleted) {
+                return 'red';
+            }
+
+            const allTestsApproved =
+                cubeTests.every(t => t.status === 'approved') &&
+                gsbTests.every(t => t.status === 'approved');
+
+            if (testsCompleted && customer.paymentStatus === 'paid' && allTestsApproved) {
+                return 'green';
+            } else if (testsCompleted) {
+                return 'yellow';
+            } else {
+                return 'red';
+            }
+        }
+
+        // ==================== UI UPDATE FUNCTIONS ====================
+        function updateKPIs(totalCustomers, totalCube, totalGSB, totalRevenue, avgRevenue, totalTests,
+            customersGrowth, revenueGrowth, cubeGrowth, gsbGrowth, testsGrowth, avgRevenueGrowth) {
+            // Update KPI values
+            document.getElementById('total-customers-kpi').textContent = totalCustomers.toLocaleString();
+            document.getElementById('total-cube-tests-kpi').textContent = totalCube.toLocaleString();
+            document.getElementById('total-gsb-tests-kpi').textContent = totalGSB.toLocaleString();
+            document.getElementById('total-revenue-kpi').textContent = `₹${totalRevenue.toLocaleString()}`;
+            document.getElementById('avg-revenue-kpi').textContent = `₹${avgRevenue.toLocaleString()}`;
+            document.getElementById('total-tests-kpi').textContent = totalTests.toLocaleString();
+
+            // Update trends
+            updateTrend('customers-trend', customersGrowth);
+            updateTrend('revenue-trend', revenueGrowth);
+            updateTrend('cube-trend', cubeGrowth);
+            updateTrend('gsb-trend', gsbGrowth);
+            updateTrend('tests-trend', testsGrowth);
+            updateTrend('avg-revenue-trend', avgRevenueGrowth);
+        }
+
+        function updateTrend(elementId, growth) {
+            const element = document.getElementById(elementId);
+            if (growth > 0) {
+                element.innerHTML = `<i class="fas fa-arrow-up"></i> ${Math.abs(growth)}%`;
+                element.className = 'kpi-trend';
+            } else if (growth < 0) {
+                element.innerHTML = `<i class="fas fa-arrow-down"></i> ${Math.abs(growth)}%`;
+                element.className = 'kpi-trend negative';
+            } else {
+                element.innerHTML = '0%';
+                element.className = 'kpi-trend';
+            }
+        }
+
+        function updateRevenueStats(totalRevenue, avgRevenue, revenuePerTest, cubeRevenue, gsbRevenue, paidRevenue, pendingRevenue, paidPercent, pendingPercent, totalCubeSets, totalGSBTests) {
+            document.getElementById('cube-revenue').textContent = `₹${cubeRevenue.toLocaleString()}`;
+            document.getElementById('gsb-revenue').textContent = `₹${gsbRevenue.toLocaleString()}`;
+            document.getElementById('paid-revenue').textContent = `₹${paidRevenue.toLocaleString()}`;
+            document.getElementById('pending-revenue').textContent = `₹${pendingRevenue.toLocaleString()}`;
+
+            document.getElementById('cube-tests-count').textContent = `${totalCubeSets || 0} sets`;
+            document.getElementById('gsb-tests-count').textContent = `${totalGSBTests || 0} tests`;
+
+            document.getElementById('paid-percentage').textContent = `${paidPercent}%`;
+            document.getElementById('pending-percentage').textContent = `${pendingPercent}%`;
+        }
+
+        function updateTestAnalysis(cubeTotal, gsbTotal, cubeGrades, gsbApproval) {
+            document.getElementById('cube-tests-total').textContent = cubeTotal.toLocaleString();
+            document.getElementById('gsb-tests-total').textContent = gsbTotal.toLocaleString();
+
+            // Update cube grades breakdown
+            let gradesHtml = '';
+            for (const [grade, count] of Object.entries(cubeGrades)) {
+                const percentage = cubeTotal > 0 ? Math.round((count / cubeTotal) * 100) : 0;
+                gradesHtml += `<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>${grade}:</span>
+                    <span>${count} (${percentage}%)</span>
+                </div>`;
+            }
+            document.getElementById('cube-grades-breakdown').innerHTML = gradesHtml || '<div>No data</div>';
+
+            // Update GSB approval breakdown
+            const gsbTotalPeriod = gsbApproval.approved + gsbApproval.pending;
+            const approvedPercent = gsbTotalPeriod > 0 ? Math.round((gsbApproval.approved / gsbTotalPeriod) * 100) : 0;
+            const pendingPercent = gsbTotalPeriod > 0 ? Math.round((gsbApproval.pending / gsbTotalPeriod) * 100) : 0;
+
+            document.getElementById('gsb-approval-breakdown').innerHTML = `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Approved:</span>
+                    <span>${gsbApproval.approved} (${approvedPercent}%)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Pending:</span>
+                    <span>${gsbApproval.pending} (${pendingPercent}%)</span>
+                </div>
+            `;
+        }
+
+        function updatePerformanceMetrics(avgTestsPerCustomer, completionRate, revenuePerTest, currentMonthTests, currentMonthRevenue, monthlyGrowth) {
+            document.getElementById('avg-tests-per-customer').textContent = avgTestsPerCustomer;
+            document.getElementById('test-completion-rate').textContent = `${completionRate}%`;
+            document.getElementById('revenue-per-test').textContent = `₹${revenuePerTest.toLocaleString()}`;
+            document.getElementById('current-month-tests').textContent = currentMonthTests.toLocaleString();
+            document.getElementById('current-month-revenue').textContent = `₹${currentMonthRevenue.toLocaleString()}`;
+
+            const growthElement = document.getElementById('monthly-growth');
+            if (monthlyGrowth > 0) {
+                growthElement.innerHTML = `<i class="fas fa-arrow-up"></i> ${Math.abs(monthlyGrowth)}%`;
+                growthElement.className = 'kpi-trend';
+            } else if (monthlyGrowth < 0) {
+                growthElement.innerHTML = `<i class="fas fa-arrow-down"></i> ${Math.abs(monthlyGrowth)}%`;
+                growthElement.className = 'kpi-trend negative';
+            } else {
+                growthElement.textContent = '0%';
+                growthElement.className = 'kpi-trend';
+            }
+        }
+
+        // ==================== CHART FUNCTIONS ====================
+        function updateCharts(activeCount, completeCount, closedCount, cubeRevenue, gsbRevenue) {
+            updateStatusPieChart(activeCount, completeCount, closedCount);
+            updateRevenueBarChart();
+            updateTestsLineChart();
+            updateTestTypeChart(cubeRevenue, gsbRevenue);
+        }
+
+        function updateStatusPieChart(active, complete, closed) {
+            const ctx = document.getElementById('statusPieChart').getContext('2d');
+
+            if (charts.statusPieChart) {
+                charts.statusPieChart.destroy();
+            }
+
+            charts.statusPieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Active', 'Complete', 'Closed'],
+                    datasets: [{
+                        data: [active, complete, closed],
+                        backgroundColor: [
+                            'rgba(239, 35, 60, 0.8)',
+                            'rgba(251, 191, 36, 0.8)',
+                            'rgba(21, 128, 61, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(239, 35, 60, 1)',
+                            'rgba(251, 191, 36, 1)',
+                            'rgba(21, 128, 61, 1)'
+                        ],
+                        borderWidth: 2,
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function updateRevenueBarChart() {
+            const ctx = document.getElementById('revenueBarChart').getContext('2d');
+
+            if (charts.revenueBarChart) {
+                charts.revenueBarChart.destroy();
+            }
+
+            charts.revenueBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: historicalData.labels,
+                    datasets: [{
+                        label: 'Monthly Revenue (₹)',
+                        data: historicalData.monthlyRevenue,
+                        backgroundColor: 'rgba(67, 97, 238, 0.7)',
+                        borderColor: 'rgba(67, 97, 238, 1)',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        hoverBackgroundColor: 'rgba(67, 97, 238, 0.9)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return '₹' + value.toLocaleString();
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return 'Revenue: ₹' + context.raw.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTestsLineChart() {
+            const ctx = document.getElementById('testsLineChart').getContext('2d');
+
+            if (charts.testsLineChart) {
+                charts.testsLineChart.destroy();
+            }
+
+            charts.testsLineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: historicalData.labels,
+                    datasets: [
+                        {
+                            label: 'Cube Tests',
+                            data: historicalData.monthlyCubeTests,
+                            borderColor: 'rgba(58, 12, 163, 1)',
+                            backgroundColor: 'rgba(58, 12, 163, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        },
+                        {
+                            label: 'GSB Tests',
+                            data: historicalData.monthlyGSBTests,
+                            borderColor: 'rgba(248, 150, 30, 1)',
+                            backgroundColor: 'rgba(248, 150, 30, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTestTypeChart(cubeTests, gsbTests) {
+            const ctx = document.getElementById('testTypeChart').getContext('2d');
+
+            if (charts.testTypeChart) {
+                charts.testTypeChart.destroy();
+            }
+
+            charts.testTypeChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Cube Tests', 'GSB Tests'],
+                    datasets: [{
+                        data: [cubeTests, gsbTests],
+                        backgroundColor: [
+                            'rgba(58, 12, 163, 0.8)',
+                            'rgba(248, 150, 30, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(58, 12, 163, 1)',
+                            'rgba(248, 150, 30, 1)'
+                        ],
+                        borderWidth: 2,
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                    return `${label}: ₹${value.toLocaleString()} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==================== EXPORT FUNCTIONS ====================
+        function toggleExportDropdown() {
+            const dropdown = document.getElementById('export-dropdown');
+            dropdown.classList.toggle('show');
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function closeDropdown(e) {
+                if (!e.target.closest('.export-dropdown')) {
+                    dropdown.classList.remove('show');
+                    document.removeEventListener('click', closeDropdown);
+                }
+            });
+        }
+
+        function exportReport(format) {
+            try {
+                showToast(`Preparing ${format.toUpperCase()} report...`, 'info');
+
+                // Gather all data for export
+                const exportData = generateExportData();
+
+                switch (format) {
+                    case 'json':
+                        exportAsJSON(exportData);
+                        break;
+                    case 'excel':
+                        exportAsExcel(exportData, true); // All records
+                        break;
+                    case 'excel_summary':
+                        exportAsExcel(exportData, false); // Summary only
+                        break;
+                    case 'text':
+                        exportAsText(exportData);
+                        break;
+                    case 'pdf':
+                        exportAsPDF(exportData);
+                        break;
+                    case 'csv':
+                        exportAsCSV(exportData);
+                        break;
+                }
+
+                // Close dropdown after selection
+                document.getElementById('export-dropdown').classList.remove('show');
+
+            } catch (error) {
+                console.error("Error exporting report:", error);
+                showToast('Error exporting report: ' + error.message, 'error');
+            }
+        }
+
+        function generateExportData() {
+            const { startDate, endDate } = analysisData;
+
+            // Calculate all metrics
+            let allTimeCustomers = customers.length;
+            let allTimeCubeTests = 0;
+            let allTimeGSBTests = 0;
+            let allTimeRevenue = 0;
+            let allTimePaidRevenue = 0;
+
+            const detailedRecords = [];
+            const cubeGradesSummary = {};
+            const gsbApprovalSummary = { approved: 0, pending: 0 };
+
+            // Process all customers for detailed records
+            customers.forEach(customer => {
+                const customerCubeTests = customer.cubeTests || [];
+                const customerGSBTests = customer.gsbTests || [];
+
+                // All-time totals
+                allTimeCubeTests += customerCubeTests.length;
+                allTimeGSBTests += customerGSBTests.length;
+
+                // Use customer-specific cube rate
+                const expCubeSetKey = customer.cubeSetPerTest || 3;
+                const expCubeRates = settings.rates.cubeSet || { 1: 400, 2: 800, 3: 1000 };
+                const expCubeRate = expCubeRates[expCubeSetKey] || settings.rates.cubeTest || 1000;
+                const cubeRevenue = customerCubeTests.length * expCubeRate;
+                const gsbRevenue = customerGSBTests.length * settings.rates.gsbTest;
+                const customerRevenue = cubeRevenue + gsbRevenue;
+                allTimeRevenue += customerRevenue;
+
+                if (customer.paymentStatus === 'paid') {
+                    allTimePaidRevenue += customerRevenue;
+                }
+
+                // Cube grades summary
+                customerCubeTests.forEach(test => {
+                    const grade = test.grade || 'Unknown';
+                    cubeGradesSummary[grade] = (cubeGradesSummary[grade] || 0) + 1;
+                });
+
+                // GSB approval summary
+                customerGSBTests.forEach(test => {
+                    if (test.status === 'approved') {
+                        gsbApprovalSummary.approved++;
+                    } else {
+                        gsbApprovalSummary.pending++;
+                    }
+                });
+
+                // Detailed record for Excel
+                detailedRecords.push({
+                    'Customer ID': customer.id,
+                    'Name': customer.name,
+                    'Phone': customer.phone,
+                    'Email': customer.email || '',
+                    'Created Date': formatDate(getDateFromFirestore(customer.createdDate)),
+                    'Status': getCustomerStatus(customer),
+                    'Cube Tests': customerCubeTests.length,
+                    'GSB Tests': customerGSBTests.length,
+                    'Total Tests': customerCubeTests.length + customerGSBTests.length,
+                    'Expected Cube Tests': customer.expectedCubeTests || 0,
+                    'Expected GSB Tests': customer.expectedGSBTests || 0,
+                    'Payment Status': customer.paymentStatus || 'pending',
+                    'Cube Revenue': '₹' + cubeRevenue.toLocaleString(),
+                    'GSB Revenue': '₹' + gsbRevenue.toLocaleString(),
+                    'Total Revenue': '₹' + customerRevenue.toLocaleString(),
+                    'Address': customer.address || '',
+                    'Remarks': customer.remarks || ''
+                });
+            });
+
+            // Calculate period data
+            let periodCustomers = 0;
+            let periodCubeTests = 0;
+            let periodGSBTests = 0;
+            let periodRevenue = 0;
+
+            customers.forEach(customer => {
+                const createdDate = getDateFromFirestore(customer.createdDate);
+                if (createdDate >= startDate && createdDate <= endDate) {
+                    periodCustomers++;
+                }
+
+                const customerCubeTests = customer.cubeTests || [];
+                const customerGSBTests = customer.gsbTests || [];
+
+                // Get customer-specific cube rate for period calc
+                const perCubeSetKey = customer.cubeSetPerTest || 3;
+                const perCubeRates = settings.rates.cubeSet || { 1: 400, 2: 800, 3: 1000 };
+                const perCubeRate = perCubeRates[perCubeSetKey] || settings.rates.cubeTest || 1000;
+
+                customerCubeTests.forEach(test => {
+                    const testDate = getDateFromFirestore(test.date || test.testDate);
+                    if (testDate >= startDate && testDate <= endDate) {
+                        periodCubeTests++;
+                        periodRevenue += perCubeRate;
+                    }
+                });
+
+                customerGSBTests.forEach(test => {
+                    const testDate = getDateFromFirestore(test.date || test.testDate);
+                    if (testDate >= startDate && testDate <= endDate) {
+                        periodGSBTests++;
+                        periodRevenue += settings.rates.gsbTest;
+                    }
+                });
+            });
+
+            // Generate summary
+            const summary = {
+                'Report Period': `${formatDate(startDate)} to ${formatDate(endDate)}`,
+                'Generated': new Date().toLocaleString(),
+                'Total Customers (All Time)': allTimeCustomers,
+                'Total Cube Tests (All Time)': allTimeCubeTests,
+                'Total GSB Tests (All Time)': allTimeGSBTests,
+                'Total Tests (All Time)': allTimeCubeTests + allTimeGSBTests,
+                'Total Revenue (All Time)': '₹' + allTimeRevenue.toLocaleString(),
+                'Paid Revenue (All Time)': '₹' + allTimePaidRevenue.toLocaleString(),
+                'Pending Revenue (All Time)': '₹' + (allTimeRevenue - allTimePaidRevenue).toLocaleString(),
+                'Average Revenue per Customer': '₹' + (allTimeCustomers > 0 ? Math.round(allTimeRevenue / allTimeCustomers) : 0).toLocaleString(),
+                'Period Customers': periodCustomers,
+                'Period Cube Tests': periodCubeTests,
+                'Period GSB Tests': periodGSBTests,
+                'Period Revenue': '₹' + periodRevenue.toLocaleString(),
+                'Cube Test Rate': '₹' + settings.rates.cubeTest.toLocaleString(),
+                'GSB Test Rate': '₹' + settings.rates.gsbTest.toLocaleString()
+            };
+
+            // Cube grades breakdown
+            const cubeGrades = [];
+            for (const [grade, count] of Object.entries(cubeGradesSummary)) {
+                cubeGrades.push({ 'Grade': grade, 'Count': count });
+            }
+
+            // GSB approval breakdown
+            const gsbApproval = [
+                { 'Status': 'Approved', 'Count': gsbApprovalSummary.approved },
+                { 'Status': 'Pending', 'Count': gsbApprovalSummary.pending }
+            ];
+
+            return {
+                analysis: {
+                    period: analysisData.period,
+                    startDate: startDate.toISOString().split('T')[0],
+                    endDate: endDate.toISOString().split('T')[0],
+                    generatedAt: new Date().toISOString()
+                },
+                summary,
+                detailedRecords,
+                cubeGrades,
+                gsbApproval,
+                settings: {
+                    rates: settings.rates,
+                    sieveSizes: settings.sieveSizes || [],
+                    cubeDefaults: settings.cubeDefaults || {}
+                }
+            };
+        }
+
+        function exportAsJSON(data) {
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+            const exportFileName = `lab-analysis-${new Date().toISOString().split('T')[0]}.json`;
+
+            downloadFile(dataUri, exportFileName);
+            showToast('JSON report exported successfully!', 'success');
+        }
+
+        function exportAsExcel(data, includeAllRecords = false) {
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+
+            // Summary sheet
+            const summaryData = Object.entries(data.summary).map(([key, value]) => ({ 'Metric': key, 'Value': value }));
+            const summaryWS = XLSX.utils.json_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, summaryWS, "Summary");
+
+            if (includeAllRecords) {
+                // Detailed records sheet
+                const recordsWS = XLSX.utils.json_to_sheet(data.detailedRecords);
+                XLSX.utils.book_append_sheet(wb, recordsWS, "All Records");
+
+                // Cube grades sheet
+                const cubeGradesWS = XLSX.utils.json_to_sheet(data.cubeGrades);
+                XLSX.utils.book_append_sheet(wb, cubeGradesWS, "Cube Grades");
+
+                // GSB approval sheet
+                const gsbApprovalWS = XLSX.utils.json_to_sheet(data.gsbApproval);
+                XLSX.utils.book_append_sheet(wb, gsbApprovalWS, "GSB Approval");
+
+                // Settings sheet
+                const settingsData = [
+                    { 'Setting': 'Cube Test Rate', 'Value': '₹' + data.settings.rates.cubeTest },
+                    { 'Setting': 'GSB Test Rate', 'Value': '₹' + data.settings.rates.gsbTest },
+                    { 'Setting': 'Sieve Sizes', 'Value': data.settings.sieveSizes.join(', ') },
+                    { 'Setting': 'Default Cube Age', 'Value': data.settings.cubeDefaults.age || 'N/A' },
+                    { 'Setting': 'Default Cube Grade', 'Value': data.settings.cubeDefaults.grade || 'N/A' }
+                ];
+                const settingsWS = XLSX.utils.json_to_sheet(settingsData);
+                XLSX.utils.book_append_sheet(wb, settingsWS, "Settings");
+            }
+
+            // Generate and download
+            const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+
+            const fileName = includeAllRecords ?
+                `lab-analysis-full-${new Date().toISOString().split('T')[0]}.xlsx` :
+                `lab-analysis-summary-${new Date().toISOString().split('T')[0]}.xlsx`;
+
+            downloadFile(url, fileName);
+            showToast(`Excel report exported successfully! (${includeAllRecords ? 'All Records' : 'Summary'})`, 'success');
+        }
+
+        function exportAsText(data) {
+            let textContent = `===========================================\n`;
+            textContent += `CUBE & GSB TEST DASHBOARD - ANALYSIS REPORT\n`;
+            textContent += `===========================================\n\n`;
+            textContent += `Report Period: ${data.summary['Report Period']}\n`;
+            textContent += `Generated: ${data.summary['Generated']}\n\n`;
+
+            textContent += `SUMMARY\n`;
+            textContent += `-------\n`;
+            for (const [key, value] of Object.entries(data.summary)) {
+                if (key !== 'Report Period' && key !== 'Generated') {
+                    textContent += `${key}: ${value}\n`;
+                }
+            }
+            textContent += `\n`;
+
+            textContent += `CUSTOMER RECORDS (First 50)\n`;
+            textContent += `--------------------------\n`;
+            data.detailedRecords.slice(0, 50).forEach((record, index) => {
+                textContent += `${index + 1}. ${record.Name} - ${record.Phone}\n`;
+                textContent += `   Status: ${record.Status} | Tests: ${record['Total Tests']} | Revenue: ${record['Total Revenue']}\n\n`;
+            });
+
+            if (data.detailedRecords.length > 50) {
+                textContent += `... and ${data.detailedRecords.length - 50} more records\n\n`;
+            }
+
+            const blob = new Blob([textContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+
+            downloadFile(url, `lab-analysis-${new Date().toISOString().split('T')[0]}.txt`);
+            showToast('Text report exported successfully!', 'success');
+        }
+
+        function exportAsPDF(data) {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                // Add header
+                doc.setFontSize(20);
+                doc.setTextColor(67, 97, 238);
+                doc.text('Cube & GSB Test Dashboard - Analysis Report', 20, 20);
+
+                doc.setFontSize(10);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Report Period: ${data.summary['Report Period']}`, 20, 30);
+                doc.text(`Generated: ${data.summary['Generated']}`, 20, 36);
+
+                // Add summary table
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Summary', 20, 50);
+
+                doc.setFontSize(10);
+                let yPos = 60;
+                const summaryEntries = Object.entries(data.summary);
+
+                for (let i = 0; i < summaryEntries.length; i++) {
+                    if (i === 2) continue; // Skip report period and generated
+
+                    const [key, value] = summaryEntries[i];
+
+                    if (yPos > 270) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+
+                    doc.text(key + ':', 20, yPos);
+                    doc.text(value.toString(), 100, yPos);
+                    yPos += 8;
+
+                    if (i === 10 || i === 20) {
+                        yPos += 5; // Add spacing between sections
+                    }
+                }
+
+                // Add customer list (first page only)
+                yPos += 15;
+                if (yPos > 250) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                doc.setFontSize(14);
+                doc.text('Customer List (Sample)', 20, yPos);
+                yPos += 10;
+
+                doc.setFontSize(8);
+                // Add table headers
+                doc.text('No.', 20, yPos);
+                doc.text('Name', 30, yPos);
+                doc.text('Phone', 80, yPos);
+                doc.text('Tests', 120, yPos);
+                doc.text('Revenue', 140, yPos);
+                doc.text('Status', 180, yPos);
+                yPos += 5;
+
+                // Add horizontal line
+                doc.line(20, yPos, 190, yPos);
+                yPos += 7;
+
+                // Add customer rows (limit to 30 for PDF)
+                const customersToShow = data.detailedRecords.slice(0, 30);
+                customersToShow.forEach((record, index) => {
+                    if (yPos > 270) {
+                        doc.addPage();
+                        yPos = 20;
+                        doc.setFontSize(8);
+                    }
+
+                    doc.text(`${index + 1}.`, 20, yPos);
+                    doc.text(record.Name.substring(0, 20), 30, yPos);
+                    doc.text(record.Phone || 'N/A', 80, yPos);
+                    doc.text(record['Total Tests'].toString(), 120, yPos);
+                    doc.text(record['Total Revenue'], 140, yPos);
+                    doc.text(record.Status.toUpperCase(), 180, yPos);
+                    yPos += 7;
+                });
+
+                // Add footer
+                const totalPages = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= totalPages; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text(`Page ${i} of ${totalPages}`, 105, 285, { align: 'center' });
+                    doc.text(`© ${new Date().getFullYear()} College of Engineering Vadakara`, 105, 290, { align: 'center' });
+                }
+
+                // Save PDF
+                doc.save(`lab-analysis-${new Date().toISOString().split('T')[0]}.pdf`);
+                showToast('PDF report exported successfully!', 'success');
+
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+                showToast('Error generating PDF report', 'error');
+            }
+        }
+
+        function exportAsCSV(data) {
+            // Convert detailed records to CSV
+            let csvContent = 'Customer ID,Name,Phone,Email,Created Date,Status,Cube Tests,GSB Tests,Total Tests,Expected Cube Tests,Expected GSB Tests,Payment Status,Cube Revenue,GSB Revenue,Total Revenue,Address,Remarks\n';
+
+            data.detailedRecords.forEach(record => {
+                const row = [
+                    record['Customer ID'],
+                    `"${record.Name}"`,
+                    record.Phone,
+                    `"${record.Email}"`,
+                    record['Created Date'],
+                    record.Status,
+                    record['Cube Tests'],
+                    record['GSB Tests'],
+                    record['Total Tests'],
+                    record['Expected Cube Tests'],
+                    record['Expected GSB Tests'],
+                    record['Payment Status'],
+                    record['Cube Revenue'],
+                    record['GSB Revenue'],
+                    record['Total Revenue'],
+                    `"${record.Address}"`,
+                    `"${record.Remarks}"`
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+
+            downloadFile(url, `lab-analysis-${new Date().toISOString().split('T')[0]}.csv`);
+            showToast('CSV report exported successfully!', 'success');
+        }
+
+        function downloadFile(url, filename) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function formatDate(date) {
+            if (!date) return 'N/A';
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+
+</html>

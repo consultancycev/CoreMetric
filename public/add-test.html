@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Add Test Result | Cube & GSB Test Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="assets/logo.png">
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --warning: #fbbf24;
+            --danger: #ef233c;
+            --info: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border: #dee2e6;
+            --cube-color: #3a0ca3;
+            --gsb-color: #f8961e;
+            --status-red: #ef233c;
+            --status-yellow: #fbbf24;
+            --status-green: #15803d;
+            --bg-color: #f5f7fb;
+            --card-bg: #ffffff;
+            --disabled-bg: #e9ecef;
+            --disabled-color: #6c757d;
+            --disabled-border: #ced4da;
+            --hint-color: #6c757d;
+            --document-select-color: #2ecc71;
+        }
+
+        .dark-theme {
+            --primary: #6c8eff;
+            --primary-dark: #5a7eff;
+            --secondary: #9d4edd;
+            --success: #5ac8fa;
+            --warning: #ffd166;
+            --danger: #ff6b6b;
+            --info: #64d2ff;
+            --light: #1a1a1a;
+            --dark: #ffffff;
+            --gray: #a0a0a0;
+            --light-gray: #2d2d2d;
+            --border: #404040;
+            --cube-color: #8a5cf5;
+            --gsb-color: #ffb347;
+            --status-red: #ff6b6b;
+            --status-yellow: #ffd166;
+            --status-green: #4caf50;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --disabled-bg: #2d2d2d;
+            --disabled-color: #6c6c6c;
+            --disabled-border: #404040;
+            --hint-color: #888888;
+            --document-select-color: #2ecc71;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--dark);
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+        }
+
+        /* Loading Overlay */
+        .loading-simple {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+        .loading-box {
+            background: var(--light);
+            padding: 30px 40px;
+            border-radius: 16px;
+            text-align: center;
+        }
+        .dark-theme .loading-box {
+            background: #1e1e1e;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--light-gray);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .hidden { display: none !important; }
+
+        /* Alert Toast */
+        .alert-toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            min-width: 280px;
+            max-width: 380px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            font-size: 0.95rem;
+            z-index: 99999;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+            animation: toastSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .alert-toast.hiding {
+            animation: toastSlideOut 0.3s ease forwards;
+        }
+        .alert-toast-icon {
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        .alert-toast-message {
+            flex: 1;
+            line-height: 1.4;
+        }
+        .alert-toast-close {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0;
+            flex-shrink: 0;
+            transition: color 0.2s;
+        }
+        .alert-toast-close:hover { color: white; }
+        .alert-toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: rgba(255,255,255,0.4);
+            animation: toastProgress 3s linear forwards;
+        }
+        .alert-success { background: linear-gradient(135deg, #15803d, #16a34a); }
+        .alert-error   { background: linear-gradient(135deg, #dc2626, #ef4444); }
+        .alert-info    { background: linear-gradient(135deg, #2563eb, #4895ef); }
+        .alert-warning { background: linear-gradient(135deg, #d97706, #f59e0b); }
+        @keyframes toastSlideIn {
+            from { transform: translateX(110%); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
+        }
+        @keyframes toastSlideOut {
+            from { transform: translateX(0);    opacity: 1; }
+            to   { transform: translateX(110%); opacity: 0; }
+        }
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to   { width: 0%; }
+        }
+        @media (max-width: 480px) {
+            .alert-toast {
+                top: auto;
+                bottom: 24px;
+                right: 16px;
+                left: 16px;
+                min-width: unset;
+                max-width: unset;
+            }
+        }
+
+        /* Header */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 30px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            background: rgba(67, 97, 238, 0.05);
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+        .dark-theme .back-button { background: rgba(108, 142, 255, 0.1); }
+        .back-button:hover { background: rgba(67, 97, 238, 0.1); }
+        .dark-theme .back-button:hover { background: rgba(108, 142, 255, 0.2); }
+
+        /* Form Container */
+        .form-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .dark-theme .form-container { box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); }
+
+        .form-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+        .form-header h2 {
+            font-size: 1.8rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .form-header p { color: var(--gray); font-size: 0.95rem; }
+
+        /* Test Type Selector */
+        .test-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .test-type-card {
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--card-bg);
+            position: relative;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: pan-y;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .test-type-card:active:not(.disabled) { transform: scale(0.98); }
+        .test-type-card.selected:not(.disabled) {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.1);
+        }
+        .dark-theme .test-type-card.selected:not(.disabled) {
+            background-color: rgba(108, 142, 255, 0.1);
+            box-shadow: 0 5px 15px rgba(108, 142, 255, 0.2);
+        }
+        .test-type-card.disabled { cursor: not-allowed; opacity: 0.6; border-color: var(--disabled-border); background-color: var(--disabled-bg); }
+        .test-type-icon { font-size: 3rem; margin-bottom: 15px; height: 80px; display: flex; align-items: center; justify-content: center; }
+        .cube-card .test-type-icon { color: var(--cube-color); }
+        .gsb-card .test-type-icon { color: var(--gsb-color); }
+        .test-type-card h3 { font-size: 1.4rem; margin-bottom: 10px; color: var(--dark); }
+        .test-type-card p { color: var(--gray); font-size: 0.9rem; line-height: 1.5; }
+        .disabled-badge { position: absolute; top: 10px; right: 10px; background: var(--danger); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
+        @media (max-width: 768px) {
+            .test-type-selector {
+                grid-template-columns: 1fr 1fr;
+            }
+            .test-type-card {
+                padding: 18px 10px;
+            }
+            .test-type-icon { font-size: 2rem; height: 55px; margin-bottom: 10px; }
+            .test-type-card h3 { font-size: 1.1rem; margin-bottom: 6px; }
+            .test-type-card p { font-size: 0.8rem; }
+        }
+
+        /* Cube Set Info Badge */
+        .cube-set-info {
+            background: linear-gradient(135deg, rgba(58, 12, 163, 0.1), rgba(58, 12, 163, 0.05));
+            border: 1px solid rgba(58, 12, 163, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--cube-color);
+            font-weight: 500;
+        }
+        .cube-set-info i {
+            font-size: 1.5rem;
+        }
+
+        /* Warning / Info */
+        .expected-limit-warning, .zero-limit-indicator, .completed-limit-warning {
+            border-radius: 8px; padding: 15px; margin: 15px 0; display: flex; align-items: center; gap: 12px; font-weight: 500;
+        }
+        .expected-limit-warning { background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 191, 36, 0.05)); border: 1px solid rgba(251, 191, 36, 0.2); color: var(--warning); }
+        .zero-limit-indicator { background: linear-gradient(135deg, rgba(108, 117, 125, 0.1), rgba(108, 117, 125, 0.05)); border: 1px solid rgba(108, 117, 125, 0.2); color: var(--gray); }
+        .completed-limit-warning { background: linear-gradient(135deg, rgba(239, 35, 60, 0.1), rgba(239, 35, 60, 0.05)); border: 1px solid rgba(239, 35, 60, 0.2); color: var(--danger); }
+
+        /* Documents Gallery */
+        .documents-gallery {
+            margin: 20px 0 25px;
+            padding: 20px 0;
+            border-top: 2px solid var(--border);
+            border-bottom: 2px solid var(--border);
+        }
+        .gallery-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
+        }
+        .gallery-header h3 {
+            font-size: 1.2rem; display: flex; align-items: center; gap: 8px; color: var(--dark);
+        }
+        .gallery-header h3 i { color: var(--primary); }
+        .documents-count {
+            background: var(--primary); color: white; padding: 4px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: 600;
+        }
+        .gallery-scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            padding-bottom: 10px;
+        }
+        .gallery-scroll-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        .gallery-scroll-container::-webkit-scrollbar-track {
+            background: var(--light-gray);
+            border-radius: 10px;
+        }
+        .gallery-scroll-container::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+        .gallery-row {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+            padding: 5px 2px;
+            white-space: nowrap;
+        }
+        .document-card {
+            flex: 0 0 auto;
+            width: 140px;
+            background: var(--light);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            touch-action: pan-y pinch-zoom;
+        }
+        .dark-theme .document-card { background: #1e1e1e; }
+        .document-card.selected {
+            border-color: var(--document-select-color);
+            border-width: 3px;
+            box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.3);
+            transform: translateY(-2px);
+        }
+        .document-preview {
+            height: 100px; display: flex; align-items: center; justify-content: center; background: var(--light-gray); position: relative;
+        }
+        .document-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .document-icon { font-size: 40px; color: var(--danger); }
+        .document-badge {
+            position: absolute; top: 8px; left: 8px; background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+        }
+        .document-badge.image { background: var(--primary); }
+        .document-info { padding: 10px; }
+        .document-name { font-size: 0.8rem; font-weight: 600; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+        .document-meta { font-size: 0.7rem; color: var(--gray); }
+        .no-documents { text-align: center; padding: 30px 20px; background: var(--light-gray); border-radius: 12px; color: var(--gray); }
+        .checkmark-selected {
+            position: absolute; top: 8px; right: 8px; background: var(--document-select-color); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; z-index: 5;
+        }
+        .select-count-badge {
+            position: absolute; top: -6px; left: -6px; background: #ef233c; color: white; border-radius: 50%; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; z-index: 6; padding: 0 4px; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.25); animation: popIn 0.2s ease;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Preview Modal */
+        .preview-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); display: flex; align-items: center; justify-content: center; z-index: 10001; backdrop-filter: blur(10px);
+        }
+        .preview-content {
+            max-width: 90%; max-height: 90%; position: relative;
+        }
+        .preview-content img {
+            max-width: 100%; max-height: 90vh; border-radius: 8px; box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+        .preview-pdf {
+            width: 90vw; height: 90vh; background: white; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;
+        }
+        .preview-pdf-header {
+            background: var(--primary); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .preview-pdf-body { flex: 1; background: #f0f0f0; }
+        .preview-pdf-body iframe { width: 100%; height: 100%; border: none; }
+        .preview-close {
+            position: absolute; top: -40px; right: 0; background: var(--danger); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem;
+        }
+        .preview-pdf .preview-close { position: static; background: rgba(255,255,255,0.2); border-radius: 8px; width: auto; height: auto; padding: 8px 16px; }
+
+        /* Confirmation Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+            text-align: center;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form Styles */
+        .form-group { margin-bottom: 24px; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark); font-size: 0.95rem; }
+        input, select, textarea {
+            width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; transition: all 0.3s ease; background: var(--card-bg); color: var(--dark); -webkit-appearance: none; appearance: none;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1); }
+        .dark-theme input:focus { box-shadow: 0 0 0 3px rgba(108, 142, 255, 0.2); }
+        select { background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; padding-right: 2.5rem; }
+
+        /* Cube Table - Dynamic */
+        .cube-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .cube-table th,
+        .cube-table td {
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            color: var(--dark);
+        }
+        .cube-table th {
+            background-color: rgba(58, 12, 163, 0.05);
+            color: var(--cube-color);
+        }
+
+        /* GSB Table */
+        .gsb-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .gsb-table th,
+        .gsb-table td {
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            color: var(--dark);
+        }
+        .gsb-table th {
+            background-color: rgba(248, 150, 30, 0.05);
+            color: var(--gsb-color);
+        }
+        .total-weight-note {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 48px;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        .btn-outline:hover:not(:disabled) {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        .btn-danger:hover:not(:disabled) {
+            background-color: #d12b2b;
+            transform: translateY(-2px);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid var(--light-gray);
+        }
+        @media (max-width: 768px) {
+            .form-actions {
+                flex-direction: row;
+                justify-content: stretch;
+            }
+            .form-actions .btn {
+                flex: 1 1 0;
+                min-width: 0;
+                padding: 14px 10px;
+                justify-content: center;
+            }
+        }
+
+        .back-to-dashboard {
+            display: inline-flex; align-items: center; gap: 10px; color: var(--primary); text-decoration: none; font-weight: 600; margin-top: 20px; padding: 10px 15px; border-radius: 8px; background: rgba(67, 97, 238, 0.05); transition: background-color 0.2s ease; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-simple" class="loading-simple">
+        <div class="loading-box">
+            <div class="loading-spinner"></div>
+            <div class="loading-text" style="font-size: 1.2rem; font-weight: 600; color: var(--primary); margin-bottom: 10px;">Loading Customer Data...</div>
+            <div class="loading-subtext" style="color: var(--gray); font-size: 0.9rem;">Please wait</div>
+        </div>
+    </div>
+
+    <div class="container" id="main-content">
+        <a href="javascript:void(0)" onclick="handleBackButton()" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Workspace
+        </a>
+
+        <div class="form-container">
+            <div class="form-header">
+                <h2><i class="fas fa-vial"></i> Add Test Result</h2>
+                <p>Select test type and enter details</p>
+            </div>
+
+            <!-- Warnings -->
+            <div id="expected-limit-warning" class="expected-limit-warning hidden"><i class="fas fa-exclamation-triangle"></i><span id="warning-text"></span></div>
+            <div id="zero-limit-indicator" class="zero-limit-indicator hidden"><i class="fas fa-ban"></i><span id="zero-limit-text"></span></div>
+            <div id="completed-limit-warning" class="completed-limit-warning hidden"><i class="fas fa-ban"></i><span id="completed-warning-text"></span></div>
+
+            <!-- Cube Set Info (shown when cube test selected) -->
+            <div id="cube-set-info" class="cube-set-info hidden">
+                <i class="fas fa-cubes"></i>
+                <span id="cube-set-info-text">3 cubes per set</span>
+            </div>
+
+            <!-- Test Type Cards -->
+            <div class="test-type-selector">
+                <div class="test-type-card cube-card" id="cube-test-card" onclick="selectTestType('cube')" ontouchstart="handleTouchStart(this)" ontouchend="selectTestType('cube')">
+                    <div class="test-type-icon"><i class="fas fa-cube"></i></div>
+                    <h3>Cube Test</h3>
+                    <p>Compressive strength test for concrete cubes</p>
+                    <div class="disabled-badge hidden" id="cube-disabled-badge">DISABLED</div>
+                </div>
+                <div class="test-type-card gsb-card" id="gsb-test-card" onclick="selectTestType('gsb')" ontouchstart="handleTouchStart(this)" ontouchend="selectTestType('gsb')">
+                    <div class="test-type-icon"><i class="fas fa-filter"></i></div>
+                    <h3>GSB Test</h3>
+                    <p>Gradation test for granular sub-base material</p>
+                    <div class="disabled-badge hidden" id="gsb-disabled-badge">DISABLED</div>
+                </div>
+            </div>
+
+            <!-- Documents Gallery -->
+            <div id="documents-gallery-section" class="documents-gallery hidden">
+                <div class="gallery-header">
+                    <h3><i class="fas fa-cloud-upload-alt"></i> Select Document</h3>
+                    <span class="documents-count" id="documents-count">0 files</span>
+                </div>
+                <div class="gallery-scroll-container" id="gallery-scroll">
+                    <div class="gallery-row" id="gallery-row"></div>
+                </div>
+                <div id="no-docs-message" class="no-documents hidden"><i class="fas fa-cloud-upload-alt"></i><p>No documents available</p></div>
+            </div>
+
+            <!-- Cube Test Form -->
+            <form id="cube-test-form" class="hidden">
+                <input type="hidden" id="cube-selected-doc-url" value="">
+                <div class="form-group">
+                    <label for="cube-project-name">Project Name</label>
+                    <input type="text" id="cube-project-name" placeholder="Enter project name">
+                </div>
+                <div class="form-group">
+                    <label for="cube-client-department">Name of Client/Department</label>
+                    <input type="text" id="cube-client-department" placeholder="Enter client/department name">
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label for="casting-date">Casting Date</label><input type="date" id="casting-date"></div>
+                    <div class="form-group"><label for="test-date">Test Date</label><input type="date" id="test-date"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label for="test-age">Test Age</label>
+                        <select id="test-age">
+                            <option value="">Select Age</option>
+                            <option value="7">7 Day</option>
+                            <option value="14">14 Day</option>
+                            <option value="28">28 Day</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label for="grade">Grade</label>
+                        <select id="grade">
+                            <option value="">Select Grade</option>
+                        </select>
+                    </div>
+                </div>
+                <h3>Cube Measurements</h3>
+                <table class="cube-table" id="cube-table">
+                    <thead>
+                        <tr>
+                            <th>Cube</th>
+                            <th>Weight (kg)</th>
+                            <th>Pressure (kN)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cube-table-body">
+                        <!-- Rows will be dynamically generated based on cubeSetPerTest -->
+                    </tbody>
+                </table>
+                <div class="form-group"><label for="cube-remarks">Remarks</label><textarea id="cube-remarks" rows="3" placeholder="Add any additional remarks..."></textarea></div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="cancelForm()" ontouchstart="handleButtonTouch(this)" ontouchend="cancelForm()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="cube-save-btn"><i class="fas fa-save"></i> Save Cube Test</button>
+                </div>
+            </form>
+
+            <!-- GSB Test Form -->
+            <form id="gsb-test-form" class="hidden">
+                <input type="hidden" id="gsb-selected-doc-url" value="">
+                <div class="form-group"><label for="gsb-project-name">Project Name</label><input type="text" id="gsb-project-name" placeholder="Enter project name"></div>
+                <div class="form-group"><label for="gsb-client-department">Name of Client/Department</label><input type="text" id="gsb-client-department" placeholder="Enter client/department name"></div>
+                <div class="form-group"><label for="gsb-test-date">Test Date</label><input type="date" id="gsb-test-date"></div>
+                <h3>Sieve Analysis</h3>
+                <table class="gsb-table">
+                    <thead><tr><th>Sieve Size (mm)</th><th>Weight (kg)</th></tr></thead>
+                    <tbody id="gsb-sieve-table"></tbody>
+                    <tr><td><strong>Pan</strong></td><td><input type="number" step="0.001" id="pan-weight" placeholder="Enter pan weight"></td></tr>
+                    <tr><td><strong>Total Weight</strong></td><td><input type="number" step="0.001" id="total-weight" placeholder="Enter total weight"><span class="total-weight-note">Auto: <span id="auto-total">0.000</span> kg</span></td></tr>
+                </table>
+                <div class="form-group"><label for="gsb-remarks">Remarks</label><textarea id="gsb-remarks" rows="3" placeholder="Add any additional remarks..."></textarea></div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="cancelForm()" ontouchstart="handleButtonTouch(this)" ontouchend="cancelForm()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="gsb-save-btn"><i class="fas fa-save"></i> Save GSB Test</button>
+                </div>
+            </form>
+
+            <div id="back-to-dashboard-container" class="hidden" style="text-align: center; margin-top: 30px;">
+                <a href="workspace.html" class="back-to-dashboard"><i class="fas fa-arrow-left"></i> Back to Workspace</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        // ==================== GLOBAL VARIABLES ====================
+        let currentCustomer = null;
+        let settings = null;
+        let currentCustomerId = localStorage.getItem('currentCustomerId');
+        let selectedTestType = null;
+        let isDarkTheme = false;
+        let cubeTestsDisabled = false, gsbTestsDisabled = false;
+        let cubeTestsCompleted = false, gsbTestsCompleted = false;
+        let customerDocuments = [];
+        let selectedDocumentUrl = null;
+        let docSelectCounts = {}; // track per-doc how many times selected
+        let cubeSetPerTest = 3; // Default to 3 cubes per set
+        let isFormDirty = false;
+
+        const gradeRatios = { 
+            'M10':'1:3:6',
+            'M15':'1:2:4',
+            'M20':'1:1.5:3',
+            'M25':'1:1:2',
+            'M30':'1:0.75:1.5',
+            'M35':'1:0.5:1',
+            'M40':'1:0.25:0.5',
+            'other':'Design Mix'
+            
+        };
+
+        // ==================== LOADING ====================
+        function showLoading(msg = 'Loading Customer Data...') {
+            document.getElementById('loading-simple').classList.remove('hidden');
+            document.querySelector('.loading-text').textContent = msg;
+        }
+        function hideLoading() { document.getElementById('loading-simple').classList.add('hidden'); }
+
+        // ==================== ALERT ====================
+        function showAlert(message, type = 'success', duration = 3000) {
+            const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info', warning: 'fa-triangle-exclamation' };
+            const icon = icons[type] || icons.info;
+
+            const toast = document.createElement('div');
+            toast.className = `alert-toast alert-${type}`;
+            toast.innerHTML = `
+                <i class="fas ${icon} alert-toast-icon"></i>
+                <span class="alert-toast-message">${message}</span>
+                <button class="alert-toast-close" onclick="this.closest('.alert-toast').remove()"><i class="fas fa-xmark"></i></button>
+                <div class="alert-toast-progress"></div>
+            `;
+            document.body.appendChild(toast);
+
+            const removeToast = () => {
+                toast.classList.add('hiding');
+                setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+            };
+
+            setTimeout(removeToast, duration);
+        }
+
+        // ==================== THEME ====================
+        function applyTheme() {
+            const darkModeValue = localStorage.getItem('cube_gsb_dark_mode');
+            let isDark = false;
+            if (darkModeValue === 'dark') isDark = true;
+            else if (darkModeValue === 'light') isDark = false;
+            else {
+                try {
+                    const stored = JSON.parse(localStorage.getItem('cube_gsb_settings_v2')) || {};
+                    const theme = stored.theme || 'light';
+                    if (theme === 'dark') isDark = true;
+                    else if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) isDark = true;
+                } catch(e) {}
+            }
+            if (isDark) { document.body.classList.add('dark-theme'); isDarkTheme = true; }
+            else { document.body.classList.remove('dark-theme'); isDarkTheme = false; }
+        }
+
+        // ==================== FORM DIRTY STATE ====================
+        function trackFormChanges() {
+            const forms = ['cube-test-form', 'gsb-test-form'];
+            forms.forEach(formId => {
+                const form = document.getElementById(formId);
+                if (!form) return;
+                
+                form.querySelectorAll('input, select, textarea').forEach(element => {
+                    element.addEventListener('input', () => {
+                        isFormDirty = true;
+                    });
+                    element.addEventListener('change', () => {
+                        isFormDirty = true;
+                    });
+                });
+            });
+        }
+
+        function resetFormDirty() {
+            isFormDirty = false;
+        }
+
+        // ==================== CONFIRMATION MODAL ====================
+        function showConfirm(message, type = 'warning', title = 'Confirm') {
+            return new Promise((resolve) => {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div style="margin-bottom: 20px;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--warning);"></i>
+                        </div>
+                        <h3 style="color: var(--dark); margin-bottom: 15px;">${title}</h3>
+                        <p style="color: var(--gray); margin-bottom: 25px; line-height: 1.5;">${message}</p>
+                        <div style="display: flex; gap: 15px; justify-content: center;">
+                            <button class="btn btn-outline" id="confirm-no" style="min-width: 100px;">Stay</button>
+                            <button class="btn btn-danger" id="confirm-yes" style="min-width: 100px;">Leave</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+
+                document.getElementById('confirm-no').addEventListener('click', () => {
+                    modal.remove();
+                    resolve(false);
+                });
+
+                document.getElementById('confirm-yes').addEventListener('click', () => {
+                    modal.remove();
+                    resolve(true);
+                });
+
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                        resolve(false);
+                    }
+                });
+
+                const escHandler = (e) => {
+                    if (e.key === 'Escape') {
+                        modal.remove();
+                        document.removeEventListener('keydown', escHandler);
+                        resolve(false);
+                    }
+                };
+                document.addEventListener('keydown', escHandler);
+            });
+        }
+
+        // ==================== BACK BUTTON HANDLER ====================
+        async function handleBackButton() {
+            if (isFormDirty) {
+                const confirmed = await showConfirm(
+                    'You have unsaved changes. Are you sure you want to leave?',
+                    'warning',
+                    'Unsaved Changes'
+                );
+                
+                if (confirmed) {
+                    history.back();
+                }
+            } else {
+                history.back();
+            }
+        }
+
+        // ==================== DOCUMENT RENDERING ====================
+        function renderDocumentsGallery() {
+            const galleryRow = document.getElementById('gallery-row');
+            const noDocs = document.getElementById('no-docs-message');
+            const countSpan = document.getElementById('documents-count');
+            const gallerySection = document.getElementById('documents-gallery-section');
+
+            if (!currentCustomer || !currentCustomer.documents || currentCustomer.documents.length === 0) {
+                gallerySection.classList.add('hidden');
+                return;
+            }
+
+            const allDocs = currentCustomer.documents.filter(doc => doc.url);
+            if (allDocs.length === 0) {
+                gallerySection.classList.add('hidden');
+                return;
+            }
+
+            countSpan.textContent = `${allDocs.length} file${allDocs.length!==1?'s':''}`;
+            noDocs.classList.add('hidden');
+
+            let html = '';
+            allDocs.forEach((doc, idx) => {
+                const fileName = doc.name || 'document';
+                const shortName = fileName.length > 15 ? fileName.substring(0,12)+'...' : fileName;
+                const isPDF = doc.url.toLowerCase().includes('.pdf') || doc.url.includes('/raw/upload/');
+                const thumb = getCloudinaryThumbnail(doc.url);
+                const selectedClass = (selectedDocumentUrl === doc.url) ? 'selected' : '';
+                const count = docSelectCounts[doc.url] || 0;
+                const countBadge = count > 0 ? `<div class="select-count-badge">${count}</div>` : '';
+                html += `
+                    <div class="document-card ${selectedClass}" data-url="${doc.url}" data-name="${fileName}" data-ispdf="${isPDF}">
+                        <div class="document-preview">
+                            <img src="${thumb}" alt="${fileName}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-file-pdf document-icon\\'></i>';">
+                            <span class="document-badge ${isPDF?'':'image'}">${isPDF?'PDF':'IMG'}</span>
+                        </div>
+                        <div class="document-info">
+                            <div class="document-name">${shortName}</div>
+                            <div class="document-meta" style="display:flex;justify-content:space-between;align-items:center;">
+                                <span>${isPDF?'PDF':'Image'}</span>
+                                ${count > 0 ? `<span style="background:var(--primary);color:white;border-radius:10px;padding:1px 7px;font-size:0.7rem;font-weight:700;">${count}</span>` : ''}
+                            </div>
+                        </div>
+                        ${selectedClass ? '<div class="checkmark-selected"><i class="fas fa-check"></i></div>' : ''}
+                    </div>
+                `;
+            });
+            galleryRow.innerHTML = html;
+
+            document.querySelectorAll('.document-card').forEach(card => {
+                let pressTimer;
+                const url = card.dataset.url;
+                const isPDF = card.dataset.ispdf === 'true';
+                const fileName = card.dataset.name;
+
+                card.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // Only increment count if this is a new selection (not re-clicking already selected)
+                    const alreadySelected = card.classList.contains('selected');
+                    document.querySelectorAll('.document-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    selectedDocumentUrl = url;
+                    if (!alreadySelected) {
+                        docSelectCounts[url] = (docSelectCounts[url] || 0) + 1;
+                    }
+                    if (selectedTestType === 'cube') document.getElementById('cube-selected-doc-url').value = url;
+                    else if (selectedTestType === 'gsb') document.getElementById('gsb-selected-doc-url').value = url;
+                    // Re-render to update count badges
+                    renderDocumentsGallery();
+                });
+
+                card.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    previewDocument(url, isPDF, fileName);
+                });
+
+                card.addEventListener('touchstart', (e) => {
+                    pressTimer = setTimeout(() => {
+                        previewDocument(url, isPDF, fileName);
+                    }, 500);
+                });
+                card.addEventListener('touchend', (e) => { clearTimeout(pressTimer); });
+                card.addEventListener('touchcancel', (e) => { clearTimeout(pressTimer); });
+                card.addEventListener('touchmove', (e) => { clearTimeout(pressTimer); });
+            });
+        }
+
+        // ==================== CLOUDINARY THUMB ====================
+        function getCloudinaryThumbnail(url) {
+            if (!url) return url;
+            if (url.includes('cloudinary.com')) {
+                if (url.includes('/raw/upload/') || url.toLowerCase().includes('.pdf')) {
+                    let transformed = url.replace('/raw/upload/', '/image/upload/').replace('/upload/', '/upload/c_thumb,w_200,h_100,g_auto,f_auto,q_auto/');
+                    return transformed + '?pg=1';
+                }
+                if (url.includes('/image/upload/')) {
+                    return url.replace('/upload/', '/upload/c_thumb,w_200,h_100,g_auto,f_auto,q_auto/');
+                }
+            }
+            return url;
+        }
+
+        // ==================== PREVIEW MODAL ====================
+        function previewDocument(url, isPDF, fileName) {
+            const modal = document.createElement('div');
+            modal.className = 'preview-modal';
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+            if (isPDF) {
+                modal.innerHTML = `
+                    <div class="preview-pdf">
+                        <div class="preview-pdf-header">
+                            <h4><i class="fas fa-file-pdf"></i> ${fileName || 'PDF'}</h4>
+                            <button class="preview-close" onclick="this.closest('.preview-modal').remove()"><i class="fas fa-times"></i> Close</button>
+                        </div>
+                        <div class="preview-pdf-body"><iframe src="${url}" title="${fileName}"></iframe></div>
+                    </div>
+                `;
+            } else {
+                modal.innerHTML = `
+                    <div class="preview-content">
+                        <img src="${url}" alt="${fileName || 'Image'}">
+                        <button class="preview-close" onclick="this.closest('.preview-modal').remove()"><i class="fas fa-times"></i></button>
+                    </div>
+                `;
+            }
+            document.body.appendChild(modal);
+        }
+
+        // ==================== DYNAMIC CUBE TABLE ====================
+        function generateCubeTable() {
+            const tableBody = document.getElementById('cube-table-body');
+            const cubeSetInfo = document.getElementById('cube-set-info');
+            const cubeSetInfoText = document.getElementById('cube-set-info-text');
+            
+            cubeSetPerTest = currentCustomer?.cubeSetPerTest || 3;
+            
+            cubeSetInfoText.textContent = ` ${cubeSetPerTest} cube${cubeSetPerTest > 1 ? 's' : ''} per set`;
+            
+            let html = '';
+            for (let i = 1; i <= cubeSetPerTest; i++) {
+                html += `
+                    <tr>
+                        <td>Cube ${i}</td>
+                        <td><input type="number" step="0.01" class="cube-weight" placeholder="Enter weight"></td>
+                        <td><input type="number" step="0.01" class="cube-pressure" placeholder="Enter pressure"></td>
+                    </tr>
+                `;
+            }
+            tableBody.innerHTML = html;
+        }
+
+        // ==================== ENTER KEY NAVIGATION ====================
+        function setupEnterNavigation() {
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const activeElement = document.activeElement;
+                    if (activeElement.tagName === 'BUTTON') {
+                        return;
+                    }
+                    
+                    e.preventDefault();
+
+                    const form = selectedTestType === 'cube' ? 
+                        document.getElementById('cube-test-form') : 
+                        document.getElementById('gsb-test-form');
+                    
+                    if (!form || form.classList.contains('hidden')) return;
+
+                    const focusable = form.querySelectorAll(
+                        'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]):not(.btn-outline)'
+                    );
+                    
+                    if (focusable.length === 0) return;
+
+                    const currentIndex = Array.from(focusable).indexOf(activeElement);
+                    
+                    if (currentIndex < focusable.length - 1) {
+                        focusable[currentIndex + 1].focus();
+                    } else {
+                        const lastButton = focusable[focusable.length - 1];
+                        if (lastButton && lastButton.tagName === 'BUTTON') {
+                            lastButton.click();
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==================== INIT ====================
+        async function initApp() {
+            showLoading('Loading Customer Data...');
+            try {
+                // 🔐 Check authentication and user active status
+                const user = await firebaseHelpers.checkAuthAndRedirect();
+                if (!user) return;
+
+                const userProfile = await firebaseHelpers.getUserProfile();
+                if (!userProfile || userProfile.status === 'inactive') {
+                    await firebaseHelpers.signOut();
+                    window.location.href = 'index.html?error=inactive';
+                    return;
+                }
+
+                applyTheme();
+                
+                if (!currentCustomerId) {
+                    showAlert('No customer selected.', 'error');
+                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+                    hideLoading(); return;
+                }
+
+                await loadData();
+                
+                generateCubeTable();
+                renderDocumentsGallery();
+
+                const gradeSelect = document.getElementById('grade');
+                gradeSelect.innerHTML = '<option value="">Select Grade</option>';
+                Object.keys(gradeRatios).forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g;
+                    opt.textContent = `${g} (${gradeRatios[g]})`;
+                    gradeSelect.appendChild(opt);
+                });
+
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('casting-date').value = today;
+                document.getElementById('test-date').value = today;
+                document.getElementById('gsb-test-date').value = today;
+
+                initGSBSieveTable();
+                checkTestCompletionStatus();
+                setupEventListeners();
+                setupEnterNavigation();
+                trackFormChanges(); // Track form changes for back button confirmation
+                
+                hideLoading();
+            } catch (error) {
+                console.error("Init error:", error);
+                hideLoading();
+                showAlert('Error loading page', 'error');
+            }
+        }
+
+        async function loadData() {
+            settings = await firebaseHelpers.getSettings();
+            if (!settings) settings = { 
+                rates: { cubeTest:1000, gsbTest:1500 }, 
+                sieveSizes: ["75.0","53.0","26.5","9.50","4.75","2.36","0.425","0.075"], 
+                cubeDefaults: { age:'14', grade:'M25' } 
+            };
+            await loadCustomerData();
+        }
+
+        async function loadCustomerData() {
+            const db = firebase.firestore();
+            const doc = await db.collection(firebaseHelpers.CUSTOMERS_COLLECTION).doc(currentCustomerId).get();
+            if (!doc.exists) { 
+                showAlert('Customer not found', 'error'); 
+                window.location.href='dashboard.html'; 
+                return; 
+            }
+            currentCustomer = { id: doc.id, ...doc.data() };
+            customerDocuments = currentCustomer.documents || [];
+            
+            // Initialize docSelectCounts from existing tests
+            docSelectCounts = {};
+            const allTests = [
+                ...(currentCustomer.cubeTests || []),
+                ...(currentCustomer.gsbTests || [])
+            ];
+            allTests.forEach(test => {
+                if (test.linkedFileUrl) {
+                    docSelectCounts[test.linkedFileUrl] = (docSelectCounts[test.linkedFileUrl] || 0) + 1;
+                }
+            });
+        }
+
+        function initGSBSieveTable() {
+            const tbody = document.getElementById('gsb-sieve-table');
+            tbody.innerHTML = '';
+            (settings?.sieveSizes || ["75.0","53.0","26.5","9.50","4.75","2.36","0.425","0.075"]).forEach(size => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td><input type="text" class="sieve-size" value="${size}" placeholder="Size"></td><td><input type="number" step="0.001" class="sieve-weight" placeholder="Weight"></td>`;
+                tbody.appendChild(row);
+            });
+            document.addEventListener('input', e => { 
+                if (e.target.classList.contains('sieve-weight') || e.target.id === 'pan-weight') calculateTotalWeight(); 
+            });
+        }
+        
+        function calculateTotalWeight() {
+            let total = 0;
+            document.querySelectorAll('.sieve-weight').forEach(i => total += parseFloat(i.value) || 0);
+            total += parseFloat(document.getElementById('pan-weight').value) || 0;
+            document.getElementById('auto-total').textContent = total.toFixed(3);
+        }
+
+        function checkTestCompletionStatus() {
+            if (!currentCustomer) return;
+            const cubeDone = currentCustomer.cubeTests?.length || 0;
+            const gsbDone = currentCustomer.gsbTests?.length || 0;
+            const expCube = currentCustomer.expectedCubeTests || 0;
+            const expGSB = currentCustomer.expectedGSBTests || 0;
+            cubeTestsDisabled = expCube === 0;
+            gsbTestsDisabled = expGSB === 0;
+            cubeTestsCompleted = !cubeTestsDisabled && cubeDone >= expCube;
+            gsbTestsCompleted = !gsbTestsDisabled && gsbDone >= expGSB;
+            updateTestTypeCards();
+        }
+
+        function updateTestTypeCards() {
+            const cubeCard = document.getElementById('cube-test-card');
+            const gsbCard = document.getElementById('gsb-test-card');
+            document.getElementById('cube-disabled-badge').classList.toggle('hidden', !(cubeTestsDisabled||cubeTestsCompleted));
+            document.getElementById('cube-disabled-badge').textContent = cubeTestsDisabled ? 'DISABLED' : 'COMPLETED';
+            cubeCard.classList.toggle('disabled', cubeTestsDisabled||cubeTestsCompleted);
+            document.getElementById('gsb-disabled-badge').classList.toggle('hidden', !(gsbTestsDisabled||gsbTestsCompleted));
+            document.getElementById('gsb-disabled-badge').textContent = gsbTestsDisabled ? 'DISABLED' : 'COMPLETED';
+            gsbCard.classList.toggle('disabled', gsbTestsDisabled||gsbTestsCompleted);
+        }
+
+        function selectTestType(type) {
+            if ((type==='cube' && (cubeTestsDisabled||cubeTestsCompleted)) || (type==='gsb' && (gsbTestsDisabled||gsbTestsCompleted))) {
+                showAlert('Cannot add this test type', 'error'); return;
+            }
+            selectedTestType = type;
+            document.querySelectorAll('.test-type-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(type+'-test-card').classList.add('selected');
+            
+            document.getElementById('cube-set-info').classList.toggle('hidden', type !== 'cube');
+            
+            document.getElementById('cube-test-form').classList.toggle('hidden', type!=='cube');
+            document.getElementById('gsb-test-form').classList.toggle('hidden', type!=='gsb');
+            
+            if (type==='cube') {
+                document.getElementById('cube-selected-doc-url').value = selectedDocumentUrl || '';
+                generateCubeTable();
+            } else {
+                document.getElementById('gsb-selected-doc-url').value = selectedDocumentUrl || '';
+            }
+
+            const gallery = document.getElementById('documents-gallery-section');
+            if (currentCustomer && currentCustomer.documents && currentCustomer.documents.length > 0) {
+                gallery.classList.remove('hidden');
+            }
+        }
+
+        function cancelForm() {
+            if (isFormDirty) {
+                handleBackButton();
+            } else {
+                history.back();
+            }
+        }
+
+        // ==================== SAVE TESTS ====================
+        async function saveCubeTest() {
+            if (!currentCustomerId) return;
+            const expCube = currentCustomer.expectedCubeTests || 0;
+            const cubeDone = currentCustomer.cubeTests?.length || 0;
+            if (expCube > 0 && cubeDone >= expCube) { showAlert('Cube test limit reached', 'error'); return; }
+
+            const cubes = [];
+            const weightInputs = document.querySelectorAll('.cube-weight');
+            const pressureInputs = document.querySelectorAll('.cube-pressure');
+            
+            for (let i = 0; i < cubeSetPerTest; i++) {
+                cubes.push({
+                    weight: weightInputs[i] ? (parseFloat(weightInputs[i].value) || null) : null,
+                    pressure: pressureInputs[i] ? (parseFloat(pressureInputs[i].value) || null) : null
+                });
+            }
+
+            const cubeTest = {
+                id: Date.now().toString(),
+                type: 'cube',
+                date: new Date().toISOString(),
+                projectName: document.getElementById('cube-project-name').value || null,
+                clientDepartment: document.getElementById('cube-client-department').value || null,
+                castingDate: document.getElementById('casting-date').value || null,
+                testDate: document.getElementById('test-date').value || null,
+                testAge: document.getElementById('test-age').value || null,
+                grade: document.getElementById('grade').value || null,
+                cubes: cubes,
+                remarks: document.getElementById('cube-remarks').value || null,
+                status: 'pending',
+                linkedFileUrl: document.getElementById('cube-selected-doc-url').value || null
+            };
+
+            try {
+                const updated = [...(currentCustomer.cubeTests || []), cubeTest];
+                await firebaseHelpers.updateCustomer(currentCustomerId, { cubeTests: updated });
+                showAlert('Cube test saved!');
+                resetFormDirty();
+                
+                // Log to history
+                try { await firebaseHelpers.logHistory('add', `Added cube test for: ${currentCustomer.name}`, `Grade: ${cubeTest.grade || 'N/A'}, Age: ${cubeTest.testAge || 'N/A'} days`); } catch(e) {}
+                
+                setTimeout(() => {
+                    location.replace('workspace.html');
+                }, 1500);
+            } catch (err) { showAlert('Error: '+err.message, 'error'); }
+        }
+
+        async function saveGSBTest() {
+            if (!currentCustomerId) return;
+            const expGSB = currentCustomer.expectedGSBTests || 0;
+            const gsbDone = currentCustomer.gsbTests?.length || 0;
+            if (expGSB > 0 && gsbDone >= expGSB) { showAlert('GSB test limit reached', 'error'); return; }
+
+            const sieves = [];
+            document.querySelectorAll('.sieve-size').forEach((s, i) => {
+                if (s.value.trim()) sieves.push({ size: s.value, weight: parseFloat(document.querySelectorAll('.sieve-weight')[i].value)||null });
+            });
+            sieves.push({ size: 'Pan', weight: parseFloat(document.getElementById('pan-weight').value)||null });
+
+            const gsbTest = {
+                id: Date.now().toString(),
+                type: 'gsb',
+                date: new Date().toISOString(),
+                projectName: document.getElementById('gsb-project-name').value || null,
+                clientDepartment: document.getElementById('gsb-client-department').value || null,
+                testDate: document.getElementById('gsb-test-date').value || null,
+                sieves: sieves,
+                totalWeight: parseFloat(document.getElementById('total-weight').value)||null,
+                remarks: document.getElementById('gsb-remarks').value || null,
+                status: 'pending',
+                linkedFileUrl: document.getElementById('gsb-selected-doc-url').value || null
+            };
+
+            try {
+                const updated = [...(currentCustomer.gsbTests || []), gsbTest];
+                await firebaseHelpers.updateCustomer(currentCustomerId, { gsbTests: updated });
+                showAlert('GSB test saved!');
+                resetFormDirty();
+                
+                // Log to history
+                try { await firebaseHelpers.logHistory('add', `Added GSB test for: ${currentCustomer.name}`, `Test date: ${gsbTest.testDate || 'N/A'}`); } catch(e) {}
+                
+                setTimeout(() => {
+                    location.replace('workspace.html');
+                }, 1500);
+            } catch (err) { showAlert('Error: '+err.message, 'error'); }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('cube-test-form').addEventListener('submit', e => { e.preventDefault(); saveCubeTest(); });
+            document.getElementById('gsb-test-form').addEventListener('submit', e => { e.preventDefault(); saveGSBTest(); });
+        }
+
+        // Mobile touch helpers
+        function handleTouchStart(el) { if (!el.classList.contains('disabled')) { el.style.transform = 'translateY(-2px)'; } }
+        function handleButtonTouch(btn) { btn.style.transform = 'translateY(-1px)'; }
+
+        // Make functions globally available
+        window.selectTestType = selectTestType;
+        window.cancelForm = cancelForm;
+        window.handleTouchStart = handleTouchStart;
+        window.handleButtonTouch = handleButtonTouch;
+        window.handleBackButton = handleBackButton;
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

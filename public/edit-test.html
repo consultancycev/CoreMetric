@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Edit Test Result | Cube & GSB Test Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="assets/logo.png">
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --warning: #fbbf24;
+            --danger: #ef233c;
+            --info: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border: #dee2e6;
+            --cube-color: #3a0ca3;
+            --gsb-color: #f8961e;
+            --status-red: #ef233c;
+            --status-yellow: #fbbf24;
+            --status-green: #15803d;
+            --bg-color: #f5f7fb;
+            --card-bg: #ffffff;
+            --disabled-bg: #e9ecef;
+            --disabled-color: #6c757d;
+            --disabled-border: #ced4da;
+            --edit-color: #7209b7;
+            --edit-color-dark: #5a0b8c;
+            --document-select-color: #2ecc71;
+        }
+
+        /* Dark theme variables */
+        .dark-theme {
+            --primary: #6c8eff;
+            --primary-dark: #5a7eff;
+            --secondary: #9d4edd;
+            --success: #5ac8fa;
+            --warning: #ffd166;
+            --danger: #ff6b6b;
+            --info: #64d2ff;
+            --light: #1a1a1a;
+            --dark: #ffffff;
+            --gray: #a0a0a0;
+            --light-gray: #2d2d2d;
+            --border: #404040;
+            --cube-color: #8a5cf5;
+            --gsb-color: #ffb347;
+            --status-red: #ff6b6b;
+            --status-yellow: #ffd166;
+            --status-green: #4caf50;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --disabled-bg: #2d2d2d;
+            --disabled-color: #6c6c6c;
+            --disabled-border: #404040;
+            --edit-color: #9d4edd;
+            --edit-color-dark: #8a45d4;
+            --document-select-color: #2ecc71;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--dark);
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+        }
+
+        /* Loading Overlay */
+        .loading-simple {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+        .loading-box {
+            background: var(--light);
+            padding: 30px 40px;
+            border-radius: 16px;
+            text-align: center;
+        }
+        .dark-theme .loading-box {
+            background: #1e1e1e;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--light-gray);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .hidden { display: none !important; }
+
+        /* Alert Toast */
+        .alert-toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+            opacity: 0;
+            max-width: 400px;
+        }
+        .alert-success { background: linear-gradient(135deg, var(--status-green), #16a34a); }
+        .alert-error { background: linear-gradient(135deg, var(--danger), #dc2626); }
+        .alert-info { background: linear-gradient(135deg, var(--info), #2563eb); }
+        .alert-warning { background: linear-gradient(135deg, var(--warning), #ea580c); }
+        .alert-edit { background: linear-gradient(135deg, var(--edit-color), var(--edit-color-dark)); }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* Header */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 30px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            background: rgba(67, 97, 238, 0.05);
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+        .dark-theme .back-button { background: rgba(108, 142, 255, 0.1); }
+        .back-button:hover { background: rgba(67, 97, 238, 0.1); }
+        .dark-theme .back-button:hover { background: rgba(108, 142, 255, 0.2); }
+
+        /* Form Container */
+        .form-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .dark-theme .form-container { box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); }
+
+        .form-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+        .form-header h2 {
+            font-size: 1.8rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .form-header h2 i { color: var(--edit-color); }
+        .form-header p { color: var(--gray); font-size: 0.95rem; }
+
+        /* Test Type Display */
+        .test-type-display {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            background: var(--light-gray);
+            border: 1px solid var(--border);
+        }
+        .dark-theme .test-type-display { background: #2d2d2d; }
+        .test-type-icon { font-size: 2rem; }
+        .cube-icon { color: var(--cube-color); }
+        .gsb-icon { color: var(--gsb-color); }
+        .test-type-info h3 { font-size: 1.2rem; margin-bottom: 5px; color: var(--dark); }
+        .test-type-info p { color: var(--gray); font-size: 0.9rem; }
+
+        /* Cube Set Info Badge */
+        .cube-set-info {
+            background: linear-gradient(135deg, rgba(58, 12, 163, 0.1), rgba(58, 12, 163, 0.05));
+            border: 1px solid rgba(58, 12, 163, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--cube-color);
+            font-weight: 500;
+        }
+        .cube-set-info i { font-size: 1.5rem; }
+
+        /* ==================== DOCUMENTS GALLERY ==================== */
+        .documents-gallery {
+            margin: 20px 0 25px;
+            padding: 20px 0;
+            border-top: 2px solid var(--border);
+            border-bottom: 2px solid var(--border);
+        }
+        .gallery-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
+        }
+        .gallery-header h3 {
+            font-size: 1.2rem; display: flex; align-items: center; gap: 8px; color: var(--dark);
+        }
+        .gallery-header h3 i { color: var(--primary); }
+        .documents-count {
+            background: var(--primary); color: white; padding: 4px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: 600;
+        }
+        .gallery-scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            padding-bottom: 10px;
+        }
+        .gallery-scroll-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        .gallery-scroll-container::-webkit-scrollbar-track {
+            background: var(--light-gray);
+            border-radius: 10px;
+        }
+        .gallery-scroll-container::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+        .gallery-row {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+            padding: 5px 2px;
+            white-space: nowrap;
+        }
+        .document-card {
+            flex: 0 0 auto;
+            width: 140px;
+            background: var(--light);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            touch-action: pan-y pinch-zoom;
+        }
+        .dark-theme .document-card { background: #1e1e1e; }
+        .document-card.selected {
+            border-color: var(--document-select-color);
+            border-width: 3px;
+            box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.3);
+            transform: translateY(-2px);
+        }
+        .document-preview {
+            height: 100px; display: flex; align-items: center; justify-content: center; background: var(--light-gray); position: relative;
+        }
+        .document-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .document-icon { font-size: 40px; color: var(--danger); }
+        .document-badge {
+            position: absolute; top: 8px; left: 8px; background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+        }
+        .document-badge.image { background: var(--primary); }
+        .document-info { padding: 10px; }
+        .document-name { font-size: 0.8rem; font-weight: 600; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+        .document-meta { font-size: 0.7rem; color: var(--gray); }
+        .no-documents { text-align: center; padding: 30px 20px; background: var(--light-gray); border-radius: 12px; color: var(--gray); }
+        .checkmark-selected {
+            position: absolute; top: 8px; right: 8px; background: var(--document-select-color); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; z-index: 5;
+        }
+
+        /* Preview Modal */
+        .preview-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); display: flex; align-items: center; justify-content: center; z-index: 10001; backdrop-filter: blur(10px);
+        }
+        .preview-content {
+            max-width: 90%; max-height: 90%; position: relative;
+        }
+        .preview-content img {
+            max-width: 100%; max-height: 90vh; border-radius: 8px; box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+        .preview-pdf {
+            width: 90vw; height: 90vh; background: var(--card-bg); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;
+        }
+        .preview-pdf-header {
+            background: var(--light); color: var(--dark); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .preview-pdf-body { flex: 1; background: var(--bg-color); }
+        .preview-pdf-body iframe { width: 100%; height: 100%; border: none; }
+        .preview-close {
+            position: absolute; top: -40px; right: 0; background: var(--danger); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem;
+        }
+        .preview-pdf .preview-close { position: static; background: rgba(255,255,255,0.2); border-radius: 8px; width: auto; height: auto; padding: 8px 16px; }
+
+        /* Confirmation Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+            text-align: center;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form Styles */
+        .form-group { margin-bottom: 24px; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark); font-size: 0.95rem; }
+        input, select, textarea {
+            width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; transition: all 0.3s ease; background: var(--card-bg); color: var(--dark); -webkit-appearance: none; appearance: none;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1); }
+        .dark-theme input:focus { box-shadow: 0 0 0 3px rgba(108, 142, 255, 0.2); }
+        select { background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; padding-right: 2.5rem; }
+
+        /* Cube Table - Dynamic */
+        .cube-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .cube-table th,
+        .cube-table td {
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            color: var(--dark);
+        }
+        .cube-table th {
+            background-color: rgba(58, 12, 163, 0.05);
+            color: var(--cube-color);
+        }
+
+        /* GSB Table */
+        .gsb-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .gsb-table th,
+        .gsb-table td {
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            color: var(--dark);
+        }
+        .gsb-table th {
+            background-color: rgba(248, 150, 30, 0.05);
+            color: var(--gsb-color);
+        }
+        .total-weight-note {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 48px;
+        }
+        .btn-edit {
+            background-color: var(--edit-color);
+            color: white;
+        }
+        .btn-edit:hover:not(:disabled) {
+            background-color: var(--edit-color-dark);
+            transform: translateY(-2px);
+        }
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        .btn-outline:hover:not(:disabled) {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        .btn-danger:hover:not(:disabled) {
+            background-color: #d12b2b;
+            transform: translateY(-2px);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid var(--light-gray);
+        }
+        @media (max-width: 768px) {
+            .form-actions {
+                flex-direction: row;
+                justify-content: stretch;
+            }
+            .form-actions .btn {
+                flex: 1 1 0;
+                min-width: 0;
+                padding: 14px 10px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-simple" class="loading-simple">
+        <div class="loading-box">
+            <div class="loading-spinner"></div>
+            <div class="loading-text" style="font-size: 1.2rem; font-weight: 600; color: var(--primary); margin-bottom: 10px;">Loading Test Data...</div>
+            <div class="loading-subtext" style="color: var(--gray); font-size: 0.9rem;">Please wait</div>
+        </div>
+    </div>
+
+    <div class="container" id="main-content">
+        <a href="javascript:void(0)" onclick="handleBackButton()" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Workspace
+        </a>
+
+        <div class="form-container">
+            <div class="form-header">
+                <h2><i class="fas fa-edit"></i> Edit Test Result</h2>
+                <p>Update test details and measurements</p>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="loading-state hidden">
+                <i class="fas fa-spinner"></i>
+                <h3>Loading test data...</h3>
+                <p>Please wait while we load the test information</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="error-state hidden">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Error Loading Test</h3>
+                <p id="error-message">Unable to load test data. Please try again.</p>
+                <div class="mt-20">
+                    <a href="workspace.html" class="btn btn-outline">Back to Workspace</a>
+                </div>
+            </div>
+
+            <!-- Test Type Display -->
+            <div id="test-type-display" class="test-type-display hidden">
+                <div id="test-type-icon" class="test-type-icon">
+                    <i class="fas fa-cube"></i>
+                </div>
+                <div class="test-type-info">
+                    <h3 id="test-type-title">Cube Test</h3>
+                    <p id="test-type-description">Compressive strength test for concrete cubes</p>
+                </div>
+            </div>
+
+            <!-- Cube Set Info -->
+            <div id="cube-set-info" class="cube-set-info hidden">
+                <i class="fas fa-cubes"></i>
+                <span id="cube-set-info-text">This customer has selected 3 cubes per set</span>
+            </div>
+
+            <!-- Documents Gallery Section -->
+            <div id="documents-gallery-section" class="documents-gallery hidden">
+                <div class="gallery-header">
+                    <h3><i class="fas fa-cloud-upload-alt"></i> Select Document</h3>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button class="btn btn-outline btn-sm" id="clear-link-btn" onclick="clearDocumentLink()" style="display: none;">
+                            <i class="fas fa-times-circle"></i> Clear Link
+                        </button>
+                        <span class="documents-count" id="documents-count">0 files</span>
+                    </div>
+                </div>
+                <div class="gallery-scroll-container" id="gallery-scroll">
+                    <div class="gallery-row" id="gallery-row"></div>
+                </div>
+                <div id="no-docs-message" class="no-documents hidden">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>No documents available for this customer</p>
+                </div>
+            </div>
+
+            <!-- Cube Test Form -->
+            <form id="cube-test-form" class="hidden">
+                <input type="hidden" id="cube-selected-doc-url" value="">
+                <div class="form-group">
+                    <label for="cube-project-name">Project Name</label>
+                    <input type="text" id="cube-project-name" placeholder="Enter project name">
+                </div>
+
+                <div class="form-group">
+                    <label for="cube-client-department">Name of Client/Department</label>
+                    <input type="text" id="cube-client-department" placeholder="Enter client/department name">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="casting-date">Casting Date</label>
+                        <input type="date" id="casting-date">
+                    </div>
+                    <div class="form-group">
+                        <label for="test-date">Test Date</label>
+                        <input type="date" id="test-date">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="test-age">Test Age</label>
+                        <select id="test-age">
+                            <option value="">Select Age</option>
+                            <option value="7">7 Day</option>
+                            <option value="14">14 Day</option>
+                            <option value="28">28 Day</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="grade">Grade</label>
+                        <select id="grade">
+                            <option value="">Select Grade</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h3>Cube Measurements</h3>
+                <table class="cube-table" id="cube-table">
+                    <thead>
+                        <tr>
+                            <th>Cube</th>
+                            <th>Weight (kg)</th>
+                            <th>Pressure (kN)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cube-table-body">
+                        <!-- Rows will be dynamically generated based on cubeSetPerTest -->
+                    </tbody>
+                </table>
+
+                <div class="form-group">
+                    <label for="cube-remarks">Remarks</label>
+                    <textarea id="cube-remarks" rows="3" placeholder="Add any additional remarks..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="cancelEdit()">Cancel</button>
+                    <button type="submit" class="btn btn-edit" id="cube-update-btn">
+                        <i class="fas fa-save"></i> Update Cube Test
+                    </button>
+                </div>
+            </form>
+
+            <!-- GSB Test Form -->
+            <form id="gsb-test-form" class="hidden">
+                <input type="hidden" id="gsb-selected-doc-url" value="">
+                <div class="form-group">
+                    <label for="gsb-project-name">Project Name</label>
+                    <input type="text" id="gsb-project-name" placeholder="Enter project name">
+                </div>
+
+                <div class="form-group">
+                    <label for="gsb-client-department">Name of Client/Department</label>
+                    <input type="text" id="gsb-client-department" placeholder="Enter client/department name">
+                </div>
+
+                <div class="form-group">
+                    <label for="gsb-test-date">Test Date</label>
+                    <input type="date" id="gsb-test-date">
+                </div>
+
+                <h3>Sieve Analysis</h3>
+                <table class="gsb-table">
+                    <thead>
+                        <tr>
+                            <th>Sieve Size (mm)</th>
+                            <th>Weight (kg)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gsb-sieve-table"></tbody>
+                    <tr>
+                        <td><strong>Pan</strong></td>
+                        <td><input type="number" step="0.001" id="pan-weight" placeholder="Enter pan weight"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Weight</strong></td>
+                        <td>
+                            <input type="number" step="0.001" id="total-weight" placeholder="Enter total weight">
+                            <span class="total-weight-note">Auto-calculated: <span id="auto-total">0.000</span> kg</span>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="form-group">
+                    <label for="gsb-remarks">Remarks</label>
+                    <textarea id="gsb-remarks" rows="3" placeholder="Add any additional remarks..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="cancelEdit()">Cancel</button>
+                    <button type="submit" class="btn btn-edit" id="gsb-update-btn">
+                        <i class="fas fa-save"></i> Update GSB Test
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+    
+    <!-- Cloudinary Config -->
+    <script src="cloudinary-config.js"></script>
+
+    <script>
+        // ==================== GLOBAL VARIABLES ====================
+        let currentCustomer = null;
+        let currentCustomerId = localStorage.getItem('currentCustomerId');
+        let currentTestId = localStorage.getItem('currentTestId');
+        let currentTestType = localStorage.getItem('currentTestType');
+        let currentTest = null;
+        let settings = null;
+        let customerDocuments = [];
+        let selectedDocumentUrl = null;
+        let usedDocumentUrls = new Set();
+        let cubeSetPerTest = 3;
+        let isFormDirty = false;
+        let originalFormData = {};
+
+        const gradeRatios = { 
+            'M10':'1:3:6',
+            'M15':'1:2:4',
+            'M20':'1:1.5:3',
+            'M25':'1:1:2',
+            'M30':'1:0.75:1.5',
+            'M35':'1:0.5:1',
+            'M40':'1:0.25:0.5',
+            'Other':'Design Mix'
+        };
+
+        // ==================== THEME MANAGEMENT ====================
+        function applyTheme() {
+            const savedSettings = localStorage.getItem('cube_gsb_settings_v2');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                const theme = settings.theme || 'light';
+                if (theme === 'dark') {
+                    document.body.classList.add('dark-theme');
+                } else if (theme === 'auto') {
+                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        document.body.classList.add('dark-theme');
+                    } else {
+                        document.body.classList.remove('dark-theme');
+                    }
+                } else {
+                    document.body.classList.remove('dark-theme');
+                }
+            }
+        }
+
+        // ==================== LOADING ====================
+        function showLoading(msg = 'Loading Test Data...') {
+            document.getElementById('loading-simple').classList.remove('hidden');
+            document.querySelector('.loading-text').textContent = msg;
+        }
+        function hideLoading() { 
+            document.getElementById('loading-simple').classList.add('hidden'); 
+        }
+
+        // ==================== ALERT ====================
+        function showAlert(message, type = 'success', duration = 3000) {
+            const alert = document.createElement('div');
+            alert.className = `alert-toast alert-${type}`;
+            alert.textContent = message;
+            document.body.appendChild(alert);
+            setTimeout(() => { if (alert.parentNode) alert.remove(); }, duration);
+        }
+
+        // ==================== FORM DIRTY STATE ====================
+        function trackFormChanges() {
+            const form = currentTestType === 'cube' ? 
+                document.getElementById('cube-test-form') : 
+                document.getElementById('gsb-test-form');
+            
+            if (!form) return;
+            
+            form.querySelectorAll('input, select, textarea').forEach(element => {
+                element.addEventListener('input', () => {
+                    isFormDirty = true;
+                });
+                element.addEventListener('change', () => {
+                    isFormDirty = true;
+                });
+            });
+        }
+
+        function resetFormDirty() {
+            isFormDirty = false;
+        }
+
+        // ==================== CONFIRMATION MODAL ====================
+        function showConfirm(message, type = 'warning', title = 'Confirm') {
+            return new Promise((resolve) => {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div style="margin-bottom: 20px;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--warning);"></i>
+                        </div>
+                        <h3 style="color: var(--dark); margin-bottom: 15px;">${title}</h3>
+                        <p style="color: var(--gray); margin-bottom: 25px; line-height: 1.5;">${message}</p>
+                        <div style="display: flex; gap: 15px; justify-content: center;">
+                            <button class="btn btn-outline" id="confirm-no" style="min-width: 100px;">Stay</button>
+                            <button class="btn btn-danger" id="confirm-yes" style="min-width: 100px;">Leave</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+
+                document.getElementById('confirm-no').addEventListener('click', () => {
+                    modal.remove();
+                    resolve(false);
+                });
+
+                document.getElementById('confirm-yes').addEventListener('click', () => {
+                    modal.remove();
+                    resolve(true);
+                });
+
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                        resolve(false);
+                    }
+                });
+
+                const escHandler = (e) => {
+                    if (e.key === 'Escape') {
+                        modal.remove();
+                        document.removeEventListener('keydown', escHandler);
+                        resolve(false);
+                    }
+                };
+                document.addEventListener('keydown', escHandler);
+            });
+        }
+
+        // ==================== BACK BUTTON HANDLER ====================
+        async function handleBackButton() {
+            if (isFormDirty) {
+                const confirmed = await showConfirm(
+                    'You have unsaved changes. Are you sure you want to leave?',
+                    'warning',
+                    'Unsaved Changes'
+                );
+                
+                if (confirmed) {
+                    clearTestStorage();
+                    location.replace('workspace.html');
+                }
+            } else {
+                clearTestStorage();
+                location.replace('workspace.html');
+            }
+        }
+
+        function clearTestStorage() {
+            localStorage.removeItem('currentTestId');
+            localStorage.removeItem('currentTestType');
+        }
+
+        // ==================== DATE FORMATTING ====================
+        function formatDateForInput(date) {
+            if (!date) return '';
+            
+            let actualDate;
+            if (date.toDate) {
+                actualDate = date.toDate();
+            } else if (date.seconds) {
+                actualDate = new Date(date.seconds * 1000);
+            } else if (typeof date === 'string') {
+                actualDate = new Date(date);
+            } else {
+                return '';
+            }
+            
+            const year = actualDate.getFullYear();
+            const month = String(actualDate.getMonth() + 1).padStart(2, '0');
+            const day = String(actualDate.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // ==================== CLOUDINARY THUMBNAIL ====================
+        function getCloudinaryThumbnail(url) {
+            if (!url) return url;
+            if (url.includes('cloudinary.com')) {
+                if (url.includes('/raw/upload/') || url.toLowerCase().includes('.pdf')) {
+                    let transformed = url.replace('/raw/upload/', '/image/upload/').replace('/upload/', '/upload/c_thumb,w_200,h_100,g_auto,f_auto,q_auto/');
+                    return transformed + '?pg=1';
+                }
+                if (url.includes('/image/upload/')) {
+                    return url.replace('/upload/', '/upload/c_thumb,w_200,h_100,g_auto,f_auto,q_auto/');
+                }
+            }
+            return url;
+        }
+
+        // ==================== PREVIEW MODAL ====================
+        function previewDocument(url, isPDF, fileName) {
+            if (!url || url === '#') {
+                showAlert('Document URL not available', 'error');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'preview-modal';
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+            if (isPDF) {
+                modal.innerHTML = `
+                    <div class="preview-pdf">
+                        <div class="preview-pdf-header">
+                            <h4 style="display: flex; align-items: center; gap: 10px; margin: 0;">
+                                <i class="fas fa-file-pdf" style="color: var(--danger);"></i>
+                                ${fileName || 'PDF Document'}
+                            </h4>
+                            <button class="preview-close" onclick="this.closest('.preview-modal').remove()">
+                                <i class="fas fa-times"></i> Close
+                            </button>
+                        </div>
+                        <div class="preview-pdf-body">
+                            <iframe src="${url}" title="${fileName}"></iframe>
+                        </div>
+                    </div>
+                `;
+            } else {
+                modal.innerHTML = `
+                    <div class="preview-content">
+                        <img src="${url}" alt="${fileName || 'Image'}">
+                        <button class="preview-close" onclick="this.closest('.preview-modal').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            }
+            
+            document.body.appendChild(modal);
+        }
+
+        // ==================== DOCUMENT GALLERY ====================
+        function collectUsedDocumentUrls() {
+            usedDocumentUrls.clear();
+            if (!currentCustomer) return;
+            
+            (currentCustomer.cubeTests || []).forEach(t => { 
+                if (t.linkedFileUrl) usedDocumentUrls.add(t.linkedFileUrl); 
+            });
+            (currentCustomer.gsbTests || []).forEach(t => { 
+                if (t.linkedFileUrl) usedDocumentUrls.add(t.linkedFileUrl); 
+            });
+            
+            if (currentTest && currentTest.linkedFileUrl) {
+                usedDocumentUrls.delete(currentTest.linkedFileUrl);
+            }
+        }
+
+        function renderDocumentsGallery() {
+            const galleryRow = document.getElementById('gallery-row');
+            const noDocs = document.getElementById('no-docs-message');
+            const countSpan = document.getElementById('documents-count');
+            const gallerySection = document.getElementById('documents-gallery-section');
+
+            if (!currentCustomer || !currentCustomer.documents || currentCustomer.documents.length === 0) {
+                gallerySection.classList.add('hidden');
+                return;
+            }
+
+            const availableDocs = currentCustomer.documents.filter(doc => doc.url && !usedDocumentUrls.has(doc.url));
+            
+            if (availableDocs.length === 0) {
+                gallerySection.classList.add('hidden');
+                return;
+            }
+
+            gallerySection.classList.remove('hidden');
+            countSpan.textContent = `${availableDocs.length} file${availableDocs.length !== 1 ? 's' : ''}`;
+            noDocs.classList.add('hidden');
+
+            let html = '';
+            availableDocs.forEach((doc, idx) => {
+                const fileName = doc.name || 'document';
+                const shortName = fileName.length > 15 ? fileName.substring(0, 12) + '...' : fileName;
+                const isPDF = doc.url.toLowerCase().includes('.pdf') || doc.url.includes('/raw/upload/');
+                const thumb = getCloudinaryThumbnail(doc.url);
+                const selectedClass = (selectedDocumentUrl === doc.url) ? 'selected' : '';
+                
+                html += `
+                    <div class="document-card ${selectedClass}" data-url="${doc.url}" data-name="${fileName}" data-ispdf="${isPDF}">
+                        <div class="document-preview">
+                            <img src="${thumb}" alt="${fileName}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\\'fas fa-file-pdf document-icon\\'></i>';">
+                            <span class="document-badge ${isPDF ? '' : 'image'}">${isPDF ? 'PDF' : 'IMG'}</span>
+                        </div>
+                        <div class="document-info">
+                            <div class="document-name">${shortName}</div>
+                            <div class="document-meta">${isPDF ? 'PDF' : 'Image'}</div>
+                        </div>
+                        ${selectedClass ? '<div class="checkmark-selected"><i class="fas fa-check"></i></div>' : ''}
+                    </div>
+                `;
+            });
+            galleryRow.innerHTML = html;
+
+            document.querySelectorAll('.document-card').forEach(card => {
+                let pressTimer;
+                const url = card.dataset.url;
+                const isPDF = card.dataset.ispdf === 'true';
+                const fileName = card.dataset.name;
+
+                card.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.document-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    selectedDocumentUrl = url;
+                    if (currentTestType === 'cube') {
+                        document.getElementById('cube-selected-doc-url').value = url;
+                    } else {
+                        document.getElementById('gsb-selected-doc-url').value = url;
+                    }
+                    updateClearLinkButton();
+                });
+
+                card.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    previewDocument(url, isPDF, fileName);
+                });
+
+                card.addEventListener('touchstart', (e) => {
+                    pressTimer = setTimeout(() => {
+                        previewDocument(url, isPDF, fileName);
+                    }, 500);
+                });
+                card.addEventListener('touchend', () => clearTimeout(pressTimer));
+                card.addEventListener('touchcancel', () => clearTimeout(pressTimer));
+                card.addEventListener('touchmove', () => clearTimeout(pressTimer));
+            });
+
+            updateClearLinkButton();
+        }
+
+        function selectDocument(url) {
+            document.querySelectorAll('.document-card').forEach(c => c.classList.remove('selected'));
+            
+            const selectedCard = Array.from(document.querySelectorAll('.document-card')).find(
+                card => card.dataset.url === url
+            );
+            if (selectedCard) {
+                selectedCard.classList.add('selected');
+            }
+            
+            selectedDocumentUrl = url;
+            
+            if (currentTestType === 'cube') {
+                document.getElementById('cube-selected-doc-url').value = url;
+            } else {
+                document.getElementById('gsb-selected-doc-url').value = url;
+            }
+            
+            document.querySelectorAll('.checkmark-selected').forEach(c => c.remove());
+            if (selectedCard) {
+                const checkmark = document.createElement('div');
+                checkmark.className = 'checkmark-selected';
+                checkmark.innerHTML = '<i class="fas fa-check"></i>';
+                selectedCard.appendChild(checkmark);
+            }
+            
+            updateClearLinkButton();
+        }
+
+        function clearDocumentLink() {
+            selectedDocumentUrl = null;
+            
+            document.querySelectorAll('.document-card').forEach(c => {
+                c.classList.remove('selected');
+                const checkmark = c.querySelector('.checkmark-selected');
+                if (checkmark) checkmark.remove();
+            });
+            
+            if (currentTestType === 'cube') {
+                document.getElementById('cube-selected-doc-url').value = '';
+            } else {
+                document.getElementById('gsb-selected-doc-url').value = '';
+            }
+            
+            updateClearLinkButton();
+        }
+
+        function updateClearLinkButton() {
+            const clearBtn = document.getElementById('clear-link-btn');
+            if (clearBtn) {
+                clearBtn.style.display = selectedDocumentUrl ? 'inline-flex' : 'none';
+            }
+        }
+
+        // ==================== DYNAMIC CUBE TABLE ====================
+        function generateCubeTable() {
+            const tableBody = document.getElementById('cube-table-body');
+            const cubeSetInfo = document.getElementById('cube-set-info');
+            const cubeSetInfoText = document.getElementById('cube-set-info-text');
+            
+            if (!currentCustomer) return;
+            
+            cubeSetPerTest = currentCustomer.cubeSetPerTest || 3;
+            
+            cubeSetInfoText.textContent = `This customer has selected ${cubeSetPerTest} cube${cubeSetPerTest > 1 ? 's' : ''} per set`;
+            
+            let html = '';
+            for (let i = 1; i <= cubeSetPerTest; i++) {
+                html += `
+                    <tr>
+                        <td>Cube ${i}</td>
+                        <td><input type="number" step="0.01" class="cube-weight" placeholder="Enter weight"></td>
+                        <td><input type="number" step="0.01" class="cube-pressure" placeholder="Enter pressure"></td>
+                    </tr>
+                `;
+            }
+            tableBody.innerHTML = html;
+        }
+
+        // ==================== ENTER KEY NAVIGATION ====================
+        function setupEnterNavigation() {
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const activeElement = document.activeElement;
+                    if (activeElement.tagName === 'BUTTON') {
+                        if (activeElement.id === 'cube-update-btn' || activeElement.id === 'gsb-update-btn') {
+                            return;
+                        } else {
+                            e.preventDefault();
+                        }
+                        return;
+                    }
+
+                    e.preventDefault();
+
+                    const form = currentTestType === 'cube' ? 
+                        document.getElementById('cube-test-form') : 
+                        document.getElementById('gsb-test-form');
+
+                    if (!form || form.classList.contains('hidden')) return;
+
+                    const focusable = Array.from(form.querySelectorAll(
+                        'input:not([type="hidden"]):not([disabled]), ' +
+                        'select:not([disabled]), ' +
+                        'textarea:not([disabled]), ' +
+                        'button[type="submit"]:not([disabled])'
+                    )).filter(el => {
+                        if (el.classList.contains('btn-outline')) return false;
+                        if (el.textContent.includes('Cancel')) return false;
+                        return true;
+                    });
+
+                    if (focusable.length === 0) return;
+
+                    const currentIndex = focusable.indexOf(activeElement);
+
+                    if (currentIndex < focusable.length - 1) {
+                        focusable[currentIndex + 1].focus();
+                    } else if (currentIndex === focusable.length - 1) {
+                        const lastButton = focusable[focusable.length - 1];
+                        if (lastButton && lastButton.tagName === 'BUTTON') {
+                            lastButton.click();
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==================== INITIALIZATION ====================
+        async function initApp() {
+            showLoading('Loading Test Data...');
+            try {
+                applyTheme();
+                
+                // 🔐 Check authentication and user active status
+                const user = await firebaseHelpers.checkAuthAndRedirect();
+                if (!user) return;
+
+                const userProfile = await firebaseHelpers.getUserProfile();
+                if (!userProfile || userProfile.status === 'inactive') {
+                    await firebaseHelpers.signOut();
+                    window.location.href = 'index.html?error=inactive';
+                    return;
+                }
+                
+                if (!currentCustomerId || !currentTestId || !currentTestType) {
+                    showAlert('No test selected. Redirecting to workspace.', 'error');
+                    setTimeout(() => location.replace('workspace.html'), 1500);
+                    hideLoading();
+                    return;
+                }
+
+                settings = await firebaseHelpers.getSettings();
+                if (!settings) {
+                    settings = {
+                        sieveSizes: ["75.0","53.0","26.5","9.50","4.75","2.36","0.425","0.075"]
+                    };
+                }
+                
+                await loadCustomerData();
+                await loadTest();
+                
+                // Populate grade dropdown
+                const gradeSelect = document.getElementById('grade');
+                gradeSelect.innerHTML = '<option value="">Select Grade</option>';
+                Object.keys(gradeRatios).forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g;
+                    opt.textContent = `${g} (${gradeRatios[g]})`;
+                    gradeSelect.appendChild(opt);
+                });
+                
+                collectUsedDocumentUrls();
+                renderDocumentsGallery();
+                
+                showTestForm();
+                
+                setupEventListeners();
+                setupEnterNavigation();
+                trackFormChanges();
+                
+                hideLoading();
+            } catch (error) {
+                console.error("Error initializing edit test page:", error);
+                showErrorState('Error loading page: ' + error.message);
+                hideLoading();
+            }
+        }
+
+        function showErrorState(message) {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('error-state').classList.remove('hidden');
+            document.getElementById('error-message').textContent = message;
+        }
+
+        async function loadCustomerData() {
+            try {
+                const db = firebase.firestore();
+                const customerDoc = await db.collection(firebaseHelpers.CUSTOMERS_COLLECTION)
+                    .doc(currentCustomerId)
+                    .get();
+                
+                if (!customerDoc.exists) {
+                    throw new Error('Customer not found');
+                }
+                
+                currentCustomer = {
+                    id: customerDoc.id,
+                    ...customerDoc.data()
+                };
+                
+                customerDocuments = currentCustomer.documents || [];
+                
+            } catch (error) {
+                console.error("Error loading customer:", error);
+                throw error;
+            }
+        }
+
+        async function loadTest() {
+            try {
+                if (currentTestType === 'cube') {
+                    currentTest = currentCustomer.cubeTests?.find(t => t.id === currentTestId);
+                } else {
+                    currentTest = currentCustomer.gsbTests?.find(t => t.id === currentTestId);
+                }
+                
+                if (!currentTest) {
+                    throw new Error('Test not found');
+                }
+                
+                selectedDocumentUrl = currentTest.linkedFileUrl || null;
+                
+            } catch (error) {
+                console.error("Error loading test:", error);
+                throw error;
+            }
+        }
+
+        function showTestForm() {
+            document.getElementById('test-type-display').classList.remove('hidden');
+            
+            if (currentTestType === 'cube') {
+                document.getElementById('test-type-icon').innerHTML = '<i class="fas fa-cube cube-icon"></i>';
+                document.getElementById('test-type-title').textContent = 'Cube Test';
+                document.getElementById('test-type-description').textContent = 'Compressive strength test for concrete cubes';
+                
+                // Show cube set info
+                document.getElementById('cube-set-info').classList.remove('hidden');
+                
+                document.getElementById('cube-test-form').classList.remove('hidden');
+                generateCubeTable();
+                populateCubeForm();
+            } else {
+                document.getElementById('test-type-icon').innerHTML = '<i class="fas fa-filter gsb-icon"></i>';
+                document.getElementById('test-type-title').textContent = 'GSB Test';
+                document.getElementById('test-type-description').textContent = 'Gradation test for granular sub-base material';
+                
+                // Hide cube set info
+                document.getElementById('cube-set-info').classList.add('hidden');
+                
+                document.getElementById('gsb-test-form').classList.remove('hidden');
+                populateGSBForm();
+            }
+        }
+
+        function populateCubeForm() {
+            document.getElementById('cube-project-name').value = currentTest.projectName || '';
+            document.getElementById('cube-client-department').value = currentTest.clientDepartment || '';
+            document.getElementById('casting-date').value = formatDateForInput(currentTest.castingDate);
+            document.getElementById('test-date').value = formatDateForInput(currentTest.testDate);
+            document.getElementById('test-age').value = currentTest.testAge || '';
+            document.getElementById('grade').value = currentTest.grade || '';
+            document.getElementById('cube-remarks').value = currentTest.remarks || '';
+            
+            document.getElementById('cube-selected-doc-url').value = currentTest.linkedFileUrl || '';
+            
+            if (currentTest.cubes && Array.isArray(currentTest.cubes)) {
+                const weightInputs = document.querySelectorAll('.cube-weight');
+                const pressureInputs = document.querySelectorAll('.cube-pressure');
+                
+                currentTest.cubes.forEach((cube, index) => {
+                    if (weightInputs[index]) {
+                        weightInputs[index].value = cube.weight || '';
+                    }
+                    if (pressureInputs[index]) {
+                        pressureInputs[index].value = cube.pressure || '';
+                    }
+                });
+            }
+        }
+
+        function populateGSBForm() {
+            document.getElementById('gsb-project-name').value = currentTest.projectName || '';
+            document.getElementById('gsb-client-department').value = currentTest.clientDepartment || '';
+            document.getElementById('gsb-test-date').value = formatDateForInput(currentTest.testDate || currentTest.date);
+            document.getElementById('gsb-remarks').value = currentTest.remarks || '';
+            
+            document.getElementById('gsb-selected-doc-url').value = currentTest.linkedFileUrl || '';
+            
+            const tableBody = document.getElementById('gsb-sieve-table');
+            tableBody.innerHTML = '';
+            
+            const sieveSizes = settings?.sieveSizes || ["75.0", "53.0", "26.5", "9.50", "4.75", "2.36", "0.425", "0.075"];
+            
+            sieveSizes.forEach(size => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="text" class="sieve-size" value="${size}" placeholder="Size"></td>
+                    <td><input type="number" step="0.001" class="sieve-weight" placeholder="Weight"></td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            if (currentTest.sieves && Array.isArray(currentTest.sieves)) {
+                const weightInputs = document.querySelectorAll('.sieve-weight');
+                const sizeInputs = document.querySelectorAll('.sieve-size');
+                
+                currentTest.sieves.forEach(sieve => {
+                    if (sieve.size !== 'Pan') {
+                        for (let i = 0; i < sizeInputs.length; i++) {
+                            if (sizeInputs[i].value === sieve.size) {
+                                if (weightInputs[i]) {
+                                    weightInputs[i].value = sieve.weight || '';
+                                }
+                                break;
+                            }
+                        }
+                    } else {
+                        document.getElementById('pan-weight').value = sieve.weight || '';
+                    }
+                });
+            }
+            
+            document.getElementById('total-weight').value = currentTest.totalWeight || '';
+            calculateTotalWeight();
+        }
+
+        function setupEventListeners() {
+            document.getElementById('cube-test-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await updateCubeTest();
+            });
+            
+            document.getElementById('gsb-test-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await updateGSBTest();
+            });
+            
+            document.addEventListener('input', function(e) {
+                if (e.target.classList.contains('sieve-weight') || e.target.id === 'pan-weight') {
+                    calculateTotalWeight();
+                }
+            });
+        }
+
+        function calculateTotalWeight() {
+            let total = 0;
+            
+            document.querySelectorAll('.sieve-weight').forEach(input => {
+                const weight = parseFloat(input.value) || 0;
+                total += weight;
+            });
+            
+            const panWeight = parseFloat(document.getElementById('pan-weight').value) || 0;
+            total += panWeight;
+            
+            document.getElementById('auto-total').textContent = total.toFixed(3);
+            
+            return total;
+        }
+
+        // ==================== UPDATE FUNCTIONS ====================
+        async function updateCubeTest() {
+            try {
+                const cubes = [];
+                const weightInputs = document.querySelectorAll('.cube-weight');
+                const pressureInputs = document.querySelectorAll('.cube-pressure');
+                
+                for (let i = 0; i < cubeSetPerTest; i++) {
+                    cubes.push({
+                        weight: weightInputs[i] ? (parseFloat(weightInputs[i].value) || null) : null,
+                        pressure: pressureInputs[i] ? (parseFloat(pressureInputs[i].value) || null) : null
+                    });
+                }
+
+                const updatedTest = {
+                    ...currentTest,
+                    projectName: document.getElementById('cube-project-name').value || null,
+                    clientDepartment: document.getElementById('cube-client-department').value || null,
+                    castingDate: document.getElementById('casting-date').value || null,
+                    testDate: document.getElementById('test-date').value || null,
+                    testAge: document.getElementById('test-age').value || null,
+                    grade: document.getElementById('grade').value || null,
+                    cubes: cubes,
+                    remarks: document.getElementById('cube-remarks').value || null,
+                    linkedFileUrl: selectedDocumentUrl || null,
+                    lastUpdated: new Date().toISOString()
+                };
+
+                const cubeTests = currentCustomer.cubeTests || [];
+                const testIndex = cubeTests.findIndex(t => t.id === currentTestId);
+                
+                if (testIndex === -1) {
+                    throw new Error('Test not found in customer data');
+                }
+                
+                cubeTests[testIndex] = updatedTest;
+
+                await firebaseHelpers.updateCustomer(currentCustomerId, {
+                    cubeTests: cubeTests,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                showAlert('Cube test updated successfully!', 'edit', 3000);
+                resetFormDirty();
+                
+                setTimeout(() => {
+                    clearTestStorage();
+                    location.replace('workspace.html');
+                }, 1500);
+                
+            } catch (error) {
+                console.error("Error updating cube test:", error);
+                showAlert('Error updating cube test: ' + error.message, 'error', 3000);
+            }
+        }
+
+        async function updateGSBTest() {
+            try {
+                const sieves = [];
+                const sizeInputs = document.querySelectorAll('.sieve-size');
+                const weightInputs = document.querySelectorAll('.sieve-weight');
+
+                sizeInputs.forEach((sizeInput, index) => {
+                    if (sizeInput.value.trim()) {
+                        sieves.push({
+                            size: sizeInput.value,
+                            weight: weightInputs[index].value ? parseFloat(weightInputs[index].value) : null
+                        });
+                    }
+                });
+
+                const panWeight = document.getElementById('pan-weight').value;
+                sieves.push({
+                    size: 'Pan',
+                    weight: panWeight ? parseFloat(panWeight) : null
+                });
+
+                const totalWeightInput = document.getElementById('total-weight').value;
+                const totalWeight = totalWeightInput ? parseFloat(totalWeightInput) : null;
+
+                const updatedTest = {
+                    ...currentTest,
+                    projectName: document.getElementById('gsb-project-name').value || null,
+                    clientDepartment: document.getElementById('gsb-client-department').value || null,
+                    testDate: document.getElementById('gsb-test-date').value || null,
+                    sieves: sieves,
+                    totalWeight: totalWeight,
+                    remarks: document.getElementById('gsb-remarks').value || null,
+                    linkedFileUrl: selectedDocumentUrl || null,
+                    lastUpdated: new Date().toISOString()
+                };
+
+                const gsbTests = currentCustomer.gsbTests || [];
+                const testIndex = gsbTests.findIndex(t => t.id === currentTestId);
+                
+                if (testIndex === -1) {
+                    throw new Error('Test not found in customer data');
+                }
+                
+                gsbTests[testIndex] = updatedTest;
+
+                await firebaseHelpers.updateCustomer(currentCustomerId, {
+                    gsbTests: gsbTests,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                showAlert('GSB test updated successfully!', 'edit', 3000);
+                resetFormDirty();
+                
+                setTimeout(() => {
+                    clearTestStorage();
+                    location.replace('workspace.html');
+                }, 1500);
+                
+            } catch (error) {
+                console.error("Error updating GSB test:", error);
+                showAlert('Error updating GSB test: ' + error.message, 'error', 3000);
+            }
+        }
+
+        function cancelEdit() {
+            if (isFormDirty) {
+                handleBackButton();
+            } else {
+                clearTestStorage();
+                location.replace('workspace.html');
+            }
+        }
+
+        // Make functions globally available
+        window.handleBackButton = handleBackButton;
+        window.clearDocumentLink = clearDocumentLink;
+        window.cancelEdit = cancelEdit;
+        window.previewDocument = previewDocument;
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

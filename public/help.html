@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Date Calculator | Cube & GSB Test Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="icon" type="image/x-icon" href="assets/logo.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        :root {
+            --primary: #007AFF;
+            --primary-dark: #0056CC;
+            --secondary: #5856D6;
+            --success: #34C759;
+            --warning: #FF9500;
+            --danger: #FF3B30;
+            --info: #5AC8FA;
+            --light: #F2F2F7;
+            --dark: #1C1C1E;
+            --gray: #8E8E93;
+            --light-gray: #C7C7CC;
+            --border: #D1D1D6;
+            --card-bg: #FFFFFF;
+            --bg-color: #F2F2F7;
+            --text-primary: #1C1C1E;
+            --text-secondary: #8E8E93;
+            --calc-gradient: linear-gradient(135deg, #FF416C, #FF4B2B);
+            --result-gradient: linear-gradient(135deg, #11998e, #38ef7d);
+        }
+
+        /* Dark theme variables */
+        .dark-theme {
+            --primary: #0A84FF;
+            --primary-dark: #409CFF;
+            --secondary: #5E5CE6;
+            --success: #30D158;
+            --warning: #FF9F0A;
+            --danger: #FF453A;
+            --info: #5AC8FA;
+            --light: #1C1C1E;
+            --dark: #FFFFFF;
+            --gray: #8E8E93;
+            --light-gray: #2C2C2E;
+            --border: #38383A;
+            --card-bg: #1C1C1E;
+            --bg-color: #000000;
+            --text-primary: #FFFFFF;
+            --text-secondary: #8E8E93;
+            --calc-gradient: linear-gradient(135deg, #FF416C, #FF4B2B);
+            --result-gradient: linear-gradient(135deg, #11998e, #38ef7d);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* iOS Style Header */
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 60px 20px 30px;
+            position: relative;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.2);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.2s ease;
+            cursor: pointer;
+        }
+
+        .back-button:active {
+            transform: scale(0.95);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .logo-icon i {
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .logo-text h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .logo-text p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .header-icon {
+            margin-left: auto;
+            font-size: 2rem;
+            opacity: 0.9;
+        }
+
+        /* Main Container */
+        .container {
+            padding: 0 16px 40px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Date Input Card */
+        .date-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        .date-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            color: var(--primary);
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .date-card-header i {
+            font-size: 1.8rem;
+            background: var(--light-gray);
+            padding: 12px;
+            border-radius: 15px;
+            color: var(--primary);
+        }
+
+        .date-card-header h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .date-input-group {
+            margin-bottom: 20px;
+        }
+
+        .date-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .date-label i {
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        /* Flatpickr Custom Styles */
+        .flatpickr-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+        .flatpickr-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .flatpickr-input::placeholder {
+            color: var(--gray);
+            opacity: 0.7;
+        }
+
+        /* Format hint */
+        .format-hint {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .swap-button {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        .btn-swap {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--light-gray);
+            border: 2px solid var(--border);
+            color: var(--primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-swap:hover {
+            background: var(--primary);
+            color: white;
+            transform: rotate(180deg);
+            border-color: var(--primary);
+        }
+
+        /* Quick Select Buttons */
+        .quick-select-start {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 0 0 15px 0;
+        }
+
+        .quick-btn {
+            flex: 1;
+            min-width: 60px;
+            padding: 10px 6px;
+            background: var(--light);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .quick-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .quick-btn i {
+            font-size: 0.9rem;
+        }
+
+        /* Calculate Button */
+        .calculate-btn {
+            background: var(--calc-gradient);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 16px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
+        }
+
+        .calculate-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(255, 65, 108, 0.2);
+        }
+
+        .calculate-btn i {
+            font-size: 1.3rem;
+        }
+
+        /* Result Card */
+        .result-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            display: none;
+            animation: slideUp 0.4s ease;
+            border: 2px solid transparent;
+            border-image: var(--result-gradient);
+            border-image-slice: 1;
+        }
+
+        .result-card.show {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-content {
+            text-align: center;
+        }
+
+        .result-label {
+            font-size: 1rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .result-value {
+            font-size: 4rem;
+            font-weight: 800;
+            background: var(--result-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+            margin-bottom: 5px;
+        }
+
+        .result-unit {
+            font-size: 1.2rem;
+            color: var(--gray);
+            margin-bottom: 15px;
+        }
+
+        .result-dates {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 15px;
+            background: var(--light);
+            border-radius: 12px;
+            font-size: 0.95rem;
+        }
+
+        .date-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .date-badge i {
+            color: var(--primary);
+        }
+
+        /* Recent Calculations */
+        .recent-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .recent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .recent-header h3 {
+            font-size: 1.1rem;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recent-header h3 i {
+            color: var(--warning);
+        }
+
+        .clear-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .clear-btn:hover {
+            background: rgba(255, 59, 48, 0.1);
+        }
+
+        .recent-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .recent-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--light);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .recent-item:hover {
+            background: var(--light-gray);
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .recent-dates {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recent-dates i {
+            color: var(--gray);
+            font-size: 0.8rem;
+        }
+
+        .recent-diff {
+            font-weight: 700;
+            color: white;
+            background: var(--result-gradient);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 20px;
+            right: 20px;
+            background: var(--dark);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1001;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-message {
+            flex-grow: 1;
+            margin-right: 15px;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* Access Denied Overlay */
+        .access-denied {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .access-card {
+            background: var(--card-bg);
+            border-radius: 30px;
+            padding: 40px 30px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            animation: scaleIn 0.4s ease;
+            border: 1px solid var(--border);
+        }
+
+        .access-card i {
+            font-size: 5rem;
+            color: var(--danger);
+            margin-bottom: 20px;
+        }
+
+        .access-card h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .access-card p {
+            color: var(--gray);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .access-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            border-radius: 16px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .access-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(0.98);
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .result-value {
+                font-size: 3rem;
+            }
+            
+            .result-dates {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+            
+            .quick-select-start {
+                flex-direction: row;
+            }
+            
+            .quick-btn {
+                min-width: calc(25% - 6px);
+                font-size: 0.78rem;
+                padding: 9px 4px;
+            }
+            
+            .logo-text h1 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Access Denied Overlay -->
+    <div class="access-denied" id="access-denied" style="display: none;">
+        <div class="access-card">
+            <i class="fas fa-shield-alt"></i>
+            <h2>Access Denied</h2>
+            <p>This page can only be accessed from the main application.</p>
+            <a href="index.html" class="access-btn">
+                <i class="fas fa-home"></i> Go to Home
+            </a>
+        </div>
+    </div>
+
+    <!-- Header with Logo -->
+    <div class="header">
+        <div class="header-content">
+            <a href="javascript:history.back()" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <i class="fas fa-cubes"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>Date Calculator</h1>
+                    <p>College of Engineering Vadakara</p>
+                </div>
+            </div>
+            <div class="header-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Date Input Card -->
+        <div class="date-card">
+            <div class="date-card-header">
+                <i class="fas fa-calendar-check"></i>
+                <h2>Select Dates</h2>
+            </div>
+
+            <!-- Start Date Section -->
+            <div class="date-label">
+                <i class="fas fa-flag"></i> Start Date
+            </div>
+            
+            <!-- Quick Select Buttons -->
+            <div class="quick-select-start">
+                <button class="quick-btn" onclick="setStartToday()" title="Set start date to today">
+                    <i class="fas fa-calendar-day"></i> Today
+                </button>
+                <button class="quick-btn" onclick="setDaysFromNow(7)" title="Set start date to 7 days before end date">
+                    <i class="fas fa-calendar-week"></i> 7 Days
+                </button>
+                <button class="quick-btn" onclick="setDaysFromNow(14)" title="Set start date to 14 days before end date">
+                    <i class="fas fa-calendar-alt"></i> 14 Days
+                </button>
+                <button class="quick-btn" onclick="setDaysFromNow(28)" title="Set start date to 28 days before end date">
+                    <i class="fas fa-calendar-alt"></i> 28 Days
+                </button>
+            </div>
+
+            <!-- Start Date Input (Flatpickr) -->
+            <div class="date-input-group">
+                <input type="text" id="start-date" class="flatpickr-input" placeholder="DD/MM/YYYY" readonly>
+                <div class="format-hint">DD/MM/YYYY</div>
+            </div>
+
+            <!-- Swap Button -->
+            <div class="swap-button">
+                <button class="btn-swap" onclick="swapDates()" title="Swap dates">
+                    <i class="fas fa-exchange-alt"></i>
+                </button>
+            </div>
+
+            <!-- End Date -->
+            <div class="date-input-group">
+                <label class="date-label">
+                    <i class="fas fa-flag-checkered"></i> End Date
+                </label>
+                <input type="text" id="end-date" class="flatpickr-input" placeholder="DD/MM/YYYY" readonly>
+                <div class="format-hint">DD/MM/YYYY</div>
+            </div>
+
+            <!-- End Date Quick Select Buttons -->
+            <div class="quick-select-start">
+                <button class="quick-btn" onclick="setEndToday()" title="Set end date to today">
+                    <i class="fas fa-calendar-day"></i> Today
+                </button>
+                <button class="quick-btn" onclick="setDaysFromStart(7)" title="Set end date to 7 days after start date">
+                    <i class="fas fa-calendar-week"></i> 7 Days
+                </button>
+                <button class="quick-btn" onclick="setDaysFromStart(14)" title="Set end date to 14 days after start date">
+                    <i class="fas fa-calendar-alt"></i> 14 Days
+                </button>
+                <button class="quick-btn" onclick="setDaysFromStart(28)" title="Set end date to 28 days after start date">
+                    <i class="fas fa-calendar-alt"></i> 28 Days
+                </button>
+            </div>
+        </div>
+
+        <!-- Calculate Button -->
+        <button class="calculate-btn" onclick="calculateDifference()">
+            <i class="fas fa-calculator"></i> Calculate Difference
+        </button>
+
+        <!-- Result Card -->
+        <div class="result-card" id="result-card">
+            <div class="result-content">
+                <div class="result-label">Date Difference Result</div>
+                <div class="result-value" id="diff-days">0</div>
+                <div class="result-unit">Days</div>
+                
+                <!-- Year breakdown (always shown, small size) -->
+                <div id="year-breakdown" style="display:none; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+                        <div style="background: var(--light); border-radius: 12px; padding: 10px 18px; text-align: center;">
+                            <div style="font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" id="diff-years">0</div>
+                            <div style="font-size: 0.75rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px;">Years</div>
+                        </div>
+                        <div style="background: var(--light); border-radius: 12px; padding: 10px 18px; text-align: center;">
+                            <div style="font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #11998e, #38ef7d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" id="diff-remaining-days">0</div>
+                            <div style="font-size: 0.75rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px;">Remaining Days</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="result-dates">
+                    <div class="date-badge">
+                        <i class="fas fa-flag"></i>
+                        <span id="start-display">DD/MM/YYYY</span>
+                    </div>
+                    <i class="fas fa-arrow-right" style="color: var(--gray);"></i>
+                    <div class="date-badge">
+                        <i class="fas fa-flag-checkered"></i>
+                        <span id="end-display">DD/MM/YYYY</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Calculations -->
+        <div class="recent-card" id="recent-card" style="display: none;">
+            <div class="recent-header">
+                <h3><i class="fas fa-history"></i> Recent Calculations</h3>
+                <button class="clear-btn" onclick="clearHistory()">
+                    <i class="fas fa-trash-alt"></i> Clear
+                </button>
+            </div>
+            <div class="recent-list" id="recent-list">
+                <!-- Recent items will be added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-message" id="toast-message"></div>
+        <button class="toast-close" onclick="hideToast()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        // ==================== CHECK REFERRER ====================
+        function checkAccess() {
+            // Get the referrer (previous page URL)
+            const referrer = document.referrer;
+            
+            // Allowed domains (your website domain)
+            const allowedDomains = [
+                window.location.origin,  // Current domain (e.g., https://yourdomain.com)
+                'http://localhost',       // For local testing
+                'http://127.0.0.1'        // For local testing
+            ];
+            
+            // Check if referrer is from allowed domains
+            let isAllowed = false;
+            
+            if (referrer) {
+                for (let domain of allowedDomains) {
+                    if (referrer.startsWith(domain)) {
+                        // Check if it's from index.html or dashboard.html
+                        if (referrer.includes('index.html') || referrer.includes('dashboard.html')) {
+                            isAllowed = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Also allow if opened from same tab (for back button functionality)
+            // This is a bit tricky, but we'll assume if no referrer and not direct access, it's okay
+            // For now, we'll block direct access (no referrer)
+            
+            if (!isAllowed && referrer === '') {
+                // Direct access (typed URL or bookmark) - BLOCK
+                document.getElementById('access-denied').style.display = 'flex';
+                return false;
+            }
+            
+            return true;
+        }
+
+        // ==================== GLOBAL VARIABLES ====================
+        let calculationHistory = JSON.parse(localStorage.getItem('dateCalcHistory')) || [];
+        let startPicker, endPicker;
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check access first
+            if (!checkAccess()) {
+                return; // Stop initialization if access denied
+            }
+            
+            initializeDatePickers();
+            setDefaultDates();
+            loadHistory();
+            applyTheme();
+        });
+
+        function initializeDatePickers() {
+            // Common Flatpickr options
+            const options = {
+                dateFormat: "d/m/Y",  // DD/MM/YYYY format
+                allowInput: true,
+                altInput: true,
+                altFormat: "d/m/Y",
+                disableMobile: false  // Use native mobile picker on mobile devices
+            };
+
+            // Initialize start date picker
+            startPicker = flatpickr("#start-date", {
+                ...options,
+                defaultDate: new Date(),
+                onChange: function(selectedDates, dateStr, instance) {
+                    updateDateDisplay();
+                }
+            });
+
+            // Initialize end date picker
+            endPicker = flatpickr("#end-date", {
+                ...options,
+                defaultDate: new Date(),
+                onChange: function(selectedDates, dateStr, instance) {
+                    updateDateDisplay();
+                }
+            });
+        }
+
+        function applyTheme() {
+            const settings = JSON.parse(localStorage.getItem('cube_gsb_settings_v2')) || {};
+            const theme = settings.theme || 'light';
+            
+            if (theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.classList.remove('dark-theme');
+            }
+        }
+
+        // ==================== DATE FUNCTIONS ====================
+        function setDefaultDates() {
+            const today = new Date();
+            
+            // Set end date to today
+            endPicker.setDate(today);
+            
+            // Set start date to today
+            startPicker.setDate(today);
+            
+            updateDateDisplay();
+        }
+
+        function formatDateForDisplay(dateStr) {
+            if (!dateStr) return 'DD/MM/YYYY';
+            return dateStr; // Already in DD/MM/YYYY format from flatpickr
+        }
+
+        function formatDateForStorage(date) {
+            // Convert DD/MM/YYYY to YYYY-MM-DD for storage
+            if (!date) return '';
+            const [day, month, year] = date.split('/');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDateFromStorage(dateStr) {
+            // Convert YYYY-MM-DD to DD/MM/YYYY for display
+            if (!dateStr) return 'DD/MM/YYYY';
+            const [year, month, day] = dateStr.split('-');
+            return `${day}/${month}/${year}`;
+        }
+
+        function updateDateDisplay() {
+            const startDate = startPicker.input.value;
+            const endDate = endPicker.input.value;
+            
+            document.getElementById('start-display').textContent = startDate || 'DD/MM/YYYY';
+            document.getElementById('end-display').textContent = endDate || 'DD/MM/YYYY';
+        }
+
+        function setStartToday() {
+            startPicker.setDate(new Date());
+            updateDateDisplay();
+            showToast('Start date set to today', 'success');
+        }
+
+        function setEndToday() {
+            endPicker.setDate(new Date());
+            updateDateDisplay();
+            showToast('End date set to today', 'success');
+        }
+
+        function setDaysFromStart(days) {
+            // Get the current start date, or use today if not set
+            const startDateStr = startPicker.input.value;
+            let baseDate;
+            if (startDateStr) {
+                const [sDay, sMonth, sYear] = startDateStr.split('/');
+                baseDate = new Date(sYear, sMonth - 1, sDay);
+            } else {
+                baseDate = new Date();
+            }
+            // Go FORWARD from start date
+            const endDate = new Date(baseDate);
+            endDate.setDate(endDate.getDate() + days);
+            endPicker.setDate(endDate);
+            updateDateDisplay();
+            showToast(`End date set to ${days} days after start date`, 'success');
+        }
+
+        function setDaysFromNow(days) {
+            // Get the current end date, or use today if not set
+            const endDateStr = endPicker.input.value;
+            let baseDate;
+            if (endDateStr) {
+                const [eDay, eMonth, eYear] = endDateStr.split('/');
+                baseDate = new Date(eYear, eMonth - 1, eDay);
+            } else {
+                baseDate = new Date();
+            }
+            // Go BACKWARD from end date
+            const startDate = new Date(baseDate);
+            startDate.setDate(startDate.getDate() - days);
+            startPicker.setDate(startDate);
+            updateDateDisplay();
+            showToast(`Start date set to ${days} days before end date`, 'success');
+        }
+
+        function swapDates() {
+            const startDate = startPicker.input.value;
+            const endDate = endPicker.input.value;
+            
+            if (startDate) {
+                const [sDay, sMonth, sYear] = startDate.split('/');
+                const startDateObj = new Date(sYear, sMonth - 1, sDay);
+                endPicker.setDate(startDateObj);
+            }
+            
+            if (endDate) {
+                const [eDay, eMonth, eYear] = endDate.split('/');
+                const endDateObj = new Date(eYear, eMonth - 1, eDay);
+                startPicker.setDate(endDateObj);
+            }
+            
+            updateDateDisplay();
+            showToast('Dates swapped', 'info');
+        }
+
+        function calculateDifference() {
+            const startDateStr = startPicker.input.value;
+            const endDateStr = endPicker.input.value;
+            
+            if (!startDateStr || !endDateStr) {
+                showToast('Please select both dates', 'error');
+                return;
+            }
+            
+            // Parse DD/MM/YYYY format
+            const [sDay, sMonth, sYear] = startDateStr.split('/');
+            const [eDay, eMonth, eYear] = endDateStr.split('/');
+            
+            const startDate = new Date(sYear, sMonth - 1, sDay);
+            const endDate = new Date(eYear, eMonth - 1, eDay);
+            
+            // Calculate difference in days
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Calculate years and remaining days
+            const diffYears = Math.floor(diffDays / 365);
+            const remainingDays = diffDays % 365;
+            
+            // Update display
+            document.getElementById('diff-days').textContent = diffDays;
+            
+            // Show year breakdown always
+            const yearBreakdown = document.getElementById('year-breakdown');
+            yearBreakdown.style.display = 'block';
+            document.getElementById('diff-years').textContent = diffYears;
+            document.getElementById('diff-remaining-days').textContent = remainingDays;
+            updateDateDisplay();
+            
+            // Show result card
+            document.getElementById('result-card').classList.add('show');
+            
+            // Save to history (store in YYYY-MM-DD format)
+            saveToHistory(
+                formatDateForStorage(startDateStr),
+                formatDateForStorage(endDateStr),
+                diffDays
+            );
+            
+            // Scroll to result
+            document.getElementById('result-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            showToast('Calculation completed', 'success');
+        }
+
+        // ==================== HISTORY FUNCTIONS ====================
+        function saveToHistory(startDate, endDate, days) {
+            const historyItem = {
+                start: startDate,
+                end: endDate,
+                days: days,
+                timestamp: new Date().toISOString()
+            };
+            
+            calculationHistory.unshift(historyItem);
+            
+            // Keep only last 10 calculations
+            if (calculationHistory.length > 10) {
+                calculationHistory.pop();
+            }
+            
+            localStorage.setItem('dateCalcHistory', JSON.stringify(calculationHistory));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const recentCard = document.getElementById('recent-card');
+            const recentList = document.getElementById('recent-list');
+            
+            if (calculationHistory.length === 0) {
+                recentCard.style.display = 'none';
+                return;
+            }
+            
+            recentCard.style.display = 'block';
+            recentList.innerHTML = '';
+            
+            calculationHistory.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'recent-item';
+                div.onclick = () => loadFromHistory(index);
+                
+                const startDisplay = formatDateFromStorage(item.start);
+                const endDisplay = formatDateFromStorage(item.end);
+                
+                div.innerHTML = `
+                    <div class="recent-dates">
+                        <i class="fas fa-calendar"></i> ${startDisplay} - ${endDisplay}
+                    </div>
+                    <div class="recent-diff">${item.days} days</div>
+                `;
+                
+                recentList.appendChild(div);
+            });
+        }
+
+        function loadFromHistory(index) {
+            const item = calculationHistory[index];
+            if (!item) return;
+            
+            // Parse YYYY-MM-DD from storage
+            const [sYear, sMonth, sDay] = item.start.split('-');
+            const [eYear, eMonth, eDay] = item.end.split('-');
+            
+            startPicker.setDate(new Date(sYear, sMonth - 1, sDay));
+            endPicker.setDate(new Date(eYear, eMonth - 1, eDay));
+            
+            calculateDifference();
+            showToast('Loaded from history', 'success');
+        }
+
+        function clearHistory() {
+            calculationHistory = [];
+            localStorage.removeItem('dateCalcHistory');
+            loadHistory();
+            showToast('History cleared', 'info');
+        }
+
+        // ==================== TOAST NOTIFICATION ====================
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            
+            if (type === 'error') {
+                toast.style.background = 'var(--danger)';
+            } else if (type === 'warning') {
+                toast.style.background = 'var(--warning)';
+            } else if (type === 'info') {
+                toast.style.background = 'var(--info)';
+            } else {
+                toast.style.background = 'var(--success)';
+            }
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                hideToast();
+            }, 2000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('show');
+        }
+    </script>
+</body>
+</html>
