@@ -474,67 +474,10 @@
         const warningMessage = document.getElementById('warning-message');
         const warningText = document.getElementById('warning-text');
 
-        // Handle redirect result (after Google login on mobile)
-        auth.getRedirectResult().then(async (result) => {
-            if (result && result.user) {
-                const user = result.user;
-
-                const userDoc = await db.collection(USERS_COLLECTION).doc(user.email).get();
-                if (!userDoc.exists) {
-                    await auth.signOut();
-                    showError('Access Denied: Your email is not authorized. Please contact admin.');
-                    return;
-                }
-
-                const userData = userDoc.data();
-                if (!userData.role) {
-                    await auth.signOut();
-                    showError('Access Denied: No role assigned. Please contact admin.');
-                    return;
-                }
-
-                if (userData.status === 'inactive') {
-                    await auth.signOut();
-                    showError('Access Denied: Your account has been deactivated.');
-                    return;
-                }
-
-                // Update user data
-                await db.collection(USERS_COLLECTION).doc(user.email).set({
-                    displayName: user.displayName || userData.displayName,
-                    photoURL: user.photoURL || userData.photoURL,
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                    email: user.email,
-                    uid: user.uid
-                }, { merge: true });
-
-                await db.collection(USERS_COLLECTION).doc(user.uid).set({
-                    email: user.email,
-                    displayName: user.displayName,
-                    photoURL: user.photoURL,
-                    role: userData.role,
-                    nickname: userData.nickname || '',
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-
-                sessionStorage.setItem('userRole', userData.role || 'staff');
-                sessionStorage.setItem('userEmail', user.email);
-                sessionStorage.setItem('userName', user.displayName || userData.nickname || user.email.split('@')[0]);
-                sessionStorage.setItem('userStatus', userData.status || 'active');
-
-                showSuccess('Login successful! Redirecting...');
-                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
-            }
-        }).catch((error) => {
-            console.error('Redirect result error:', error);
-        });
-
-        // Check if user is already logged in
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                window.location.href = 'dashboard.html';
-            }
-        });
+        // Detect if user is on mobile
+        function isMobile() {
+            return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+        }
 
         // Show error message with specific reason
         function showError(message) {
@@ -575,109 +518,135 @@
             }, 5000);
         }
 
-        // Google Sign-In
+        // Process signed-in user (used by both popup and redirect flows)
+        async function processSignedInUser(user, result) {
+            // STEP 1: Check if user exists in users collection (by email)
+            const userDoc = await db.collection(USERS_COLLECTION).doc(user.email).get();
+            
+            if (!userDoc.exists) {
+                await auth.signOut();
+                showError('Access Denied: Your email is not authorized. Please contact admin to request access.');
+                googleSignInBtn.disabled = false;
+                googleSignInBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon"> Sign in with Google';
+                return;
+            }
+            
+            const userData = userDoc.data();
+            
+            // STEP 2: Check if user has a role assigned
+            if (!userData.role) {
+                await auth.signOut();
+                showError('Access Denied: No role assigned. Please contact admin to assign a role.');
+                googleSignInBtn.disabled = false;
+                googleSignInBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon"> Sign in with Google';
+                return;
+            }
+            
+            // STEP 3: Check if user is active (NOT deactivated)
+            if (userData.status === 'inactive') {
+                await auth.signOut();
+                showError('Access Denied: Your account has been deactivated. Please contact admin.');
+                googleSignInBtn.disabled = false;
+                googleSignInBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon"> Sign in with Google';
+                return;
+            }
+            
+            // ✅ AUTHORIZED USER - Update user data with latest info from Google
+            const updateData = {
+                displayName: user.displayName || userData.displayName,
+                photoURL: user.photoURL || userData.photoURL,
+                lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                lastLoginIp: user.metadata.lastSignInTime,
+                email: user.email,
+                uid: user.uid
+            };
+            
+            if (!userData.createdAt) {
+                updateData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            }
+            
+            await db.collection(USERS_COLLECTION).doc(user.email).set(updateData, { merge: true });
+            
+            await db.collection(USERS_COLLECTION).doc(user.uid).set({
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL,
+                role: userData.role,
+                nickname: userData.nickname || '',
+                lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            
+            sessionStorage.setItem('userRole', userData.role || 'staff');
+            sessionStorage.setItem('userEmail', user.email);
+            sessionStorage.setItem('userName', user.displayName || userData.nickname || user.email.split('@')[0]);
+            sessionStorage.setItem('userStatus', userData.status || 'active');
+            
+            showSuccess('Login successful! Redirecting to dashboard...');
+            
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1500);
+        }
+
+        // Handle redirect result on page load (for mobile flow)
+        auth.getRedirectResult().then(async (result) => {
+            if (result && result.user) {
+                googleSignInBtn.disabled = true;
+                googleSignInBtn.innerHTML = '<div class="loading-spinner"></div> Signing in...';
+                try {
+                    await processSignedInUser(result.user, result);
+                } catch (error) {
+                    console.error('Redirect sign-in error:', error);
+                    showError('Login failed: ' + (error.message || 'Unknown error occurred'));
+                    googleSignInBtn.disabled = false;
+                    googleSignInBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon"> Sign in with Google';
+                }
+            }
+        }).catch((error) => {
+            if (error.code !== 'auth/no-auth-event') {
+                console.error('Redirect result error:', error);
+            }
+        });
+
+        // Check if user is already logged in
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // Only auto-redirect if not in the middle of processing
+                // (processSignedInUser handles its own redirect)
+                auth.getRedirectResult().then(result => {
+                    if (!result || !result.user) {
+                        window.location.href = 'dashboard.html';
+                    }
+                }).catch(() => {
+                    window.location.href = 'dashboard.html';
+                });
+            }
+        });
+
+        // Google Sign-In Button Click
         googleSignInBtn.addEventListener('click', async () => {
             try {
-                // Show loading state
                 googleSignInBtn.disabled = true;
                 googleSignInBtn.innerHTML = '<div class="loading-spinner"></div> Signing in...';
                 
                 const provider = new firebase.auth.GoogleAuthProvider();
-                
-                // Add scopes if needed
                 provider.addScope('profile');
                 provider.addScope('email');
+                provider.setCustomParameters({ prompt: 'select_account' });
                 
-                // Set custom parameters
-                provider.setCustomParameters({
-                    prompt: 'select_account'
-                });
-                
-                // Mobile detection - use redirect, PC use popup
-                const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
-
-                if (isMobile) {
-                    // Mobile: use redirect (page will reload, handled by getRedirectResult above)
+                if (isMobile()) {
+                    // Mobile: use redirect (no popup issues)
                     await auth.signInWithRedirect(provider);
-                    return;
+                } else {
+                    // Desktop: use popup
+                    const result = await auth.signInWithPopup(provider);
+                    await processSignedInUser(result.user, result);
                 }
-
-                // PC: use popup
-                const result = await auth.signInWithPopup(provider);
-                const user = result.user;
-                
-                // STEP 1: Check if user exists in users collection (by email)
-                const userDoc = await db.collection(USERS_COLLECTION).doc(user.email).get();
-                
-                if (!userDoc.exists) {
-                    await auth.signOut();
-                    showError('Access Denied: Your email is not authorized. Please contact admin to request access.');
-                    googleSignInBtn.disabled = false;
-                    googleSignInBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon"> Sign in with Google';
-                    return;
-                }
-                
-                const userData = userDoc.data();
-                
-                // STEP 2: Check if user has a role assigned
-                if (!userData.role) {
-                    await auth.signOut();
-                    showError('Access Denied: No role assigned. Please contact admin to assign a role.');
-                    googleSignInBtn.disabled = false;
-                    googleSignInBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon"> Sign in with Google';
-                    return;
-                }
-                
-                // STEP 3: Check if user is active
-                if (userData.status === 'inactive') {
-                    await auth.signOut();
-                    showError('Access Denied: Your account has been deactivated. Please contact admin.');
-                    googleSignInBtn.disabled = false;
-                    googleSignInBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon"> Sign in with Google';
-                    return;
-                }
-                
-                // ✅ AUTHORIZED USER - Update user data
-                const updateData = {
-                    displayName: user.displayName || userData.displayName,
-                    photoURL: user.photoURL || userData.photoURL,
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                    lastLoginIp: result.user.metadata.lastSignInTime,
-                    email: user.email,
-                    uid: user.uid
-                };
-                
-                if (!userData.createdAt) {
-                    updateData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                }
-                
-                await db.collection(USERS_COLLECTION).doc(user.email).set(updateData, { merge: true });
-                
-                await db.collection(USERS_COLLECTION).doc(user.uid).set({
-                    email: user.email,
-                    displayName: user.displayName,
-                    photoURL: user.photoURL,
-                    role: userData.role,
-                    nickname: userData.nickname || '',
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-                
-                sessionStorage.setItem('userRole', userData.role || 'staff');
-                sessionStorage.setItem('userEmail', user.email);
-                sessionStorage.setItem('userName', user.displayName || userData.nickname || user.email.split('@')[0]);
-                sessionStorage.setItem('userStatus', userData.status || 'active');
-                
-                showSuccess('Login successful! Redirecting to dashboard...');
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1500);
                 
             } catch (error) {
                 console.error('Google Sign-In Error:', error);
                 
-                // Handle specific Firebase auth errors with exact reasons
                 let errorMsg = 'Login failed: ';
-                
                 switch(error.code) {
                     case 'auth/popup-closed-by-user':
                         errorMsg = 'Login cancelled: You closed the sign-in window.';
@@ -698,16 +667,10 @@
                         errorMsg = 'Login failed: Internal error. Please try again.';
                         break;
                     default:
-                        if (error.message.includes('network')) {
-                            errorMsg = 'Network error: Unable to connect. Please check your internet.';
-                        } else {
-                            errorMsg = 'Login failed: ' + (error.message || 'Unknown error occurred');
-                        }
+                        errorMsg = 'Login failed: ' + (error.message || 'Unknown error occurred');
                 }
                 
                 showError(errorMsg);
-                
-                // Reset button
                 googleSignInBtn.disabled = false;
                 googleSignInBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon"> Sign in with Google';
             }
