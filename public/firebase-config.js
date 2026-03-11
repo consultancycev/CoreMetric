@@ -1,12 +1,12 @@
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAottgot7TfHnI4vuN6IIFUpnZcHydL5Uo",
-  authDomain: "coremetric-72d30.firebaseapp.com",
-  projectId: "coremetric-72d30",
-  storageBucket: "coremetric-72d30.firebasestorage.app",
-  messagingSenderId: "300002507170",
-  appId: "1:300002507170:web:1faf1eb5adda4a35dc5afb"
+  apiKey: "AIzaSyA6u9jZvo9ZYT6mzoR6eGRvKZDQNQPnTog",
+  authDomain: "coremetric-cev.firebaseapp.com",
+  projectId: "coremetric-cev",
+  storageBucket: "coremetric-cev.firebasestorage.app",
+  messagingSenderId: "640066501536",
+  appId: "1:640066501536:web:01a18e0dfa9271dc5182c5"
 };
 
 
