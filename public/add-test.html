@@ -670,8 +670,14 @@
                     <input type="text" id="cube-client-department" placeholder="Enter client/department name">
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label for="casting-date">Casting Date</label><input type="date" id="casting-date"></div>
-                    <div class="form-group"><label for="test-date">Test Date</label><input type="date" id="test-date"></div>
+                    <div class="form-group"><label for="casting-date">Casting Date</label><input type="date" id="casting-date" oninput="updateDaysDiff()"></div>
+                    <div class="form-group"><label for="test-date">Test Date</label><input type="date" id="test-date" oninput="updateDaysDiff()"></div>
+                </div>
+                <div id="days-diff-badge" style="display:none; margin: -8px 0 12px 0; opacity: 0.7;">
+                    <span style="background: #e8f0fe; color: #3a57c7; font-size: 0.78rem; font-weight: 500; padding: 3px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="fas fa-calendar-alt" style="font-size:0.7rem;"></i>
+                        <span id="days-diff-text"></span>
+                    </span>
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label for="test-age">Test Age</label>
@@ -895,12 +901,11 @@
                     'warning',
                     'Unsaved Changes'
                 );
-                
                 if (confirmed) {
-                    history.back();
+                    window.location.replace('workspace.html');
                 }
             } else {
-                history.back();
+                window.location.replace('workspace.html');
             }
         }
 
@@ -1056,6 +1061,23 @@
             tableBody.innerHTML = html;
         }
 
+        // ==================== DAYS DIFFERENCE ====================
+        function updateDaysDiff() {
+            const casting = document.getElementById('casting-date').value;
+            const test = document.getElementById('test-date').value;
+            const badge = document.getElementById('days-diff-badge');
+            const text = document.getElementById('days-diff-text');
+            if (casting && test) {
+                const diff = Math.round((new Date(test) - new Date(casting)) / (1000 * 60 * 60 * 24));
+                if (!isNaN(diff)) {
+                    text.textContent = diff >= 0 ? `${diff} days after casting` : `${Math.abs(diff)} days before casting`;
+                    badge.style.display = 'block';
+                    return;
+                }
+            }
+            badge.style.display = 'none';
+        }
+
         // ==================== ENTER KEY NAVIGATION ====================
         function setupEnterNavigation() {
             document.addEventListener('keydown', function(e) {
@@ -1134,6 +1156,7 @@
                 document.getElementById('casting-date').value = today;
                 document.getElementById('test-date').value = today;
                 document.getElementById('gsb-test-date').value = today;
+                updateDaysDiff();
 
                 initGSBSieveTable();
                 checkTestCompletionStatus();
@@ -1257,7 +1280,7 @@
             if (isFormDirty) {
                 handleBackButton();
             } else {
-                history.back();
+                window.location.replace('workspace.html');
             }
         }
 

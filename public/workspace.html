@@ -132,8 +132,9 @@
             font-weight: 600;
             z-index: 9999;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+            animation: slideIn 0.3s ease forwards, fadeOut 0.3s ease 2.7s forwards;
             opacity: 0;
+            max-width: 350px;
         }
 
         .alert-success {
@@ -2006,31 +2007,17 @@
 
         // ==================== BACK NAVIGATION ====================
         function goBack() {
-            // Go back to the previously opened page (not open a new dashboard)
-            if (window.history.length > 1) {
-                window.history.back();
-            } else {
-                window.location.href = 'dashboard.html';
-            }
+            window.location.replace('dashboard.html');
         }
 
-        // Handle mobile hardware back button
+        // Handle mobile hardware back button - always go to dashboard
         window.addEventListener('popstate', function(e) {
-            // If popstate fires and we're still on workspace page, navigate back
-            if (window.location.pathname.includes('workspace') || window.location.href.includes('workspace')) {
-                if (window.history.length > 1) {
-                    window.history.back();
-                } else {
-                    window.location.href = 'dashboard.html';
-                }
-            }
+            window.location.replace('dashboard.html');
         });
 
-        // Push a state so mobile back button is interceptable
+        // Replace history state so back button works correctly
         window.addEventListener('load', function() {
-            if (!window.history.state || !window.history.state.workspace) {
-                window.history.pushState({ workspace: true }, '', window.location.href);
-            }
+            window.history.replaceState({ workspace: true }, '', window.location.href);
         });
         async function initApp() {
             try {
@@ -2409,7 +2396,7 @@
                 showAlert('All expected tests have been completed. Cannot add more tests.', 'warning');
                 return;
             }
-            window.location.href = 'add-test.html';
+            window.location.replace('add-test.html');
         }
 
         function editCustomer() {

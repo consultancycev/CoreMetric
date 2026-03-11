@@ -1400,9 +1400,6 @@
             document.body.classList.toggle('dark-theme', theme === 'dark');
         }
         function loadThemeFromSettings() {
-            const darkModeValue = localStorage.getItem('cube_gsb_dark_mode');
-            if (darkModeValue === 'dark') { applyTheme('dark'); return; }
-            if (darkModeValue === 'light') { applyTheme('light'); return; }
             if (settings?.theme) applyTheme(settings.theme);
             else {
                 const saved = localStorage.getItem('app_theme');
@@ -2006,12 +2003,6 @@
                 });
 
                 showToast('Customer updated successfully!', 'success');
-
-                // Log to history
-                try {
-                    const custName = document.getElementById('edit-name')?.value || 'Unknown';
-                    await firebaseHelpers.logHistory('update', `Updated customer: ${custName}`, `Customer ID: ${id}`);
-                } catch(e) {}
 
                 setTimeout(() => {
                     window.location.replace('workspace.html');
