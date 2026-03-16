@@ -1277,6 +1277,76 @@
             margin-top: 30px;
         }
 
+        /* Total Work Approval Progress Bar */
+        .total-work-progress-wrap {
+            margin-top: 14px;
+            background: rgba(67, 97, 238, 0.06);
+            border: 1px solid rgba(67, 97, 238, 0.15);
+            border-radius: 12px;
+            padding: 12px 16px 10px;
+        }
+
+        .dark-theme .total-work-progress-wrap {
+            background: rgba(108, 142, 255, 0.08);
+            border-color: rgba(108, 142, 255, 0.2);
+        }
+
+        .total-work-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .total-work-progress-label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .total-work-progress-count {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--gray);
+        }
+
+        .total-work-progress-bar-bg {
+            height: 10px;
+            background: var(--light-gray);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .dark-theme .total-work-progress-bar-bg {
+            background: #2d2d2d;
+        }
+
+        .total-work-progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #7c3aed);
+            border-radius: 999px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .total-work-progress-bar-fill.complete {
+            background: linear-gradient(90deg, var(--status-green), #16a34a);
+        }
+
+        .total-work-progress-pct {
+            text-align: right;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 4px;
+        }
+
+        .total-work-progress-pct.complete {
+            color: var(--status-green);
+        }
+
         /* Toast Notification for PDF Generation */
         .pdf-toast {
             position: fixed;
@@ -1594,6 +1664,20 @@
                     </div>
                 </div>
 
+                <!-- Total Work Progress Bar -->
+                <div class="total-work-progress-wrap" id="total-work-progress-wrap">
+                    <div class="total-work-progress-header">
+                        <span class="total-work-progress-label">
+                            <i class="fas fa-tasks"></i> Overall Approval Progress
+                        </span>
+                        <span class="total-work-progress-count" id="total-work-progress-count">0 / 0 Approved</span>
+                    </div>
+                    <div class="total-work-progress-bar-bg">
+                        <div class="total-work-progress-bar-fill" id="total-work-progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="total-work-progress-pct" id="total-work-progress-pct">0%</div>
+                </div>
+
                 <!-- Documents Gallery Section - Horizontal Swipeable -->
                 <div id="documents-gallery-section" class="documents-gallery-section hidden">
                     <div class="documents-gallery-header">
@@ -1631,7 +1715,7 @@
                 <button class="btn btn-info" onclick="editCustomer()">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="btn btn-danger" onclick="confirmDeleteCustomer()">
+                <button class="btn btn-danger" id="delete-customer-btn" onclick="confirmDeleteCustomer()">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -1674,6 +1758,7 @@
         let isDarkTheme = false;
         let showDocumentsGallery = false;
         let currentUserEmail = '';
+        let isCurrentUserAdmin = false;
 
         // ==================== SIMPLE LOADING ====================
         function showLoading(message = 'Loading...', subtext = 'Please wait') {
@@ -2037,6 +2122,7 @@
                 }
 
                 currentUserEmail = user.email;
+                isCurrentUserAdmin = (userProfile.role === 'admin');
 
                 if (!currentCustomerId) {
                     showAlert('No customer selected. Redirecting to dashboard.', 'error');
@@ -2247,6 +2333,62 @@
                 createdByText.textContent = 'Added by: Unknown';
             }
 
+            // ==================== TOTAL WORK APPROVAL PROGRESS BAR ====================
+            // Weighted scoring:
+            //   Approved            = 1.0 (full credit)
+            //   Pending + data filled = 0.6 (values entered but not yet approved)
+            //   Pending + just added  = 0.3 (test added, no result data yet)
+            const allCubeTests = customer.cubeTests || [];
+            const allGsbTests = customer.gsbTests || [];
+            const totalExpectedAll = (customer.expectedCubeTests || 0) + (customer.expectedGSBTests || 0);
+            const totalApproved =
+                allCubeTests.filter(t => t.status === 'approved').length +
+                allGsbTests.filter(t => t.status === 'approved').length;
+            const progressTarget = totalExpectedAll > 0 ? totalExpectedAll : (allCubeTests.length + allGsbTests.length);
+
+            // Helper: does a cube test have result data entered?
+            const cubeHasData = t => {
+                if (!t.cubes || !Array.isArray(t.cubes)) return false;
+                return t.cubes.some(c => (c.weight && parseFloat(c.weight) > 0) || (c.pressure && parseFloat(c.pressure) > 0));
+            };
+            // Helper: does a gsb test have result data entered?
+            const gsbHasData = t => {
+                return (t.sieveData && t.sieveData.length > 0) ||
+                       (t.result !== undefined && t.result !== null && t.result !== '') ||
+                       (t.sieves && t.sieves.length > 0);
+            };
+
+            let weightedScore = 0;
+            allCubeTests.forEach(t => {
+                if (t.status === 'approved') weightedScore += 1.0;
+                else if (cubeHasData(t)) weightedScore += 0.6;
+                else weightedScore += 0.3;
+            });
+            allGsbTests.forEach(t => {
+                if (t.status === 'approved') weightedScore += 1.0;
+                else if (gsbHasData(t)) weightedScore += 0.6;
+                else weightedScore += 0.3;
+            });
+
+            const progressPct = progressTarget > 0 ? Math.min(100, Math.round((weightedScore / progressTarget) * 100)) : 0;
+            const isComplete = totalApproved >= progressTarget && progressTarget > 0;
+
+            const fillEl = document.getElementById('total-work-progress-bar-fill');
+            const pctEl = document.getElementById('total-work-progress-pct');
+            const countEl = document.getElementById('total-work-progress-count');
+
+            if (fillEl) {
+                fillEl.style.width = `${progressPct}%`;
+                fillEl.className = 'total-work-progress-bar-fill' + (isComplete ? ' complete' : '');
+            }
+            if (pctEl) {
+                pctEl.textContent = `${progressPct}%`;
+                pctEl.className = 'total-work-progress-pct' + (isComplete ? ' complete' : '');
+            }
+            if (countEl) {
+                countEl.textContent = `${totalApproved} / ${progressTarget} Approved`;
+            }
+
             const addTestBtn = document.getElementById('add-test-btn');
             const canAddMoreTests = canAddMoreTestsCheck(customer);
 
@@ -2258,6 +2400,37 @@
                 addTestBtn.disabled = false;
                 addTestBtn.innerHTML = '<i class="fas fa-plus"></i>';
                 addTestBtn.title = 'Add new test result';
+            }
+
+            // ==================== DELETE BUTTON ROLE-BASED CONTROL ====================
+            const deleteCustomerBtn = document.getElementById('delete-customer-btn');
+            if (deleteCustomerBtn) {
+                const cubeTests = customer.cubeTests || [];
+                const gsbTests = customer.gsbTests || [];
+                const hasAnyApproved =
+                    cubeTests.some(t => t.status === 'approved') ||
+                    gsbTests.some(t => t.status === 'approved');
+
+                if (isCurrentUserAdmin) {
+                    // Admin: always enabled
+                    deleteCustomerBtn.disabled = false;
+                    deleteCustomerBtn.style.opacity = '1';
+                    deleteCustomerBtn.style.cursor = 'pointer';
+                    deleteCustomerBtn.title = 'Delete Customer';
+                } else {
+                    // Staff: disable if any result is approved
+                    if (hasAnyApproved) {
+                        deleteCustomerBtn.disabled = true;
+                        deleteCustomerBtn.style.opacity = '0.4';
+                        deleteCustomerBtn.style.cursor = 'not-allowed';
+                        deleteCustomerBtn.title = 'Cannot delete: one or more results are approved. Contact admin.';
+                    } else {
+                        deleteCustomerBtn.disabled = false;
+                        deleteCustomerBtn.style.opacity = '1';
+                        deleteCustomerBtn.style.cursor = 'pointer';
+                        deleteCustomerBtn.title = 'Delete Customer';
+                    }
+                }
             }
 
             loadTestHistory(customer);
@@ -2362,16 +2535,14 @@
                         ${hasLinkedFile ? 
                             `<button class="btn btn-info btn-xs" onclick="previewSimpleDocument('${safeLinkedUrl}', ${isPDFFile(test.linkedFileUrl, test.linkedFileName)}, '${safeSmartName}'); event.stopPropagation();" title="View Document">
                                 <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-xs" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color:white;" onclick="downloadDocument('${safeLinkedUrl}', '${safeSmartName}'); event.stopPropagation();" title="Download: ${safeSmartName}">
-                                <i class="fas fa-download"></i>
                             </button>` : ''}
+                        ${test.status !== 'approved' ? `
                         <button class="btn btn-info btn-xs" onclick="editTest('${test.id}', '${test.testType}')" title="Edit Test">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button class="btn btn-danger btn-xs" onclick="confirmDeleteTest('${test.id}', '${test.testType}')" title="Delete Test">
                             <i class="fas fa-trash"></i>
-                        </button>
+                        </button>` : ''}
                     </div>
                 `;
 
@@ -2604,6 +2775,19 @@
         // ==================== CUSTOMER DELETE WITH DOUBLE CONFIRMATION ====================
         function confirmDeleteCustomer() {
             if (!currentCustomer) return;
+
+            // Staff cannot delete if any result is approved
+            if (!isCurrentUserAdmin) {
+                const cubeTests = currentCustomer.cubeTests || [];
+                const gsbTests = currentCustomer.gsbTests || [];
+                const hasAnyApproved =
+                    cubeTests.some(t => t.status === 'approved') ||
+                    gsbTests.some(t => t.status === 'approved');
+                if (hasAnyApproved) {
+                    showAlert('Cannot delete: one or more test results are approved. Only admin can delete this customer.', 'error');
+                    return;
+                }
+            }
 
             const modal = document.createElement('div');
             modal.className = 'modal-overlay';

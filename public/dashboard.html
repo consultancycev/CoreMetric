@@ -3234,9 +3234,15 @@
                             <button class="btn btn-primary btn-sm" onclick="openWorkspace('${customer.id}')" title="Open Workspace">
                                 <i class="fas fa-folder-open"></i>
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="confirmDeleteCustomer('${customer.id}')" title="Delete Customer">
+                            ${(() => {
+                                const cubeTests = customer.cubeTests || [];
+                                const gsbTests = customer.gsbTests || [];
+                                const hasAnyApproved = cubeTests.some(t => t.status === 'approved') || gsbTests.some(t => t.status === 'approved');
+                                const staffBlocked = !isCurrentUserAdmin && hasAnyApproved;
+                                return `<button class="btn btn-danger btn-sm" onclick="confirmDeleteCustomer('${customer.id}')" title="${staffBlocked ? 'Cannot delete: approved results exist. Contact admin.' : 'Delete Customer'}" ${staffBlocked ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>
                                 <i class="fas fa-trash"></i>
-                            </button>
+                            </button>`;
+                            })()}
                         </div>
                     </td>
                 `;
@@ -3486,6 +3492,19 @@
         async function confirmDeleteCustomer(customerId) {
             const customer = customers.find(c => c.id === customerId);
             if (!customer) return;
+
+            // Staff cannot delete if any result is approved
+            if (!isCurrentUserAdmin) {
+                const cubeTests = customer.cubeTests || [];
+                const gsbTests = customer.gsbTests || [];
+                const hasAnyApproved =
+                    cubeTests.some(t => t.status === 'approved') ||
+                    gsbTests.some(t => t.status === 'approved');
+                if (hasAnyApproved) {
+                    showToast('Cannot delete: one or more test results are approved. Only admin can delete this customer.', 'error');
+                    return;
+                }
+            }
 
             const modal = document.createElement('div');
             modal.className = 'modal-overlay';
