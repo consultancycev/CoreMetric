@@ -1,4 +1,3 @@
-
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyA6u9jZvo9ZYT6mzoR6eGRvKZDQNQPnTog",
@@ -15,8 +14,8 @@ const firebaseConfig = {
 // Initialize Firebase only if not already initialized
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
-    // Set Persistence to SESSION (expires on tab close)
-    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION);
+    // Use LOCAL persistence so mobile redirect flow doesn't lose session
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 }
 
 const auth = firebase.auth();

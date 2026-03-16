@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Edit Test Result | Cube & GSB Test Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="icon" type="image/x-icon" href="assets/logo.png">
     <style>
         /* Base Styles */
@@ -129,30 +130,60 @@
         /* Alert Toast */
         .alert-toast {
             position: fixed;
-            top: 30px;
-            right: 30px;
-            padding: 16px 24px;
-            border-radius: 8px;
+            top: 24px;
+            right: 24px;
+            min-width: 280px;
+            max-width: 380px;
+            padding: 14px 18px;
+            border-radius: 12px;
             color: white;
-            font-weight: 600;
-            z-index: 9999;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            animation: slideIn 0.3s ease forwards, fadeOut 0.3s ease 2.7s forwards;
-            opacity: 0;
-            max-width: 400px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            z-index: 99999;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+            animation: toastSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
-        .alert-success { background: linear-gradient(135deg, var(--status-green), #16a34a); }
-        .alert-error { background: linear-gradient(135deg, var(--danger), #dc2626); }
-        .alert-info { background: linear-gradient(135deg, var(--info), #2563eb); }
-        .alert-warning { background: linear-gradient(135deg, var(--warning), #ea580c); }
-        .alert-edit { background: linear-gradient(135deg, var(--edit-color), var(--edit-color-dark)); }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        .alert-toast.hiding {
+            animation: toastSlideOut 0.3s ease forwards;
         }
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
+        .alert-toast-icon { font-size: 1.3rem; flex-shrink: 0; }
+        .alert-toast-message { flex: 1; line-height: 1.4; }
+        .alert-toast-close {
+            background: none; border: none; color: rgba(255,255,255,0.7);
+            cursor: pointer; font-size: 1rem; padding: 0; flex-shrink: 0; transition: color 0.2s;
+        }
+        .alert-toast-close:hover { color: white; }
+        .alert-toast-progress {
+            position: absolute; bottom: 0; left: 0; height: 3px;
+            background: rgba(255,255,255,0.4);
+            animation: toastProgress 3s linear forwards;
+        }
+        .alert-success { background: linear-gradient(135deg, #15803d, #16a34a); }
+        .alert-error   { background: linear-gradient(135deg, #dc2626, #ef4444); }
+        .alert-info    { background: linear-gradient(135deg, #2563eb, #4895ef); }
+        .alert-warning { background: linear-gradient(135deg, #d97706, #f59e0b); }
+        .alert-edit    { background: linear-gradient(135deg, var(--edit-color), var(--edit-color-dark)); }
+        @keyframes toastSlideIn {
+            from { transform: translateX(110%); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
+        }
+        @keyframes toastSlideOut {
+            from { transform: translateX(0);    opacity: 1; }
+            to   { transform: translateX(110%); opacity: 0; }
+        }
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to   { width: 0%; }
+        }
+        @media (max-width: 480px) {
+            .alert-toast {
+                top: auto; bottom: 24px; right: 16px; left: 16px;
+                min-width: unset; max-width: unset;
+            }
         }
 
         /* Header */
@@ -588,12 +619,18 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="casting-date">Casting Date</label>
-                        <input type="text" id="casting-date" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off">
+                        <input type="text" id="casting-date" placeholder="DD/MM/YYYY" autocomplete="off" style="cursor:pointer;">
                     </div>
                     <div class="form-group">
                         <label for="test-date">Test Date</label>
-                        <input type="text" id="test-date" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off">
+                        <input type="text" id="test-date" placeholder="DD/MM/YYYY" autocomplete="off" style="cursor:pointer;">
                     </div>
+                </div>
+                <div id="days-diff-badge" style="display:none; margin: -8px 0 12px 0; opacity: 0.7;">
+                    <span style="background: #e8f0fe; color: #3a57c7; font-size: 0.78rem; font-weight: 500; padding: 3px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="fas fa-calendar-alt" style="font-size:0.7rem;"></i>
+                        <span id="days-diff-text"></span>
+                    </span>
                 </div>
 
                 <div class="form-row">
@@ -656,7 +693,7 @@
 
                 <div class="form-group">
                     <label for="gsb-test-date">Test Date</label>
-                    <input type="text" id="gsb-test-date" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off">
+                    <input type="text" id="gsb-test-date" placeholder="DD/MM/YYYY" autocomplete="off" style="cursor:pointer;">
                 </div>
 
                 <h3>Sieve Analysis</h3>
@@ -695,6 +732,9 @@
             </form>
         </div>
     </div>
+
+    <!-- Flatpickr Date Picker -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -762,11 +802,22 @@
 
         // ==================== ALERT ====================
         function showAlert(message, type = 'success', duration = 3000) {
-            const alert = document.createElement('div');
-            alert.className = `alert-toast alert-${type}`;
-            alert.textContent = message;
-            document.body.appendChild(alert);
-            setTimeout(() => { if (alert.parentNode) alert.remove(); }, duration);
+            const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info', warning: 'fa-triangle-exclamation', edit: 'fa-pen-to-square' };
+            const icon = icons[type] || icons.info;
+            const toast = document.createElement('div');
+            toast.className = `alert-toast alert-${type}`;
+            toast.innerHTML = `
+                <i class="fas ${icon} alert-toast-icon"></i>
+                <span class="alert-toast-message">${message}</span>
+                <button class="alert-toast-close" onclick="this.closest('.alert-toast').remove()"><i class="fas fa-xmark"></i></button>
+                <div class="alert-toast-progress"></div>
+            `;
+            document.body.appendChild(toast);
+            const removeToast = () => {
+                toast.classList.add('hiding');
+                setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+            };
+            setTimeout(removeToast, duration);
         }
 
         // ==================== FORM DIRTY STATE ====================
@@ -852,10 +903,12 @@
                 
                 if (confirmed) {
                     clearTestStorage();
+                    history.replaceState(null, '', 'workspace.html');
                     location.replace('workspace.html');
                 }
             } else {
                 clearTestStorage();
+                history.replaceState(null, '', 'workspace.html');
                 location.replace('workspace.html');
             }
         }
@@ -868,18 +921,15 @@
         // ==================== DATE FORMATTING ====================
         function formatDateForInput(date) {
             if (!date) return '';
-            
             let actualDate;
-            if (date.toDate) {
-                actualDate = date.toDate();
-            } else if (date.seconds) {
-                actualDate = new Date(date.seconds * 1000);
-            } else if (typeof date === 'string') {
+            if (date.toDate) { actualDate = date.toDate(); }
+            else if (date.seconds) { actualDate = new Date(date.seconds * 1000); }
+            else if (typeof date === 'string') {
+                // Already DD/MM/YYYY?
+                if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) return date;
                 actualDate = new Date(date);
-            } else {
-                return '';
-            }
-            
+            } else { return ''; }
+            if (isNaN(actualDate)) return '';
             const day = String(actualDate.getDate()).padStart(2, '0');
             const month = String(actualDate.getMonth() + 1).padStart(2, '0');
             const year = actualDate.getFullYear();
@@ -895,15 +945,28 @@
             return `${yyyy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
         }
 
+        // ==================== DAYS DIFFERENCE ====================
+        function updateDaysDiff() {
+            const castingVal = document.getElementById('casting-date').value;
+            const testVal = document.getElementById('test-date').value;
+            const badge = document.getElementById('days-diff-badge');
+            const text = document.getElementById('days-diff-text');
+            if (!badge) return;
+            if (castingVal && testVal) {
+                const parseDMY = (s) => { const p = s.split('/'); if(p.length!==3) return null; return new Date(`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`); };
+                const c = parseDMY(castingVal), t = parseDMY(testVal);
+                if (c && t && !isNaN(c) && !isNaN(t)) {
+                    const diff = Math.round((t - c) / (1000 * 60 * 60 * 24));
+                    text.textContent = diff >= 0 ? `${diff} days after casting` : `${Math.abs(diff)} days before casting`;
+                    badge.style.display = 'block';
+                    return;
+                }
+            }
+            badge.style.display = 'none';
+        }
+
         function setupDateInput(inputId) {
-            const input = document.getElementById(inputId);
-            if (!input) return;
-            input.addEventListener('input', function(e) {
-                let val = e.target.value.replace(/[^0-9]/g, '');
-                if (val.length >= 3) val = val.slice(0,2) + '/' + val.slice(2);
-                if (val.length >= 6) val = val.slice(0,5) + '/' + val.slice(5,9);
-                e.target.value = val;
-            });
+            // Legacy stub - replaced by flatpickr
         }
 
         // ==================== CLOUDINARY THUMBNAIL ====================
@@ -1158,18 +1221,27 @@
 
                     e.preventDefault();
 
+                    // Special GSB navigation: weight inputs only (skip sieve size inputs)
+                    if (currentTestType === 'gsb' && activeElement.classList.contains('sieve-weight')) {
+                        const weightInputs = Array.from(document.querySelectorAll('#gsb-test-form .sieve-weight, #pan-weight, #total-weight'));
+                        const idx = weightInputs.indexOf(activeElement);
+                        if (idx < weightInputs.length - 1) {
+                            weightInputs[idx + 1].focus();
+                        }
+                        return;
+                    }
+
                     const form = currentTestType === 'cube' ? 
                         document.getElementById('cube-test-form') : 
                         document.getElementById('gsb-test-form');
 
                     if (!form || form.classList.contains('hidden')) return;
 
-                    const focusable = Array.from(form.querySelectorAll(
-                        'input:not([type="hidden"]):not([disabled]), ' +
-                        'select:not([disabled]), ' +
-                        'textarea:not([disabled]), ' +
-                        'button[type="submit"]:not([disabled])'
-                    )).filter(el => {
+                    const selector = currentTestType === 'gsb'
+                        ? 'input:not([type="hidden"]):not([disabled]):not(.sieve-size), select:not([disabled]), textarea:not([disabled]), button[type="submit"]:not([disabled])'
+                        : 'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button[type="submit"]:not([disabled])';
+
+                    const focusable = Array.from(form.querySelectorAll(selector)).filter(el => {
                         if (el.classList.contains('btn-outline')) return false;
                         if (el.textContent.includes('Cancel')) return false;
                         return true;
@@ -1241,11 +1313,31 @@
                 showTestForm();
                 
                 setupEventListeners();
-                setupDateInput('casting-date');
-                setupDateInput('test-date');
-                setupDateInput('gsb-test-date');
                 setupEnterNavigation();
                 trackFormChanges();
+
+                // ===== FLATPICKR DATE PICKERS =====
+                const fpOptions = {
+                    dateFormat: 'd/m/Y',
+                    allowInput: false,
+                    disableMobile: true,
+                    onChange: function() { updateDaysDiff(); }
+                };
+                flatpickr('#casting-date', fpOptions);
+                flatpickr('#test-date', fpOptions);
+                flatpickr('#gsb-test-date', { dateFormat: 'd/m/Y', allowInput: false, disableMobile: true });
+
+                // Set existing values into flatpickr
+                const castingVal = document.getElementById('casting-date').getAttribute('data-value');
+                const testVal = document.getElementById('test-date').getAttribute('data-value');
+                const gsbTestVal = document.getElementById('gsb-test-date').getAttribute('data-value');
+                if (castingVal) document.getElementById('casting-date')._flatpickr.setDate(castingVal, true, 'd/m/Y');
+                if (testVal) document.getElementById('test-date')._flatpickr.setDate(testVal, true, 'd/m/Y');
+                if (gsbTestVal) document.getElementById('gsb-test-date')._flatpickr.setDate(gsbTestVal, true, 'd/m/Y');
+                updateDaysDiff();
+
+                // Clear history so back goes directly to workspace
+                history.replaceState(null, '', location.href);
                 
                 hideLoading();
             } catch (error) {
@@ -1335,25 +1427,26 @@
         function populateCubeForm() {
             document.getElementById('cube-project-name').value = currentTest.projectName || '';
             document.getElementById('cube-client-department').value = currentTest.clientDepartment || '';
-            document.getElementById('casting-date').value = formatDateForInput(currentTest.castingDate);
-            document.getElementById('test-date').value = formatDateForInput(currentTest.testDate);
+            
+            // Store formatted dates as data-value for flatpickr to pick up after init
+            const castingFormatted = formatDateForInput(currentTest.castingDate);
+            const testFormatted = formatDateForInput(currentTest.testDate);
+            document.getElementById('casting-date').setAttribute('data-value', castingFormatted);
+            document.getElementById('casting-date').value = castingFormatted;
+            document.getElementById('test-date').setAttribute('data-value', testFormatted);
+            document.getElementById('test-date').value = testFormatted;
+            
             document.getElementById('test-age').value = currentTest.testAge || '';
             document.getElementById('grade').value = currentTest.grade || '';
             document.getElementById('cube-remarks').value = currentTest.remarks || '';
-            
             document.getElementById('cube-selected-doc-url').value = currentTest.linkedFileUrl || '';
             
             if (currentTest.cubes && Array.isArray(currentTest.cubes)) {
                 const weightInputs = document.querySelectorAll('.cube-weight');
                 const pressureInputs = document.querySelectorAll('.cube-pressure');
-                
                 currentTest.cubes.forEach((cube, index) => {
-                    if (weightInputs[index]) {
-                        weightInputs[index].value = cube.weight || '';
-                    }
-                    if (pressureInputs[index]) {
-                        pressureInputs[index].value = cube.pressure || '';
-                    }
+                    if (weightInputs[index]) weightInputs[index].value = cube.weight || '';
+                    if (pressureInputs[index]) pressureInputs[index].value = cube.pressure || '';
                 });
             }
         }
@@ -1361,9 +1454,12 @@
         function populateGSBForm() {
             document.getElementById('gsb-project-name').value = currentTest.projectName || '';
             document.getElementById('gsb-client-department').value = currentTest.clientDepartment || '';
-            document.getElementById('gsb-test-date').value = formatDateForInput(currentTest.testDate || currentTest.date);
-            document.getElementById('gsb-remarks').value = currentTest.remarks || '';
             
+            const gsbDateFormatted = formatDateForInput(currentTest.testDate || currentTest.date);
+            document.getElementById('gsb-test-date').setAttribute('data-value', gsbDateFormatted);
+            document.getElementById('gsb-test-date').value = gsbDateFormatted;
+            
+            document.getElementById('gsb-remarks').value = currentTest.remarks || '';
             document.getElementById('gsb-selected-doc-url').value = currentTest.linkedFileUrl || '';
             
             const tableBody = document.getElementById('gsb-sieve-table');
@@ -1452,6 +1548,15 @@
                     });
                 }
 
+                // Get current user's display name for editedBy
+                let editedByName = '';
+                try {
+                    const userProfile = await firebaseHelpers.getUserProfile();
+                    editedByName = userProfile?.nickname || userProfile?.displayName || userProfile?.email || firebaseHelpers.getUserEmail() || '';
+                } catch(e) {
+                    editedByName = firebaseHelpers.getUserEmail() || '';
+                }
+
                 const updatedTest = {
                     ...currentTest,
                     projectName: document.getElementById('cube-project-name').value || null,
@@ -1463,7 +1568,8 @@
                     cubes: cubes,
                     remarks: document.getElementById('cube-remarks').value || null,
                     linkedFileUrl: selectedDocumentUrl || null,
-                    lastUpdated: new Date().toISOString()
+                    lastUpdated: new Date().toISOString(),
+                    editedBy: editedByName
                 };
 
                 const cubeTests = currentCustomer.cubeTests || [];
@@ -1480,11 +1586,15 @@
                     lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
+                // Log to history
+                try { await firebaseHelpers.logHistory('update', `Edited cube test for: ${currentCustomer.name}`, `Grade: ${updatedTest.grade || 'N/A'}, Age: ${updatedTest.testAge || 'N/A'} days, Edited By: ${editedByName}`); } catch(e) {}
+
                 showAlert('Cube test updated successfully!', 'edit', 3000);
                 resetFormDirty();
                 
                 setTimeout(() => {
                     clearTestStorage();
+                    history.replaceState(null, '', 'workspace.html');
                     location.replace('workspace.html');
                 }, 1500);
                 
@@ -1518,6 +1628,15 @@
                 const totalWeightInput = document.getElementById('total-weight').value;
                 const totalWeight = totalWeightInput ? parseFloat(totalWeightInput) : null;
 
+                // Get current user's display name for editedBy
+                let editedByName = '';
+                try {
+                    const userProfile = await firebaseHelpers.getUserProfile();
+                    editedByName = userProfile?.nickname || userProfile?.displayName || userProfile?.email || firebaseHelpers.getUserEmail() || '';
+                } catch(e) {
+                    editedByName = firebaseHelpers.getUserEmail() || '';
+                }
+
                 const updatedTest = {
                     ...currentTest,
                     projectName: document.getElementById('gsb-project-name').value || null,
@@ -1527,7 +1646,8 @@
                     totalWeight: totalWeight,
                     remarks: document.getElementById('gsb-remarks').value || null,
                     linkedFileUrl: selectedDocumentUrl || null,
-                    lastUpdated: new Date().toISOString()
+                    lastUpdated: new Date().toISOString(),
+                    editedBy: editedByName
                 };
 
                 const gsbTests = currentCustomer.gsbTests || [];
@@ -1544,11 +1664,15 @@
                     lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
+                // Log to history
+                try { await firebaseHelpers.logHistory('update', `Edited GSB test for: ${currentCustomer.name}`, `Test date: ${updatedTest.testDate || 'N/A'}, Edited By: ${editedByName}`); } catch(e) {}
+
                 showAlert('GSB test updated successfully!', 'edit', 3000);
                 resetFormDirty();
                 
                 setTimeout(() => {
                     clearTestStorage();
+                    history.replaceState(null, '', 'workspace.html');
                     location.replace('workspace.html');
                 }, 1500);
                 
@@ -1563,6 +1687,7 @@
                 handleBackButton();
             } else {
                 clearTestStorage();
+                history.replaceState(null, '', 'workspace.html');
                 location.replace('workspace.html');
             }
         }

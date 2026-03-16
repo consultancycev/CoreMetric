@@ -732,6 +732,11 @@
             display: none !important;
         }
 
+        /* Mobile download buttons - hidden on desktop */
+        .mobile-download-buttons {
+            display: none;
+        }
+
         /* Share Modal */
         .share-modal {
             position: fixed;
@@ -905,6 +910,38 @@
             .action-dropdown {
                 width: 100%;
             }
+
+            /* Mobile: Show download button full width */
+            .mobile-download-buttons {
+                display: flex !important;
+                width: 100%;
+            }
+
+            .desktop-download-dropdown {
+                display: none !important;
+            }
+
+            .mobile-download-btn {
+                background-color: var(--success);
+                color: white;
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                width: 100%;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+            }
+
+            .mobile-download-btn:hover {
+                transform: translateY(-2px);
+                opacity: 0.9;
+            }
             
             .dropdown-content {
                 width: 100%;
@@ -967,25 +1004,17 @@
                         <button class="btn btn-copy" onclick="copyResultData()" id="copy-result-btn">
                             <i class="far fa-copy"></i> Copy Result
                         </button>
-                        <div class="action-dropdown">
-                            <button class="dropdown-btn" id="downloadDropdownBtn">
+                        <!-- Desktop: Download Popup Button -->
+                        <div class="action-dropdown desktop-download-dropdown">
+                            <button class="dropdown-btn" id="downloadDropdownBtn" onclick="showDownloadPopup()">
                                 <i class="fas fa-download"></i> Download
-                                <i class="fas fa-chevron-down" style="font-size: 0.8rem; margin-left: 5px;"></i>
                             </button>
-                            <div class="dropdown-content" id="downloadDropdown">
-                                <div class="dropdown-item" onclick="downloadReport('pdf')">
-                                    <i class="fas fa-file-pdf"></i> PDF Format
-                                </div>
-                                <div class="dropdown-item" onclick="downloadReport('jpg')">
-                                    <i class="fas fa-file-image"></i> JPG Format
-                                </div>
-                                <div class="dropdown-item" onclick="downloadReport('png')">
-                                    <i class="fas fa-image"></i> PNG Format
-                                </div>
-                                <div class="dropdown-item" onclick="downloadReport('txt')">
-                                    <i class="fas fa-file-alt"></i> Text Format
-                                </div>
-                            </div>
+                        </div>
+                        <!-- Mobile: Download Popup Button (same as desktop now) -->
+                        <div class="mobile-download-buttons">
+                            <button class="mobile-download-btn" onclick="showDownloadPopup()">
+                                <i class="fas fa-download"></i> Download
+                            </button>
                         </div>
                         <div class="action-dropdown">
                             <button class="dropdown-btn share-btn" onclick="shareViaNative()">
@@ -1142,8 +1171,8 @@
             // Apply theme on load
             applyTheme();
             
-            // Setup dropdowns
-            setupDropdown('downloadDropdownBtn', 'downloadDropdown');
+            // Setup dropdowns (none needed now - using popups)
+            // setupDropdown('downloadDropdownBtn', 'downloadDropdown');
             
             // Close dropdowns when clicking outside
             document.addEventListener('click', function() {
@@ -1290,35 +1319,36 @@
 
         // ==================== LOAD TEST DETAILS ====================
         async function loadTestDetails() {
-            // Fetch current user's display name
-            let addedByName = '';
-            try {
-                const profile = await firebaseHelpers.getUserProfile();
-                if (profile) {
-                    addedByName = profile.nickname || profile.displayName || profile.email || '';
-                } else {
-                    addedByName = firebaseHelpers.getUserEmail() || '';
-                }
-            } catch (e) {
-                addedByName = firebaseHelpers.getUserEmail() || '';
-            }
+            // Use addedBy saved in the test object (who created the test)
+            let addedByName = currentTest.addedBy || '';
+            // Fallback: if old test has no addedBy, show nothing
+
             // Update header
             document.getElementById('test-details-title').textContent = 
                 currentTestType === 'cube' ? 'Cube Test Details' : 'GSB Test Details';
+            
+            const editedByName = currentTest.editedBy || '';
+            let subtitleParts = [];
+            if (addedByName) subtitleParts.push(`Added By: ${addedByName}`);
+            if (editedByName && editedByName !== addedByName) subtitleParts.push(`Edited By: ${editedByName}`);
             document.getElementById('test-details-subtitle').innerHTML = 
-                addedByName ? `<span style="opacity:0.5;font-size:0.9rem;">Added By: ${addedByName}</span>` : '';
+                subtitleParts.length > 0 
+                    ? `<span style="opacity:0.5;font-size:0.9rem;">${subtitleParts.join(' &nbsp;|&nbsp; ')}</span>` 
+                    : '';
 
             // Update approval section
             const approvalSection = document.getElementById('test-approval-section');
+            const isAdmin = await firebaseHelpers.isAdmin();
+
             if (currentTest.status === 'pending' || !currentTest.status) {
                 approvalSection.innerHTML = `
                     <span class="test-type-badge ${currentTestType === 'cube' ? 'cube-badge' : 'gsb-badge'}">
                         <i class="fas ${currentTestType === 'cube' ? 'fa-cube' : 'fa-filter'}"></i>
                         ${currentTestType === 'cube' ? 'Cube Test' : 'GSB Test'}
                     </span>
-                    <button class="btn btn-approve" onclick="approveTest()" id="approve-btn">
+                    ${isAdmin ? `<button class="btn btn-approve" onclick="approveTest()" id="approve-btn">
                         <i class="fas fa-check-circle"></i> Approve Test
-                    </button>
+                    </button>` : ''}
                 `;
             } else {
                 approvalSection.innerHTML = `
@@ -1329,6 +1359,9 @@
                     <span class="approval-badge approved">
                         <i class="fas fa-check-circle"></i> Approved
                     </span>
+                    ${isAdmin ? `<button class="btn btn-approve" onclick="unapproveTest()" id="unapprove-btn" style="background: linear-gradient(135deg, #ef233c, #c9184a); box-shadow: 0 4px 12px rgba(239,35,60,0.35); margin-left: 10px;">
+                        <i class="fas fa-times-circle"></i> Un-Approve
+                    </button>` : ''}
                 `;
             }
 
@@ -1362,20 +1395,34 @@
                             <p>${projectName}</p>
                         </div>
                         <div class="detail-item">
-                            <h4>Test Date</h4>
-                            <p>${formatDate(currentTest.testDate)}</p>
-                        </div>
-                        <div class="detail-item">
                             <h4>Casting Date</h4>
                             <p>${formatDate(currentTest.castingDate)}</p>
+                        </div>
+                        ${(() => {
+                            // Show Test Date only if casting date has already passed
+                            const now = new Date();
+                            let castingDateObj = null;
+                            if (currentTest.castingDate) {
+                                if (currentTest.castingDate.toDate) castingDateObj = currentTest.castingDate.toDate();
+                                else if (currentTest.castingDate.seconds) castingDateObj = new Date(currentTest.castingDate.seconds * 1000);
+                                else if (typeof currentTest.castingDate === 'string') castingDateObj = new Date(currentTest.castingDate);
+                                else if (currentTest.castingDate._seconds) castingDateObj = new Date(currentTest.castingDate._seconds * 1000);
+                            }
+                            if (castingDateObj && castingDateObj > now) {
+                                return ''; // Casting date not yet passed - hide test date
+                            }
+                            return `<div class="detail-item">
+                                <h4>Test Date</h4>
+                                <p>${formatDate(currentTest.testDate)}</p>
+                            </div>`;
+                        })()}
+                        <div class="detail-item">
+                            <h4>Grade</h4>
+                            <p>${currentTest.grade || 'N/A'}</p>
                         </div>
                         <div class="detail-item">
                             <h4>Test Age</h4>
                             <p>${currentTest.testAge || 'N/A'} Day${currentTest.testAge === '1' ? '' : 's'}</p>
-                        </div>
-                        <div class="detail-item">
-                            <h4>Grade</h4>
-                            <p>${currentTest.grade || 'N/A'}</p>
                         </div>
                     </div>
 
@@ -1779,6 +1826,135 @@
                 console.error("Error approving test:", error);
                 showToast('Error approving test: ' + error.message, 'error');
             }
+        }
+
+        // ==================== UN-APPROVE TEST FUNCTION ====================
+        async function unapproveTest() {
+            if (!currentCustomer || !currentTest || !currentCustomerId) {
+                showToast('Cannot un-approve test: Missing data', 'error');
+                return;
+            }
+
+            // Show custom popup confirmation
+            const confirmed = await showUnapproveConfirm();
+            if (!confirmed) return;
+
+            try {
+                const db = firebase.firestore();
+                const customerRef = db.collection(firebaseHelpers.CUSTOMERS_COLLECTION).doc(currentCustomerId);
+
+                const cleanTest = JSON.parse(JSON.stringify(currentTest));
+                cleanTest.status = 'pending';
+                delete cleanTest.approvedAt;
+                delete cleanTest.approvedBy;
+
+                const customerDoc = await customerRef.get();
+                const customerData = customerDoc.data();
+
+                let updatedTests;
+
+                if (currentTestType === 'cube') {
+                    updatedTests = customerData.cubeTests.map(test => {
+                        if (test.id && test.id === cleanTest.id) return cleanTest;
+                        if (!test.id && JSON.stringify(test) === JSON.stringify(currentTest)) return cleanTest;
+                        return test;
+                    });
+                    await customerRef.update({
+                        cubeTests: updatedTests,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    updatedTests = customerData.gsbTests.map(test => {
+                        if (test.id && test.id === cleanTest.id) return cleanTest;
+                        if (!test.id && JSON.stringify(test) === JSON.stringify(currentTest)) return cleanTest;
+                        return test;
+                    });
+                    await customerRef.update({
+                        gsbTests: updatedTests,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+
+                currentTest = cleanTest;
+                if (currentTestType === 'cube') {
+                    currentCustomer.cubeTests = updatedTests;
+                } else {
+                    currentCustomer.gsbTests = updatedTests;
+                }
+
+                loadTestDetails();
+                showToast('Test un-approved successfully!', 'warning');
+
+                try { await firebaseHelpers.logHistory('update', `Un-approved ${currentTestType === 'cube' ? 'Cube' : 'GSB'} test for: ${currentCustomer.name}`, `Test ID: ${currentTestId}`); } catch(e) {}
+            } catch (error) {
+                console.error("Error un-approving test:", error);
+                showToast('Error un-approving test: ' + error.message, 'error');
+            }
+        }
+
+        // ==================== UN-APPROVE CONFIRM POPUP ====================
+        function showUnapproveConfirm() {
+            return new Promise((resolve) => {
+                const modal = document.createElement('div');
+                modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;backdrop-filter:blur(5px);animation:fadeIn 0.2s ease;';
+                modal.innerHTML = `
+                    <div style="background:${document.body.classList.contains('dark-theme') ? '#1e1e1e' : 'white'};border-radius:16px;padding:36px 32px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideUp 0.3s ease;">
+                        <div style="width:68px;height:68px;background:linear-gradient(135deg,#ef233c,#c9184a);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
+                            <i class="fas fa-times-circle" style="font-size:2rem;color:white;"></i>
+                        </div>
+                        <h3 style="font-size:1.3rem;font-weight:700;color:${document.body.classList.contains('dark-theme') ? '#fff' : '#212529'};margin-bottom:10px;">Un-Approve Test?</h3>
+                        <p style="color:#6c757d;font-size:0.95rem;margin-bottom:28px;">Do you want to un-approve this test? The status will be reset to pending.</p>
+                        <div style="display:flex;gap:12px;justify-content:center;">
+                            <button id="unapprove-cancel-btn" style="padding:11px 28px;border:2px solid #dee2e6;border-radius:8px;background:transparent;color:#6c757d;font-size:0.95rem;font-weight:600;cursor:pointer;">Cancel</button>
+                            <button id="unapprove-confirm-btn" style="padding:11px 28px;border:none;border-radius:8px;background:linear-gradient(135deg,#ef233c,#c9184a);color:#fff;font-size:0.95rem;font-weight:600;cursor:pointer;">
+                                <i class="fas fa-times-circle"></i> Un-Approve
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                modal.querySelector('#unapprove-confirm-btn').onclick = () => { modal.remove(); resolve(true); };
+                modal.querySelector('#unapprove-cancel-btn').onclick = () => { modal.remove(); resolve(false); };
+                modal.addEventListener('click', (e) => { if (e.target === modal) { modal.remove(); resolve(false); } });
+            });
+        }
+
+        // ==================== DOWNLOAD POPUP ====================
+        function showDownloadPopup() {
+            const formats = [
+                { id: 'pdf', name: 'PDF Format', icon: 'fa-file-pdf', color: '#ef233c' },
+                { id: 'jpg', name: 'JPG Format', icon: 'fa-file-image', color: '#f8961e' },
+                { id: 'png', name: 'PNG Format', icon: 'fa-image', color: '#4361ee' },
+                { id: 'txt', name: 'Text Format', icon: 'fa-file-alt', color: '#4cc9f0' }
+            ];
+
+            const modal = document.createElement('div');
+            modal.className = 'share-modal';
+            modal.innerHTML = `
+                <div class="share-modal-content">
+                    <div class="share-modal-header">
+                        <h3><i class="fas fa-download"></i> Download Report</h3>
+                        <button class="close-modal" id="download-modal-close">&times;</button>
+                    </div>
+                    <p style="color:var(--gray);margin-bottom:5px;">Select format to download:</p>
+                    <div class="share-options">
+                        ${formats.map(f => `
+                            <button class="share-option-btn" onclick="downloadReport('${f.id}'); document.querySelector('.share-modal').remove();">
+                                <i class="fas ${f.icon}" style="color:${f.color};"></i>
+                                <span>${f.name}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            modal.querySelector('#download-modal-close').onclick = () => modal.remove();
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+            document.addEventListener('keydown', function esc(e) {
+                if (e.key === 'Escape') { modal.remove(); document.removeEventListener('keydown', esc); }
+            });
         }
 
         // ==================== COPY RESULT FUNCTION ====================

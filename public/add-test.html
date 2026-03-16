@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Add Test Result | Cube & GSB Test Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="icon" type="image/x-icon" href="assets/logo.png">
     <style>
         /* Base Styles */
@@ -670,8 +671,14 @@
                     <input type="text" id="cube-client-department" placeholder="Enter client/department name">
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label for="casting-date">Casting Date</label><input type="text" id="casting-date" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off"></div>
-                    <div class="form-group"><label for="test-date">Test Date</label><input type="text" id="test-date" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off"></div>
+                    <div class="form-group"><label for="casting-date">Casting Date</label><input type="text" id="casting-date" placeholder="DD/MM/YYYY" autocomplete="off" style="cursor:pointer;"></div>
+                    <div class="form-group"><label for="test-date">Test Date</label><input type="text" id="test-date" placeholder="DD/MM/YYYY" autocomplete="off" style="cursor:pointer;"></div>
+                </div>
+                <div id="days-diff-badge" style="display:none; margin: -8px 0 12px 0; opacity: 0.7;">
+                    <span style="background: #e8f0fe; color: #3a57c7; font-size: 0.78rem; font-weight: 500; padding: 3px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="fas fa-calendar-alt" style="font-size:0.7rem;"></i>
+                        <span id="days-diff-text"></span>
+                    </span>
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label for="test-age">Test Age</label>
@@ -713,7 +720,7 @@
                 <input type="hidden" id="gsb-selected-doc-url" value="">
                 <div class="form-group"><label for="gsb-project-name">Project Name</label><input type="text" id="gsb-project-name" placeholder="Enter project name"></div>
                 <div class="form-group"><label for="gsb-client-department">Name of Client/Department</label><input type="text" id="gsb-client-department" placeholder="Enter client/department name"></div>
-                <div class="form-group"><label for="gsb-test-date">Test Date</label><input type="text" id="gsb-test-date" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off"></div>
+                <div class="form-group"><label for="gsb-test-date">Test Date</label><input type="text" id="gsb-test-date" placeholder="DD/MM/YYYY" autocomplete="off" style="cursor:pointer;"></div>
                 <h3>Sieve Analysis</h3>
                 <table class="gsb-table">
                     <thead><tr><th>Sieve Size (mm)</th><th>Weight (kg)</th></tr></thead>
@@ -733,6 +740,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Flatpickr Date Picker -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -896,9 +906,11 @@
                     'Unsaved Changes'
                 );
                 if (confirmed) {
+                    history.replaceState(null, '', 'workspace.html');
                     window.location.replace('workspace.html');
                 }
             } else {
+                history.replaceState(null, '', 'workspace.html');
                 window.location.replace('workspace.html');
             }
         }
@@ -960,12 +972,18 @@
 
                 card.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    // Only increment count if this is a new selection (not re-clicking already selected)
                     const alreadySelected = card.classList.contains('selected');
-                    document.querySelectorAll('.document-card').forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                    selectedDocumentUrl = url;
                     if (!alreadySelected) {
+                        // Remove count from previously selected doc
+                        if (selectedDocumentUrl && selectedDocumentUrl !== url) {
+                            if (docSelectCounts[selectedDocumentUrl] > 0) {
+                                docSelectCounts[selectedDocumentUrl]--;
+                                if (docSelectCounts[selectedDocumentUrl] === 0) delete docSelectCounts[selectedDocumentUrl];
+                            }
+                        }
+                        document.querySelectorAll('.document-card').forEach(c => c.classList.remove('selected'));
+                        card.classList.add('selected');
+                        selectedDocumentUrl = url;
                         docSelectCounts[url] = (docSelectCounts[url] || 0) + 1;
                     }
                     if (selectedTestType === 'cube') document.getElementById('cube-selected-doc-url').value = url;
@@ -1055,6 +1073,26 @@
             tableBody.innerHTML = html;
         }
 
+        // ==================== DAYS DIFFERENCE ====================
+        function updateDaysDiff() {
+            const castingVal = document.getElementById('casting-date').value;
+            const testVal = document.getElementById('test-date').value;
+            const badge = document.getElementById('days-diff-badge');
+            const text = document.getElementById('days-diff-text');
+            if (castingVal && testVal) {
+                // Parse DD/MM/YYYY
+                const parseDMY = (s) => { const p = s.split('/'); if(p.length!==3) return null; return new Date(`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`); };
+                const c = parseDMY(castingVal), t = parseDMY(testVal);
+                if (c && t && !isNaN(c) && !isNaN(t)) {
+                    const diff = Math.round((t - c) / (1000 * 60 * 60 * 24));
+                    text.textContent = diff >= 0 ? `${diff} days after casting` : `${Math.abs(diff)} days before casting`;
+                    badge.style.display = 'block';
+                    return;
+                }
+            }
+            badge.style.display = 'none';
+        }
+
         // ==================== ENTER KEY NAVIGATION ====================
         function setupEnterNavigation() {
             document.addEventListener('keydown', function(e) {
@@ -1066,15 +1104,28 @@
                     
                     e.preventDefault();
 
+                    // Special GSB navigation: weight inputs only (skip sieve size inputs)
+                    if (selectedTestType === 'gsb' && activeElement.classList.contains('sieve-weight')) {
+                        const weightInputs = Array.from(document.querySelectorAll('#gsb-test-form .sieve-weight, #pan-weight, #total-weight'));
+                        const idx = weightInputs.indexOf(activeElement);
+                        if (idx < weightInputs.length - 1) {
+                            weightInputs[idx + 1].focus();
+                        }
+                        return;
+                    }
+
                     const form = selectedTestType === 'cube' ? 
                         document.getElementById('cube-test-form') : 
                         document.getElementById('gsb-test-form');
                     
                     if (!form || form.classList.contains('hidden')) return;
 
-                    const focusable = form.querySelectorAll(
-                        'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]):not(.btn-outline)'
-                    );
+                    // For GSB form, exclude sieve-size inputs from tab order
+                    const selector = selectedTestType === 'gsb'
+                        ? 'input:not([type="hidden"]):not([disabled]):not(.sieve-size), select:not([disabled]), textarea:not([disabled]), button:not([disabled]):not(.btn-outline)'
+                        : 'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]):not(.btn-outline)';
+
+                    const focusable = form.querySelectorAll(selector);
                     
                     if (focusable.length === 0) return;
 
@@ -1089,35 +1140,6 @@
                         }
                     }
                 }
-            });
-        }
-
-        // ==================== DATE HELPERS (dd/mm/yyyy) ====================
-        function formatDateToDDMMYYYY(date) {
-            if (!date) return '';
-            const d = String(date.getDate()).padStart(2, '0');
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const y = date.getFullYear();
-            return `${d}/${m}/${y}`;
-        }
-
-        function parseDDMMYYYY(str) {
-            if (!str) return null;
-            const parts = str.split('/');
-            if (parts.length !== 3) return null;
-            const [dd, mm, yyyy] = parts;
-            if (!dd || !mm || !yyyy || yyyy.length !== 4) return null;
-            return `${yyyy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
-        }
-
-        function setupDateInput(inputId) {
-            const input = document.getElementById(inputId);
-            if (!input) return;
-            input.addEventListener('input', function(e) {
-                let val = e.target.value.replace(/[^0-9]/g, '');
-                if (val.length >= 3) val = val.slice(0,2) + '/' + val.slice(2);
-                if (val.length >= 6) val = val.slice(0,5) + '/' + val.slice(5,9);
-                e.target.value = val;
             });
         }
 
@@ -1158,20 +1180,38 @@
                     gradeSelect.appendChild(opt);
                 });
 
-                const todayFormatted = formatDateToDDMMYYYY(new Date());
-                document.getElementById('casting-date').value = todayFormatted;
-                document.getElementById('test-date').value = todayFormatted;
-                document.getElementById('gsb-test-date').value = todayFormatted;
-
-                setupDateInput('casting-date');
-                setupDateInput('test-date');
-                setupDateInput('gsb-test-date');
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('casting-date').value = today;
+                document.getElementById('test-date').value = today;
+                document.getElementById('gsb-test-date').value = today;
+                updateDaysDiff();
 
                 initGSBSieveTable();
                 checkTestCompletionStatus();
                 setupEventListeners();
                 setupEnterNavigation();
                 trackFormChanges(); // Track form changes for back button confirmation
+
+                // ===== FLATPICKR DATE PICKERS =====
+                const fpOptions = {
+                    dateFormat: 'd/m/Y',
+                    allowInput: false,
+                    disableMobile: true,
+                    onChange: function() { updateDaysDiff(); }
+                };
+                flatpickr('#casting-date', fpOptions);
+                flatpickr('#test-date', fpOptions);
+                flatpickr('#gsb-test-date', { dateFormat: 'd/m/Y', allowInput: false, disableMobile: true });
+
+                // Set today as default
+                const todayStr = (() => { const d = new Date(); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; })();
+                document.getElementById('casting-date')._flatpickr.setDate(todayStr, true, 'd/m/Y');
+                document.getElementById('test-date')._flatpickr.setDate(todayStr, true, 'd/m/Y');
+                document.getElementById('gsb-test-date')._flatpickr.setDate(todayStr, true, 'd/m/Y');
+                updateDaysDiff();
+
+                // Clear forward history so back button goes directly to workspace
+                history.replaceState(null, '', location.href);
                 
                 hideLoading();
             } catch (error) {
@@ -1289,6 +1329,7 @@
             if (isFormDirty) {
                 handleBackButton();
             } else {
+                history.replaceState(null, '', 'workspace.html');
                 window.location.replace('workspace.html');
             }
         }
@@ -1311,14 +1352,24 @@
                 });
             }
 
+            // Get current user's display name for addedBy
+            let addedByName = '';
+            try {
+                const userProfile = await firebaseHelpers.getUserProfile();
+                addedByName = userProfile?.nickname || userProfile?.displayName || userProfile?.email || firebaseHelpers.getUserEmail() || '';
+            } catch(e) {
+                addedByName = firebaseHelpers.getUserEmail() || '';
+            }
+
             const cubeTest = {
                 id: Date.now().toString(),
                 type: 'cube',
                 date: new Date().toISOString(),
+                addedBy: addedByName,
                 projectName: document.getElementById('cube-project-name').value || null,
                 clientDepartment: document.getElementById('cube-client-department').value || null,
-                castingDate: parseDDMMYYYY(document.getElementById('casting-date').value) || null,
-                testDate: parseDDMMYYYY(document.getElementById('test-date').value) || null,
+                castingDate: document.getElementById('casting-date').value || null,
+                testDate: document.getElementById('test-date').value || null,
                 testAge: document.getElementById('test-age').value || null,
                 grade: document.getElementById('grade').value || null,
                 cubes: cubes,
@@ -1334,9 +1385,10 @@
                 resetFormDirty();
                 
                 // Log to history
-                try { await firebaseHelpers.logHistory('add', `Added cube test for: ${currentCustomer.name}`, `Grade: ${cubeTest.grade || 'N/A'}, Age: ${cubeTest.testAge || 'N/A'} days`); } catch(e) {}
+                try { await firebaseHelpers.logHistory('add', `Added cube test for: ${currentCustomer.name}`, `Grade: ${cubeTest.grade || 'N/A'}, Age: ${cubeTest.testAge || 'N/A'} days, Added By: ${cubeTest.addedBy || 'Unknown'}`); } catch(e) {}
                 
                 setTimeout(() => {
+                    history.replaceState(null, '', 'workspace.html');
                     location.replace('workspace.html');
                 }, 1500);
             } catch (err) { showAlert('Error: '+err.message, 'error'); }
@@ -1354,13 +1406,23 @@
             });
             sieves.push({ size: 'Pan', weight: parseFloat(document.getElementById('pan-weight').value)||null });
 
+            // Get current user's display name for addedBy
+            let addedByName = '';
+            try {
+                const userProfile = await firebaseHelpers.getUserProfile();
+                addedByName = userProfile?.nickname || userProfile?.displayName || userProfile?.email || firebaseHelpers.getUserEmail() || '';
+            } catch(e) {
+                addedByName = firebaseHelpers.getUserEmail() || '';
+            }
+
             const gsbTest = {
                 id: Date.now().toString(),
                 type: 'gsb',
                 date: new Date().toISOString(),
+                addedBy: addedByName,
                 projectName: document.getElementById('gsb-project-name').value || null,
                 clientDepartment: document.getElementById('gsb-client-department').value || null,
-                testDate: parseDDMMYYYY(document.getElementById('gsb-test-date').value) || null,
+                testDate: document.getElementById('gsb-test-date').value || null,
                 sieves: sieves,
                 totalWeight: parseFloat(document.getElementById('total-weight').value)||null,
                 remarks: document.getElementById('gsb-remarks').value || null,
@@ -1375,9 +1437,10 @@
                 resetFormDirty();
                 
                 // Log to history
-                try { await firebaseHelpers.logHistory('add', `Added GSB test for: ${currentCustomer.name}`, `Test date: ${gsbTest.testDate || 'N/A'}`); } catch(e) {}
+                try { await firebaseHelpers.logHistory('add', `Added GSB test for: ${currentCustomer.name}`, `Test date: ${gsbTest.testDate || 'N/A'}, Added By: ${gsbTest.addedBy || 'Unknown'}`); } catch(e) {}
                 
                 setTimeout(() => {
+                    history.replaceState(null, '', 'workspace.html');
                     location.replace('workspace.html');
                 }, 1500);
             } catch (err) { showAlert('Error: '+err.message, 'error'); }
