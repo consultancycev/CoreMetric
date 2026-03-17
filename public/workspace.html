@@ -2962,7 +2962,21 @@
                 let date;
                 if (dateInput?.toDate) date = dateInput.toDate();
                 else if (dateInput?.seconds) date = new Date(dateInput.seconds * 1000);
-                else if (typeof dateInput === 'string') date = new Date(dateInput);
+                else if (typeof dateInput === 'string') {
+                    // Handle YYYY-MM-DD format directly to avoid timezone issues
+                    const isoDate = dateInput.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                    if (isoDate) {
+                        date = new Date(parseInt(isoDate[1]), parseInt(isoDate[2]) - 1, parseInt(isoDate[3]));
+                    } else {
+                        // Handle DD/MM/YYYY format (old saved data)
+                        const dmy = dateInput.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+                        if (dmy) {
+                            date = new Date(parseInt(dmy[3]), parseInt(dmy[2]) - 1, parseInt(dmy[1]));
+                        } else {
+                            date = new Date(dateInput);
+                        }
+                    }
+                }
                 else if (dateInput instanceof Date) date = dateInput;
                 else return 'N/A';
 

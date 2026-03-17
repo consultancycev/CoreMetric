@@ -1361,6 +1361,16 @@
                 addedByName = firebaseHelpers.getUserEmail() || '';
             }
 
+            // Get dates from flatpickr in YYYY-MM-DD format
+            const castingFP = document.getElementById('casting-date')._flatpickr;
+            const testFP = document.getElementById('test-date')._flatpickr;
+            const castingDateVal = castingFP?.selectedDates?.[0]
+                ? (() => { const d = castingFP.selectedDates[0]; return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })()
+                : null;
+            const testDateVal = testFP?.selectedDates?.[0]
+                ? (() => { const d = testFP.selectedDates[0]; return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })()
+                : null;
+
             const cubeTest = {
                 id: Date.now().toString(),
                 type: 'cube',
@@ -1368,8 +1378,8 @@
                 addedBy: addedByName,
                 projectName: document.getElementById('cube-project-name').value || null,
                 clientDepartment: document.getElementById('cube-client-department').value || null,
-                castingDate: document.getElementById('casting-date').value || null,
-                testDate: document.getElementById('test-date').value || null,
+                castingDate: castingDateVal,
+                testDate: testDateVal,
                 testAge: document.getElementById('test-age').value || null,
                 grade: document.getElementById('grade').value || null,
                 cubes: cubes,
@@ -1415,6 +1425,12 @@
                 addedByName = firebaseHelpers.getUserEmail() || '';
             }
 
+            // Get GSB test date from flatpickr in YYYY-MM-DD format
+            const gsbFP = document.getElementById('gsb-test-date')._flatpickr;
+            const gsbTestDateVal = gsbFP?.selectedDates?.[0]
+                ? (() => { const d = gsbFP.selectedDates[0]; return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })()
+                : null;
+
             const gsbTest = {
                 id: Date.now().toString(),
                 type: 'gsb',
@@ -1422,7 +1438,7 @@
                 addedBy: addedByName,
                 projectName: document.getElementById('gsb-project-name').value || null,
                 clientDepartment: document.getElementById('gsb-client-department').value || null,
-                testDate: document.getElementById('gsb-test-date').value || null,
+                testDate: gsbTestDateVal,
                 sieves: sieves,
                 totalWeight: parseFloat(document.getElementById('total-weight').value)||null,
                 remarks: document.getElementById('gsb-remarks').value || null,
