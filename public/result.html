@@ -1359,7 +1359,7 @@
                     <span class="approval-badge approved">
                         <i class="fas fa-check-circle"></i> Approved
                     </span>
-                    ${isAdmin ? `<button class="btn btn-approve" onclick="unapproveTest()" id="unapprove-btn" style="background: linear-gradient(135deg, #ef233c, #c9184a); box-shadow: 0 4px 12px rgba(239,35,60,0.35); margin-left: 10px;">
+                    ${isAdmin && !currentTest.hodSigned ? `<button class="btn btn-approve" onclick="unapproveTest()" id="unapprove-btn" style="background: linear-gradient(135deg, #ef233c, #c9184a); box-shadow: 0 4px 12px rgba(239,35,60,0.35); margin-left: 10px;">
                         <i class="fas fa-times-circle"></i> Un-Approve
                     </button>` : ''}
                 `;
@@ -2147,6 +2147,10 @@
             const backButton = contentClone.querySelector('.back-button');
             if (backButton) backButton.remove();
             
+            // Remove approve/unapprove buttons from header
+            const approvalSection = contentClone.querySelector('#test-approval-section');
+            if (approvalSection) approvalSection.remove();
+            
             // Remove column toggle controls for PDF
             const toggleControls = contentClone.querySelector('.column-toggle-controls');
             if (toggleControls) toggleControls.remove();
@@ -2238,6 +2242,10 @@
             
             const backButton = contentClone.querySelector('.back-button');
             if (backButton) backButton.remove();
+            
+            // Remove approve/unapprove buttons from header
+            const approvalSection = contentClone.querySelector('#test-approval-section');
+            if (approvalSection) approvalSection.remove();
             
             // Remove column toggle controls for image
             const toggleControls = contentClone.querySelector('.column-toggle-controls');

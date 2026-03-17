@@ -1167,31 +1167,18 @@
                             <i class="fas fa-tools"></i> System Options
                         </div>
 
-                        <!-- Auto Delete Settings -->
-                        <div style="padding:20px 22px;border-bottom:1px solid var(--border);">
-                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-                                <div>
-                                    <div style="font-size:0.92rem;font-weight:700;color:var(--text);margin-bottom:3px;">Auto Delete Old Customers</div>
-                                    <div style="font-size:0.82rem;color:var(--text-muted);">Automatically delete old customers when limit exceeded</div>
-                                </div>
-                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                                    <input type="checkbox" id="admin-auto-delete-toggle" onchange="toggleAdminAutoDeleteOptions()" style="width:18px;height:18px;cursor:pointer;">
-                                    <span style="font-size:0.85rem;font-weight:600;color:var(--text-muted);">Enable</span>
-                                </label>
+                        <!-- Delete Old Customers by Date -->
+                        <div class="danger-action" style="padding:18px 22px;border-bottom:1px solid var(--border);">
+                            <div class="danger-action-info">
+                                <h4>Delete Old Customers</h4>
+                                <p>Select a date — all customers added before that date will be deleted.</p>
                             </div>
-                            <div id="admin-delete-options" style="display:none;margin-bottom:14px;">
-                                <label style="font-size:0.82rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px;">Keep Last</label>
-                                <select id="admin-keep-customers" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.88rem;">
-                                    <option value="25">25 customers</option>
-                                    <option value="50" selected>50 customers</option>
-                                    <option value="100">100 customers</option>
-                                    <option value="250">250 customers</option>
-                                    <option value="500">500 customers</option>
-                                </select>
+                            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+                                <input type="date" id="admin-delete-before-date" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.88rem;">
+                                <button class="btn btn-danger btn-sm" onclick="runDeleteBeforeDate()">
+                                    <i class="fas fa-users-slash"></i> Delete Old Customers
+                                </button>
                             </div>
-                            <button class="btn btn-primary btn-sm" onclick="saveAdminAutoDeleteSettings()">
-                                <i class="fas fa-save"></i> Save Auto Delete Settings
-                            </button>
                         </div>
 
                         <div class="danger-action">
@@ -1214,15 +1201,6 @@
                             </button>
                         </div>
 
-                        <div class="danger-action">
-                            <div class="danger-action-info">
-                                <h4>Delete Old Customers</h4>
-                                <p>Delete customers based on auto delete settings above.</p>
-                            </div>
-                            <button class="btn btn-danger btn-sm" onclick="runSystemOp('delete-old-customers')">
-                                <i class="fas fa-users-slash"></i> Delete Old
-                            </button>
-                        </div>
 
                         <div class="danger-action">
                             <div class="danger-action-info">
@@ -1947,40 +1925,49 @@
             opts.style.display = toggle.checked ? 'block' : 'none';
         }
 
-        async function loadAdminSystemOpSettings() {
+        async function runDeleteBeforeDate() {
+            const dateVal = document.getElementById('admin-delete-before-date').value;
+            if (!dateVal) {
+                showToast('Please select a date', 'error');
+                return;
+            }
+            const ok = await showConfirm(
+                'Delete Old Customers',
+                `All customers added before ${dateVal} will be permanently deleted. This cannot be undone!`,
+                'Delete',
+                'btn-danger'
+            );
+            if (!ok) return;
+            showToast('Processing...', 'info');
             try {
                 const user = firebase.auth().currentUser;
-                if (!user) return;
+                if (!user) { showToast('Not authenticated', 'error'); return; }
                 const db = firebase.firestore();
-                const doc = await db.collection('settings').doc(user.uid).get();
-                if (doc.exists) {
-                    const s = doc.data();
-                    const toggle = document.getElementById('admin-auto-delete-toggle');
-                    const keepSel = document.getElementById('admin-keep-customers');
-                    if (s.autoDelete) {
-                        toggle.checked = s.autoDelete.enabled || false;
-                        keepSel.value = String(s.autoDelete.keepCustomers || 50);
-                        toggleAdminAutoDeleteOptions();
-                    }
+                // Fetch all customers without userId filter (backward compatibility)
+                const allSnap = await db.collection('customers').get();
+                const toDelete = allSnap.docs.filter(doc => {
+                    const data = doc.data();
+                    const cd = data.createdDate || data.createdAt || '';
+                    const dateOnly = cd.substring(0, 10); // YYYY-MM-DD
+                    return dateOnly && dateOnly < dateVal;
+                });
+                if (toDelete.length === 0) { showToast('No customers found before that date', 'info'); return; }
+                // Batch delete (max 500 per batch)
+                let deleted = 0;
+                for (let i = 0; i < toDelete.length; i += 500) {
+                    const batch = db.batch();
+                    toDelete.slice(i, i + 500).forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                    deleted += Math.min(500, toDelete.length - i);
                 }
-            } catch (e) { console.error(e); }
+                await logHistoryEntry('delete', `Deleted ${deleted} customers created before ${dateVal}`);
+                showToast(`${deleted} customers deleted`, 'success');
+                await loadAll();
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
-        async function saveAdminAutoDeleteSettings() {
-            try {
-                const user = firebase.auth().currentUser;
-                if (!user) return;
-                const db = firebase.firestore();
-                const enabled = document.getElementById('admin-auto-delete-toggle').checked;
-                const keepCustomers = parseInt(document.getElementById('admin-keep-customers').value);
-                await db.collection('settings').doc(user.uid).set({ autoDelete: { enabled, keepCustomers } }, { merge: true });
-                // Also update localStorage
-                const lsKey = 'cube_gsb_settings_v2';
-                const existing = JSON.parse(localStorage.getItem(lsKey) || '{}');
-                existing.autoDelete = { enabled, keepCustomers };
-                localStorage.setItem(lsKey, JSON.stringify(existing));
-                showToast('Auto delete settings saved', 'success');
-            } catch (e) { showToast('Error: ' + e.message, 'error'); }
+        async function loadAdminSystemOpSettings() {
+            // No settings to load
         }
 
         let pendingSystemOp = null;
@@ -1989,13 +1976,11 @@
             const opNames = {
                 'clear-tests': 'Clear All Test Data',
                 'reset-settings': 'Reset Settings to Default',
-                'delete-old-customers': 'Delete Old Customers',
                 'reset-all': 'Factory Reset (Delete ALL Data)'
             };
             const warnings = {
                 'clear-tests': 'This will permanently delete all Cube and GSB test records from all customers.',
                 'reset-settings': 'All custom settings (rates, sieve sizes, etc.) will be reset to defaults.',
-                'delete-old-customers': 'Old customers will be deleted based on auto-delete settings.',
                 'reset-all': '⚠️ DANGER: This will delete ALL customers, tests, and reset all settings!'
             };
             const ok = await showConfirm(opNames[type] || type, warnings[type] || '', opNames[type] || 'Confirm', 'btn-danger');
@@ -2022,19 +2007,6 @@
                     localStorage.setItem(SETTINGS_KEY, JSON.stringify(defaults));
                     await logHistoryEntry('update', 'Reset all settings to factory defaults');
                     showToast('Settings reset to defaults', 'success');
-
-                } else if (type === 'delete-old-customers') {
-                    const lsSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-                    const keepCount = lsSettings.autoDelete?.keepCustomers || 50;
-                    const snap = await db.collection('customers').where('userId', '==', user.uid).orderBy('createdDate', 'desc').get();
-                    if (snap.size <= keepCount) { showToast(`Only ${snap.size} customers exist, nothing to delete`, 'info'); return; }
-                    const batch = db.batch();
-                    let count = 0;
-                    snap.docs.forEach((doc, i) => { if (i >= keepCount) { batch.delete(doc.ref); count++; } });
-                    await batch.commit();
-                    await logHistoryEntry('delete', `Deleted ${count} old customers, kept ${keepCount} most recent`);
-                    showToast(`Deleted ${count} old customers`, 'success');
-                    await loadAll();
 
                 } else if (type === 'reset-all') {
                     const snap = await db.collection('customers').where('userId', '==', user.uid).get();

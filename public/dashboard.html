@@ -137,6 +137,7 @@
             flex-direction: column;
             align-items: flex-end;
             gap: 12px;
+            margin-left: auto;
         }
 
         .logo {
@@ -234,9 +235,10 @@
 
         .header-actions {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             align-items: center;
             flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         /* Profile Modal */
@@ -936,8 +938,8 @@
             align-items: center;
             margin-bottom: 25px;
             flex-wrap: wrap;
-            gap: 15px;
-            padding: 20px;
+            gap: 12px;
+            padding: 15px 20px;
             background: var(--light);
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -948,13 +950,13 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            flex-grow: 1;
-            max-width: 400px;
+            flex-shrink: 0;
+            width: 280px;
         }
 
         .search-box input {
             flex-grow: 1;
-            padding: 12px 15px;
+            padding: 10px 15px;
             border: 1px solid var(--border);
             border-radius: 8px;
             font-size: 1rem;
@@ -972,7 +974,18 @@
         .filter-controls {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            flex: 1;
+        }
+        .filter-left-group {
+            display: none; /* hidden - moved into filter-controls directly */
+        }
+        .filter-right-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
@@ -1875,6 +1888,107 @@
             margin-top: 8px;
         }
 
+        /* ===== HEADER ACTION BUTTONS ===== */
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        /* Icon-only buttons — circular */
+        .header-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-action-btn i {
+            font-size: 1rem;
+        }
+
+        .header-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        }
+
+        .header-action-btn:active {
+            transform: translateY(0px);
+        }
+
+        /* Admin - purple */
+        .btn-admin {
+            background: rgba(114, 9, 183, 0.85);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-admin:hover { background: rgba(114, 9, 183, 1); }
+
+        /* Schedule - blue */
+        .btn-schedule {
+            background: rgba(72, 149, 239, 0.85);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-schedule:hover { background: rgba(72, 149, 239, 1); }
+
+        /* Settings - slate */
+        .btn-settings {
+            background: rgba(108, 117, 125, 0.85);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-settings:hover { background: rgba(108, 117, 125, 1); }
+
+        /* Analysis - amber */
+        .btn-analysis {
+            background: rgba(251, 191, 36, 0.9);
+            color: #1a1a1a;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .btn-analysis:hover { background: rgba(251, 191, 36, 1); }
+
+        /* Add Customer - white circle */
+        .btn-add-customer {
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--primary);
+            border: 2px solid rgba(255,255,255,0.8);
+        }
+        .btn-add-customer:hover {
+            background: white;
+            color: var(--primary-dark);
+        }
+        .btn-add-customer i { color: var(--primary); }
+
+        /* Logout - pill with text */
+        .btn-logout {
+            width: auto;
+            height: 38px;
+            border-radius: 20px;
+            padding: 0 16px;
+            gap: 7px;
+            background: rgba(239, 35, 60, 0.15);
+            color: white;
+            border: 1px solid rgba(239, 35, 60, 0.5);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .btn-logout:hover {
+            background: rgba(239, 35, 60, 0.85);
+            border-color: rgba(239, 35, 60, 0.8);
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .container {
@@ -1900,7 +2014,7 @@
 
             .header-right {
                 width: 100%;
-                align-items: flex-start;
+                align-items: flex-end;
             }
 
             .user-info {
@@ -1911,7 +2025,7 @@
 
             .header-actions {
                 width: 100%;
-                justify-content: flex-start;
+                justify-content: flex-end;
             }
 
             .dashboard-controls {
@@ -1921,12 +2035,12 @@
             }
 
             .search-box {
-                max-width: 100%;
+                width: 100%;
             }
 
             .filter-controls {
                 width: 100%;
-                justify-content: center;
+                justify-content: flex-start;
             }
 
             .refresh-container {
@@ -2038,6 +2152,159 @@
                 flex-direction: column;
             }
         }
+
+        /* ===== PENDING APPROVE & SIGN MODAL ===== */
+        .pending-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75); display: flex; align-items: center;
+            justify-content: center; z-index: 12000; backdrop-filter: blur(6px);
+            animation: fadeIn 0.3s ease;
+        }
+        .pending-modal-overlay.hidden { display: none; }
+        .pending-modal-box {
+            background: var(--light); border-radius: 16px; padding: 0;
+            max-width: 780px; width: 95%; max-height: 88vh;
+            overflow: hidden; display: flex; flex-direction: column;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4); color: var(--dark);
+            animation: slideUp 0.3s ease;
+        }
+        body.dark-theme .pending-modal-box { background: #1a1a1a; }
+        .pending-modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 26px; border-bottom: 2px solid var(--border);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; flex-shrink: 0;
+        }
+        .pending-modal-header h2 { font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .pending-modal-header .pm-close-btn {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+        .pending-modal-header .pm-close-btn:hover { background: rgba(255,255,255,0.35); }
+        .pending-modal-body { overflow-y: auto; padding: 20px 24px 28px; flex: 1; }
+        .pending-section-title {
+            font-size: 0.98rem; font-weight: 700; margin: 6px 0 12px;
+            padding: 9px 14px; border-radius: 8px; display: flex;
+            align-items: center; gap: 8px;
+        }
+        .pending-section-title.sign-needed {
+            background: rgba(114,9,183,0.08); color: var(--secondary);
+            border-left: 4px solid var(--secondary);
+        }
+        .pending-section-title.approve-needed {
+            background: rgba(239,35,60,0.07); color: var(--danger);
+            border-left: 4px solid var(--danger);
+        }
+        body.dark-theme .pending-section-title.sign-needed { background: rgba(114,9,183,0.2); }
+        body.dark-theme .pending-section-title.approve-needed { background: rgba(239,35,60,0.15); }
+        .pending-section-count {
+            margin-left: auto; font-size: 0.78rem; font-weight: 500; opacity: 0.75;
+        }
+        .pending-customer-card {
+            background: var(--light); border: 1px solid var(--border);
+            border-radius: 12px; margin-bottom: 14px; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        body.dark-theme .pending-customer-card { background: #252525; border-color: #383838; }
+        .pending-customer-header {
+            display: flex; align-items: center; gap: 12px;
+            padding: 11px 16px; background: rgba(67,97,238,0.05);
+            border-bottom: 1px solid var(--border);
+        }
+        body.dark-theme .pending-customer-header { background: rgba(67,97,238,0.1); }
+        .pending-cust-avatar {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700; font-size: 0.95rem; flex-shrink: 0;
+        }
+        .pending-cust-info h4 { font-size: 0.92rem; font-weight: 700; margin: 0; color: var(--dark); }
+        .pending-cust-info p { font-size: 0.78rem; color: var(--gray); margin: 2px 0 0; }
+        .pending-tests-list { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+        .pending-test-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 9px 12px; border-radius: 8px; gap: 10px; flex-wrap: wrap;
+        }
+        .pending-test-item.sign-item { background: rgba(114,9,183,0.06); border: 1px solid rgba(114,9,183,0.18); }
+        .pending-test-item.approve-item { background: rgba(239,35,60,0.05); border: 1px solid rgba(239,35,60,0.16); }
+        body.dark-theme .pending-test-item.sign-item { background: rgba(114,9,183,0.15); border-color: rgba(114,9,183,0.35); }
+        body.dark-theme .pending-test-item.approve-item { background: rgba(239,35,60,0.12); border-color: rgba(239,35,60,0.3); }
+        .pending-test-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+        .pending-test-info .test-label { font-size: 0.87rem; font-weight: 600; color: var(--dark); }
+        .pending-test-info .test-sub { font-size: 0.76rem; color: var(--gray); }
+        .pending-test-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; flex-shrink: 0; }
+        .pending-tag {
+            padding: 3px 9px; border-radius: 20px; font-size: 0.73rem; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .pending-tag.approved { background: rgba(21,128,61,0.1); color: var(--status-green); border: 1px solid var(--status-green); }
+        .pending-tag.not-approved { background: rgba(239,35,60,0.09); color: var(--danger); border: 1px solid var(--danger); }
+        .pending-tag.signed { background: rgba(114,9,183,0.1); color: var(--secondary); border: 1px solid var(--secondary); }
+        .pending-tag.not-signed { background: rgba(251,191,36,0.1); color: #b45309; border: 1px solid #fbbf24; }
+        body.dark-theme .pending-tag.approved { background: rgba(21,128,61,0.2); }
+        body.dark-theme .pending-tag.not-signed { color: #fbbf24; }
+        .pending-result-btn {
+            padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600;
+            border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+            background: var(--primary); color: white; text-decoration: none;
+            transition: all 0.2s; font-family: inherit;
+        }
+        .pending-result-btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        .pending-empty {
+            text-align: center; padding: 24px 10px; color: var(--gray);
+            font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .pending-divider { height: 1px; background: var(--border); margin: 20px 0 6px; }
+
+        /* ===== FILTER AREA EXTRA BUTTONS ===== */
+        .filter-icon-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 9px 13px; border-radius: 8px; border: 1px solid var(--border);
+            cursor: pointer; font-size: 0.86rem; font-weight: 600;
+            transition: all 0.2s; font-family: inherit; white-space: nowrap; height: 42px;
+        }
+        .filter-icon-btn.btn-pending-sign {
+            background: linear-gradient(135deg, var(--secondary), #9d4edd);
+            color: white; border-color: transparent;
+        }
+        .filter-icon-btn.btn-pending-sign:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(114,9,183,0.35); }
+        .filter-icon-btn.btn-help-filter {
+            background: rgba(72,149,239,0.1); color: #4895ef; border-color: #4895ef;
+        }
+        .filter-icon-btn.btn-help-filter:hover { background: #4895ef; color: white; }
+        .filter-icon-btn.btn-tracking-filter {
+            background: rgba(76,201,240,0.1); color: var(--success); border-color: var(--success);
+        }
+        .filter-icon-btn.btn-tracking-filter:hover { background: var(--success); color: white; }
+        body.dark-theme .filter-icon-btn.btn-help-filter { background: rgba(72,149,239,0.15); }
+        body.dark-theme .filter-icon-btn.btn-tracking-filter { background: rgba(76,201,240,0.12); }
+        .pending-badge-count {
+            background: rgba(255,255,255,0.9); color: var(--secondary); border-radius: 50%;
+            min-width: 20px; height: 20px; font-size: 0.72rem; font-weight: 800;
+            display: inline-flex; align-items: center; justify-content: center; padding: 0 4px;
+            line-height: 1;
+        }
+        .pending-badge-count.hidden { display: none; }
+
+        /* Approve / Sign action buttons inside modal */
+        .pending-action-btn {
+            padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600;
+            border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+            transition: all 0.2s; font-family: inherit;
+        }
+        .pending-action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .pending-action-btn.btn-do-approve {
+            background: linear-gradient(135deg, var(--status-green), #15803d);
+            color: white;
+        }
+        .pending-action-btn.btn-do-approve:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+        .pending-action-btn.btn-do-sign {
+            background: linear-gradient(135deg, var(--secondary), #9d4edd);
+            color: white;
+        }
+        .pending-action-btn.btn-do-sign:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
     </style>
 </head>
 
@@ -2206,32 +2473,40 @@
                     </div>
 
                     <div class="header-actions">
-                        <button class="btn btn-icon btn-secondary hidden" id="admin-panel-btn"
+                        <button class="header-action-btn btn-admin hidden" id="admin-panel-btn"
                             onclick="window.location.href='admin.html'" title="Admin Panel">
                             <i class="fas fa-shield-alt"></i>
                         </button>
-                        <button class="btn btn-icon btn-info" onclick="window.location.href='help.html'" title="Help">
-                            <i class="fa-solid fa-calendar"></i>
-                        </button>
-                        <button class="btn btn-icon btn-info" onclick="window.location.href='settings.html'"
-                            title="Settings">
+                        <button class="header-action-btn btn-settings" onclick="window.location.href='settings.html'" title="Settings">
                             <i class="fas fa-cog"></i>
                         </button>
-                        <button class="btn btn-icon btn-warning" onclick="window.location.href='analysis.html'"
-                            title="Analysis">
+                        <button class="header-action-btn btn-analysis" onclick="window.location.href='analysis.html'" title="Analysis">
                             <i class="fas fa-chart-bar"></i>
                         </button>
-                        <button class="btn btn-primary" onclick="window.location.href='add-customer.html'"
-                            title="Add Customer">
+                        <button class="header-action-btn btn-add-customer" onclick="window.location.href='add-customer.html'" title="Add Customer">
                             <i class="fas fa-user-plus"></i>
                         </button>
-                        <button class="btn btn-outline btn-sm" onclick="showLogoutModal()" title="Logout" id="logout-btn">
-                            <i class="fas fa-sign-out-alt"></i> Logout
+                        <button class="header-action-btn btn-logout" onclick="showLogoutModal()" title="Logout" id="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
                         </button>
                     </div>
                 </div>
             </div>
         </header>
+
+        <!-- ===== PENDING APPROVE & SIGN MODAL ===== -->
+        <div class="pending-modal-overlay hidden" id="pending-modal-overlay" onclick="closePendingModal(event)">
+            <div class="pending-modal-box" onclick="event.stopPropagation()">
+                <div class="pending-modal-header">
+                    <h2><i class="fas fa-clock"></i> Pending Approve &amp; Sign</h2>
+                    <button class="pm-close-btn" onclick="closePendingModalDirect()"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="pending-modal-body" id="pending-modal-body">
+                    <div class="pending-empty"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+                </div>
+            </div>
+        </div>
 
         <!-- Stats Cards -->
         <div class="stats-cards">
@@ -2279,6 +2554,7 @@
 
         <!-- Dashboard Controls -->
         <div class="dashboard-controls">
+            <!-- Left: Search Box -->
             <div class="search-box">
                 <input type="text" id="customer-search" placeholder="Search customers by name or phone..."
                     onkeyup="debounceSearch()" oninput="handleSearchInput()">
@@ -2286,7 +2562,18 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
+            <!-- Right: All Controls in one row -->
             <div class="filter-controls">
+                <button class="filter-icon-btn btn-pending-sign" onclick="openPendingModal()" title="Pending Approve &amp; Sign">
+                    <i class="fas fa-clock"></i> Pending Sign
+                    <span class="pending-badge-count hidden" id="pending-count">0</span>
+                </button>
+                <button class="filter-icon-btn btn-help-filter" onclick="window.location.href='help.html'" title="Help / Schedule">
+                    <i class="fas fa-calendar"></i>
+                </button>
+                <button class="filter-icon-btn btn-tracking-filter" onclick="window.location.href='tracking.html'" title="Tracking">
+                    <i class="fas fa-map-marker-alt"></i>
+                </button>
                 <select class="status-filter" id="status-filter" onchange="filterCustomers()">
                     <option value="all">All Status</option>
                     <option value="red">🔴 Active</option>
@@ -3000,7 +3287,9 @@
                 });
 
                 filteredCustomers = [...customers];
+                window.allCustomersData = customers;
                 filterCustomers(); // Apply default "This Month" filter on load
+                updatePendingCount();
 
             } catch (error) {
                 console.error("Error loading customers:", error);
@@ -4067,6 +4356,307 @@
                     openStatDetail(type);
                 });
             });
+        }
+
+        // ===== PENDING APPROVE & SIGN MODAL =====
+        function openPendingModal() {
+            document.getElementById('pending-modal-overlay').classList.remove('hidden');
+            renderPendingModal();
+        }
+        function closePendingModal(e) {
+            if (e.target === document.getElementById('pending-modal-overlay')) {
+                document.getElementById('pending-modal-overlay').classList.add('hidden');
+            }
+        }
+        function closePendingModalDirect() {
+            document.getElementById('pending-modal-overlay').classList.add('hidden');
+        }
+
+        function renderPendingModal() {
+            const body = document.getElementById('pending-modal-body');
+            const allCusts = window.allCustomersData || [];
+            const signNeededList = [], approveNeededList = [];
+
+            allCusts.forEach(customer => {
+                const cubeTests = (Array.isArray(customer.cubeTests) ? customer.cubeTests : []).map(t => ({...t, testType:'cube'}));
+                const gsbTests  = (Array.isArray(customer.gsbTests)  ? customer.gsbTests  : []).map(t => ({...t, testType:'gsb'}));
+                const allTests  = [...cubeTests, ...gsbTests];
+                const signNeeded    = allTests.filter(t => t.status === 'approved' && !t.hodSigned);
+                const approveNeeded = allTests.filter(t => t.status !== 'approved');
+                if (signNeeded.length > 0)    signNeededList.push({ customer, tests: signNeeded });
+                if (approveNeeded.length > 0) approveNeededList.push({ customer, tests: approveNeeded });
+            });
+
+            const totalSign    = signNeededList.reduce((a,c)=>a+c.tests.length, 0);
+            const totalApprove = approveNeededList.reduce((a,c)=>a+c.tests.length, 0);
+            let html = '';
+
+            html += `<div class="pending-section-title sign-needed">
+                <i class="fas fa-stamp"></i> Approved — HOD Sign Pending
+                <span class="pending-section-count">${totalSign} test(s)</span>
+            </div>`;
+            if (signNeededList.length === 0) {
+                html += `<div class="pending-empty"><i class="fas fa-check-circle" style="color:var(--status-green);font-size:1.1rem;"></i> No tests pending HOD sign</div>`;
+            } else {
+                signNeededList.forEach(({customer, tests}) => { html += buildPendingCustomerCard(customer, tests, 'sign'); });
+            }
+            html += `<div class="pending-divider"></div>`;
+
+            html += `<div class="pending-section-title approve-needed">
+                <i class="fas fa-hourglass-half"></i> Test Complete — Approve Pending
+                <span class="pending-section-count">${totalApprove} test(s)</span>
+            </div>`;
+            if (approveNeededList.length === 0) {
+                html += `<div class="pending-empty"><i class="fas fa-check-circle" style="color:var(--status-green);font-size:1.1rem;"></i> No tests pending approval</div>`;
+            } else {
+                approveNeededList.forEach(({customer, tests}) => { html += buildPendingCustomerCard(customer, tests, 'approve'); });
+            }
+            body.innerHTML = html;
+        }
+
+        function buildPendingCustomerCard(customer, tests, mode) {
+            const initials = (customer.name || 'C').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+            const custId = customer.id;
+
+            const testsHtml = tests.map(t => {
+                const typeLabel = t.testType === 'cube' ? '🧊 Cube Test' : '🟡 GSB Test';
+                const rawDate = t.date || t.testDate || t.createdAt || t.approvedAt || '';
+                let dateStr = 'N/A';
+                if (rawDate) { try { dateStr = new Date(rawDate).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); } catch(e){} }
+                const itemClass = mode === 'sign' ? 'sign-item' : 'approve-item';
+                const testId = t.id || t.testId || '';
+                const safeTestId = testId.replace(/'/g, "\\'");
+                const safeCustId = custId.replace(/'/g, "\\'");
+
+                // Only show Approved tag (not the "not approved" tag)
+                const approvedTag = t.status === 'approved'
+                    ? `<span class="pending-tag approved"><i class="fas fa-check"></i> Approved</span>`
+                    : '';
+                // Only show Signed tag (not the "not signed" tag)
+                const signedTag = t.hodSigned
+                    ? `<span class="pending-tag signed"><i class="fas fa-stamp"></i> Signed</span>`
+                    : '';
+
+                let actionBtns = '';
+                if (isCurrentUserAdmin) {
+                    if (t.status !== 'approved') {
+                        actionBtns += `<button class="pending-action-btn btn-do-approve" onclick="pendingApproveTest('${safeCustId}','${safeTestId}','${t.testType}',this)">
+                            <i class="fas fa-check-circle"></i> Approve
+                        </button>`;
+                    }
+                    if (t.status === 'approved' && !t.hodSigned) {
+                        actionBtns += `<button class="pending-action-btn btn-do-sign" onclick="pendingHodSign('${safeCustId}','${safeTestId}','${t.testType}',this)">
+                            <i class="fas fa-stamp"></i> Sign
+                        </button>`;
+                    }
+                }
+                actionBtns += `<button class="pending-result-btn" onclick="openResultFromPending('${safeCustId}','${safeTestId}','${t.testType}')" title="View in workspace">
+                    <i class="fas fa-external-link-alt"></i>
+                </button>`;
+
+                return `<div class="pending-test-item ${itemClass}" id="ptitem-${custId}-${testId}">
+                    <div class="pending-test-info">
+                        <span class="test-label">${typeLabel}${testId ? ` <span style="font-weight:500;opacity:0.7;font-size:0.78rem;">— ${testId}</span>` : ''}</span>
+                        <span class="test-sub"><i class="fas fa-calendar-alt" style="margin-right:3px;"></i>${dateStr}</span>
+                    </div>
+                    <div class="pending-test-actions">${approvedTag}${signedTag}${actionBtns}</div>
+                </div>`;
+            }).join('');
+
+            return `<div class="pending-customer-card" id="pccard-${custId}">
+                <div class="pending-customer-header">
+                    <div class="pending-cust-avatar">${initials}</div>
+                    <div class="pending-cust-info">
+                        <h4>${customer.name || 'Unknown Customer'}</h4>
+                        <p><i class="fas fa-phone-alt" style="margin-right:4px;font-size:0.75rem;"></i>${customer.phone || 'No phone'}</p>
+                    </div>
+                </div>
+                <div class="pending-tests-list">${testsHtml}</div>
+            </div>`;
+        }
+
+        async function pendingApproveTest(customerId, testId, testType, btn) {
+            if (!isCurrentUserAdmin) { showToast('Only admin can approve tests.', 'error'); return; }
+            btn.disabled = true;
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            try {
+                const custIdx = window.allCustomersData.findIndex(c => c.id === customerId);
+                if (custIdx === -1) throw new Error('Customer not found');
+                const arrKey = testType === 'cube' ? 'cubeTests' : 'gsbTests';
+                const testArr = [...(window.allCustomersData[custIdx][arrKey] || [])];
+                const tIdx = testArr.findIndex(t => t.id === testId);
+                if (tIdx === -1) throw new Error('Test not found');
+                const now = new Date().toISOString();
+                testArr[tIdx] = { ...testArr[tIdx], status: 'approved', approvedAt: now, approvedBy: firebaseHelpers.getUserEmail() || 'Admin' };
+                await firebaseHelpers.updateCustomer(customerId, { [arrKey]: testArr });
+                window.allCustomersData[custIdx][arrKey] = testArr;
+
+                // Remove item from approve section with fade
+                const itemEl = document.getElementById(`ptitem-${customerId}-${testId}`);
+                if (itemEl) {
+                    itemEl.style.transition = 'opacity 0.3s';
+                    itemEl.style.opacity = '0';
+                    setTimeout(() => {
+                        const approveCard = itemEl.closest('.pending-customer-card');
+                        itemEl.remove();
+                        // Remove approve-section card if empty
+                        if (approveCard && approveCard.querySelectorAll('.pending-test-item').length === 0) {
+                            approveCard.style.transition = 'opacity 0.3s';
+                            approveCard.style.opacity = '0';
+                            setTimeout(() => approveCard.remove(), 300);
+                        }
+                        // Add to sign section
+                        addItemToSignSection(customerId, testId, testType, testArr[tIdx], window.allCustomersData[custIdx]);
+                    }, 300);
+                }
+
+                updatePendingCount();
+                showToast('Test approved ✅', 'success');
+            } catch(e) {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        function addItemToSignSection(customerId, testId, testType, testData, customer) {
+            const body = document.getElementById('pending-modal-body');
+            // Find the sign section title
+            const signTitle = body.querySelector('.pending-section-title.sign-needed');
+            if (!signTitle) return;
+
+            // Update sign section count
+            const countEl = signTitle.querySelector('.pending-section-count');
+            if (countEl) {
+                const cur = parseInt(countEl.textContent) || 0;
+                countEl.textContent = `${cur + 1} test(s)`;
+            }
+
+            // Remove "No tests pending" empty message if present
+            const emptyMsg = signTitle.nextElementSibling;
+            if (emptyMsg && emptyMsg.classList.contains('pending-empty')) emptyMsg.remove();
+
+            // Build the new test item
+            const typeLabel = testType === 'cube' ? '🧊 Cube Test' : '🟡 GSB Test';
+            const rawDate = testData.approvedAt || testData.date || testData.testDate || '';
+            let dateStr = 'N/A';
+            if (rawDate) { try { dateStr = new Date(rawDate).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); } catch(e){} }
+            const safeTestId = testId.replace(/'/g, "\\'");
+            const safeCustId = customerId.replace(/'/g, "\\'");
+
+            const newItemHtml = `<div class="pending-test-item sign-item" id="ptitem-${customerId}-${testId}" style="opacity:0;transition:opacity 0.4s;">
+                <div class="pending-test-info">
+                    <span class="test-label">${typeLabel}${testId ? ` <span style="font-weight:500;opacity:0.7;font-size:0.78rem;">— ${testId}</span>` : ''}</span>
+                    <span class="test-sub"><i class="fas fa-calendar-alt" style="margin-right:3px;"></i>${dateStr}</span>
+                </div>
+                <div class="pending-test-actions">
+                    <span class="pending-tag approved"><i class="fas fa-check"></i> Approved</span>
+                    ${isCurrentUserAdmin ? `<button class="pending-action-btn btn-do-sign" onclick="pendingHodSign('${safeCustId}','${safeTestId}','${testType}',this)">
+                        <i class="fas fa-stamp"></i> Sign
+                    </button>` : ''}
+                    <button class="pending-result-btn" onclick="openResultFromPending('${safeCustId}','${safeTestId}','${testType}')" title="View in workspace">
+                        <i class="fas fa-external-link-alt"></i>
+                    </button>
+                </div>
+            </div>`;
+
+            // Find or create customer card in sign section
+            let signCard = document.getElementById(`pccard-sign-${customerId}`);
+            if (!signCard) {
+                const initials = (customer.name || 'C').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+                const cardHtml = `<div class="pending-customer-card" id="pccard-sign-${customerId}" style="opacity:0;transition:opacity 0.4s;">
+                    <div class="pending-customer-header">
+                        <div class="pending-cust-avatar">${initials}</div>
+                        <div class="pending-cust-info">
+                            <h4>${customer.name || 'Unknown Customer'}</h4>
+                            <p><i class="fas fa-phone-alt" style="margin-right:4px;font-size:0.75rem;"></i>${customer.phone || 'No phone'}</p>
+                        </div>
+                    </div>
+                    <div class="pending-tests-list"></div>
+                </div>`;
+                // Insert after the sign title
+                signTitle.insertAdjacentHTML('afterend', cardHtml);
+                signCard = document.getElementById(`pccard-sign-${customerId}`);
+                setTimeout(() => { if(signCard) signCard.style.opacity = '1'; }, 50);
+            }
+
+            const testsList = signCard.querySelector('.pending-tests-list');
+            testsList.insertAdjacentHTML('beforeend', newItemHtml);
+            const newItem = document.getElementById(`ptitem-${customerId}-${testId}`);
+            setTimeout(() => { if(newItem) newItem.style.opacity = '1'; }, 50);
+        }
+
+        async function pendingHodSign(customerId, testId, testType, btn) {
+            if (!isCurrentUserAdmin) { showToast('Only admin can mark HOD sign.', 'error'); return; }
+            btn.disabled = true;
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            try {
+                const custIdx = window.allCustomersData.findIndex(c => c.id === customerId);
+                if (custIdx === -1) throw new Error('Customer not found');
+                const arrKey = testType === 'cube' ? 'cubeTests' : 'gsbTests';
+                const testArr = [...(window.allCustomersData[custIdx][arrKey] || [])];
+                const tIdx = testArr.findIndex(t => t.id === testId);
+                if (tIdx === -1) throw new Error('Test not found');
+                const now = new Date().toISOString();
+                testArr[tIdx] = { ...testArr[tIdx], hodSigned: true, hodSignedAt: now, hodSignedBy: firebaseHelpers.getUserEmail() || 'Admin' };
+                await firebaseHelpers.updateCustomer(customerId, { [arrKey]: testArr });
+                window.allCustomersData[custIdx][arrKey] = testArr;
+
+                const itemEl = document.getElementById(`ptitem-${customerId}-${testId}`);
+                if (itemEl) {
+                    const tagsEl = itemEl.querySelector('.pending-test-actions');
+                    const notSigned = tagsEl.querySelector('.not-signed');
+                    if (notSigned) notSigned.outerHTML = `<span class="pending-tag signed"><i class="fas fa-stamp"></i> Signed</span>`;
+                    btn.remove();
+                    // Fade out & remove this item after 1s since it's fully done
+                    setTimeout(() => {
+                        itemEl.style.transition = 'opacity 0.4s, max-height 0.4s';
+                        itemEl.style.opacity = '0';
+                        setTimeout(() => {
+                            itemEl.remove();
+                            const card = document.getElementById(`pccard-${customerId}`);
+                            if (card && card.querySelectorAll('.pending-test-item').length === 0) {
+                                card.style.transition = 'opacity 0.3s'; card.style.opacity = '0';
+                                setTimeout(() => card.remove(), 300);
+                            }
+                        }, 400);
+                    }, 900);
+                }
+                updatePendingCount();
+                showToast('HOD Signed ✅', 'success');
+            } catch(e) {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        function openResultFromPending(customerId, testId, testType) {
+            localStorage.setItem('currentCustomerId', customerId);
+            if (testId) localStorage.setItem('pendingTestId', testId);
+            if (testType) localStorage.setItem('pendingTestType', testType);
+            window.location.href = 'workspace.html';
+        }
+
+        function updatePendingCount() {
+            const allCusts = window.allCustomersData || [];
+            let total = 0;
+            allCusts.forEach(customer => {
+                const cubeTests = Array.isArray(customer.cubeTests) ? customer.cubeTests : [];
+                const gsbTests  = Array.isArray(customer.gsbTests)  ? customer.gsbTests  : [];
+                [...cubeTests, ...gsbTests].forEach(t => {
+                    if (t.status === 'approved' && !t.hodSigned) total++;
+                    if (t.status !== 'approved') total++;
+                });
+            });
+            const badge = document.getElementById('pending-count');
+            if (badge) {
+                badge.textContent = total;
+                if (total > 0) badge.classList.remove('hidden');
+                else badge.classList.add('hidden');
+            }
         }
 
         // Initialize app

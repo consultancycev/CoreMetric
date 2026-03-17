@@ -1725,7 +1725,7 @@
         <div class="test-history">
             <div class="history-header">
                 <h3><i class="fas fa-history"></i> Test History</h3>
-                <div style="display:flex; gap:8px;">
+                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                     <span class="test-badge cube-badge" id="workspace-cube-count">0 Cube Tests</span>
                     <span class="test-badge gsb-badge" id="workspace-gsb-count">0 GSB Tests</span>
                 </div>
@@ -2334,44 +2334,31 @@
             }
 
             // ==================== TOTAL WORK APPROVAL PROGRESS BAR ====================
-            // Weighted scoring:
-            //   Approved            = 1.0 (full credit)
-            //   Pending + data filled = 0.6 (values entered but not yet approved)
-            //   Pending + just added  = 0.3 (test added, no result data yet)
             const allCubeTests = customer.cubeTests || [];
             const allGsbTests = customer.gsbTests || [];
+            const allTestsAll = [...allCubeTests, ...allGsbTests];
             const totalExpectedAll = (customer.expectedCubeTests || 0) + (customer.expectedGSBTests || 0);
             const totalApproved =
                 allCubeTests.filter(t => t.status === 'approved').length +
                 allGsbTests.filter(t => t.status === 'approved').length;
-            const progressTarget = totalExpectedAll > 0 ? totalExpectedAll : (allCubeTests.length + allGsbTests.length);
+            const totalHodSigned =
+                allCubeTests.filter(t => t.hodSigned).length +
+                allGsbTests.filter(t => t.hodSigned).length;
+            const progressTarget = totalExpectedAll > 0 ? totalExpectedAll : allTestsAll.length;
 
-            // Helper: does a cube test have result data entered?
-            const cubeHasData = t => {
-                if (!t.cubes || !Array.isArray(t.cubes)) return false;
-                return t.cubes.some(c => (c.weight && parseFloat(c.weight) > 0) || (c.pressure && parseFloat(c.pressure) > 0));
-            };
-            // Helper: does a gsb test have result data entered?
-            const gsbHasData = t => {
-                return (t.sieveData && t.sieveData.length > 0) ||
-                       (t.result !== undefined && t.result !== null && t.result !== '') ||
-                       (t.sieves && t.sieves.length > 0);
-            };
-
+            // Each test: approved=0.5 credit, hodSigned=0.5 credit (total 1.0 per test)
+            // HOD Sign max contribution capped at 5 tests
+            const HOD_CAP = 5;
             let weightedScore = 0;
-            allCubeTests.forEach(t => {
-                if (t.status === 'approved') weightedScore += 1.0;
-                else if (cubeHasData(t)) weightedScore += 0.6;
-                else weightedScore += 0.3;
+            allTestsAll.forEach(t => {
+                if (t.status === 'approved') weightedScore += 0.5;
             });
-            allGsbTests.forEach(t => {
-                if (t.status === 'approved') weightedScore += 1.0;
-                else if (gsbHasData(t)) weightedScore += 0.6;
-                else weightedScore += 0.3;
-            });
+            const hodContrib = Math.min(totalHodSigned, HOD_CAP);
+            weightedScore += hodContrib * 0.5;
 
             const progressPct = progressTarget > 0 ? Math.min(100, Math.round((weightedScore / progressTarget) * 100)) : 0;
-            const isComplete = totalApproved >= progressTarget && progressTarget > 0;
+            const isComplete = totalApproved >= progressTarget && totalHodSigned >= progressTarget && progressTarget > 0;
+            const reportReady = isComplete && customer.paymentStatus === 'paid';
 
             const fillEl = document.getElementById('total-work-progress-bar-fill');
             const pctEl = document.getElementById('total-work-progress-pct');
@@ -2386,7 +2373,11 @@
                 pctEl.className = 'total-work-progress-pct' + (isComplete ? ' complete' : '');
             }
             if (countEl) {
-                countEl.textContent = `${totalApproved} / ${progressTarget} Approved`;
+                let countHtml = `✅ Approved: ${totalApproved}/${progressTarget} &nbsp;|&nbsp; <i class="fas fa-stamp"></i> HOD Signed: ${totalHodSigned}/${Math.min(progressTarget, 5)}`;
+                if (reportReady) {
+                    countHtml += ` &nbsp;|&nbsp; <span style="color:var(--status-green);font-weight:700;">📋 Report Ready</span>`;
+                }
+                countEl.innerHTML = countHtml;
             }
 
             const addTestBtn = document.getElementById('add-test-btn');
@@ -2537,12 +2528,20 @@
                                 <i class="fas fa-eye"></i>
                             </button>` : ''}
                         ${test.status !== 'approved' ? `
+                        <button class="btn btn-xs btn-approve-test" onclick="approveTest('${test.id}', '${test.testType}'); event.stopPropagation();" title="Approve Test" style="background:linear-gradient(135deg,#15803d,#16a34a);color:white;border:none;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-weight:600;cursor:pointer;${isCurrentUserAdmin ? '' : 'display:none;'}">
+                            <i class="fas fa-check"></i>
+                        </button>
                         <button class="btn btn-info btn-xs" onclick="editTest('${test.id}', '${test.testType}')" title="Edit Test">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button class="btn btn-danger btn-xs" onclick="confirmDeleteTest('${test.id}', '${test.testType}')" title="Delete Test">
                             <i class="fas fa-trash"></i>
+                        </button>` : `
+                        ${isCurrentUserAdmin ? `
+                        <button class="btn btn-xs" onclick="handleHodSignClick('${test.id}', '${test.testType}', ${!!test.hodSigned}); event.stopPropagation();" title="${test.hodSigned ? 'Click to un-sign' : 'Mark HOD Signed'}" style="background:${test.hodSigned ? 'linear-gradient(135deg,#6b7280,#9ca3af)' : 'linear-gradient(135deg,#7c3aed,#9d4edd)'};color:white;border:none;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-weight:600;cursor:pointer;">
+                            <i class="fas fa-stamp"></i> ${test.hodSigned ? 'Signed ✅' : 'HOD Sign'}
                         </button>` : ''}
+                        `}
                     </div>
                 `;
 
@@ -2584,6 +2583,155 @@
             } catch (error) {
                 console.error("Error updating payment status:", error);
                 showAlert('Error updating payment status: ' + error.message, 'error');
+            }
+        }
+
+        // ==================== APPROVE TEST FUNCTIONS ====================
+        async function approveTest(testId, testType) {
+            if (!currentCustomer) return;
+            if (!isCurrentUserAdmin) {
+                showAlert('Only admin can approve test results.', 'error');
+                return;
+            }
+            try {
+                let testArray = testType === 'cube'
+                    ? (currentCustomer.cubeTests || [])
+                    : (currentCustomer.gsbTests || []);
+                const idx = testArray.findIndex(t => t.id === testId);
+                if (idx === -1) return;
+                testArray[idx].status = 'approved';
+                testArray[idx].approvedAt = new Date().toISOString();
+                testArray[idx].approvedBy = currentUserEmail;
+
+                const updateData = testType === 'cube'
+                    ? { cubeTests: testArray, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() }
+                    : { gsbTests: testArray, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() };
+
+                await firebaseHelpers.updateCustomer(currentCustomer.id, updateData);
+                showAlert('Test approved successfully! ✅', 'success');
+            } catch (error) {
+                console.error("Error approving test:", error);
+                showAlert('Error approving test: ' + error.message, 'error');
+            }
+        }
+
+        async function approveAllTests() {
+            if (!currentCustomer) return;
+            if (!isCurrentUserAdmin) {
+                showAlert('Only admin can approve test results.', 'error');
+                return;
+            }
+            const cubeTests = (currentCustomer.cubeTests || []);
+            const gsbTests = (currentCustomer.gsbTests || []);
+            const hasPending = cubeTests.some(t => t.status !== 'approved') || gsbTests.some(t => t.status !== 'approved');
+            if (!hasPending) {
+                showAlert('All tests are already approved!', 'info');
+                return;
+            }
+            try {
+                const now = new Date().toISOString();
+                const updatedCube = cubeTests.map(t => t.status === 'approved' ? t : { ...t, status: 'approved', approvedAt: now, approvedBy: currentUserEmail });
+                const updatedGsb  = gsbTests.map(t => t.status === 'approved' ? t : { ...t, status: 'approved', approvedAt: now, approvedBy: currentUserEmail });
+                await firebaseHelpers.updateCustomer(currentCustomer.id, {
+                    cubeTests: updatedCube,
+                    gsbTests: updatedGsb,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showAlert('All tests approved successfully! ✅', 'success');
+            } catch (error) {
+                console.error("Error approving all tests:", error);
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function markTestHodSigned(testId, testType) {
+            if (!currentCustomer) return;
+            if (!isCurrentUserAdmin) {
+                showAlert('Only admin can mark HOD signature.', 'error');
+                return;
+            }
+            try {
+                let testArray = testType === 'cube'
+                    ? (currentCustomer.cubeTests || [])
+                    : (currentCustomer.gsbTests || []);
+                const idx = testArray.findIndex(t => t.id === testId);
+                if (idx === -1) return;
+                if (testArray[idx].hodSigned) {
+                    showAlert('HOD signature already marked for this test!', 'info');
+                    return;
+                }
+                testArray[idx].hodSigned = true;
+                testArray[idx].hodSignedAt = new Date().toISOString();
+                testArray[idx].hodSignedBy = currentUserEmail;
+
+                const updateData = testType === 'cube'
+                    ? { cubeTests: testArray, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() }
+                    : { gsbTests: testArray, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() };
+
+                await firebaseHelpers.updateCustomer(currentCustomer.id, updateData);
+                showAlert('HOD signature marked! ✅', 'success');
+            } catch (error) {
+                console.error("Error marking HOD sign:", error);
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+
+        function handleHodSignClick(testId, testType, isSigned) {
+            if (isSigned) {
+                // Show confirm popup to un-sign
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header" style="color: var(--warning);">
+                            <i class="fas fa-stamp"></i>
+                            <h3>Remove HOD Signature?</h3>
+                        </div>
+                        <div class="modal-body">
+                            <p>Do you want to remove the HOD signature from this test? The HOD sign status will be reset.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn modal-btn-cancel" id="cancelUnsign">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            <button class="modal-btn" id="confirmUnsign" style="background:var(--warning);color:white;">
+                                <i class="fas fa-undo"></i> Yes, Remove
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                document.getElementById('cancelUnsign').addEventListener('click', () => modal.remove());
+                document.getElementById('confirmUnsign').addEventListener('click', () => {
+                    modal.remove();
+                    markTestHodUnsigned(testId, testType);
+                });
+            } else {
+                markTestHodSigned(testId, testType);
+            }
+        }
+
+        async function markTestHodUnsigned(testId, testType) {
+            if (!currentCustomer) return;
+            try {
+                let testArray = testType === 'cube'
+                    ? (currentCustomer.cubeTests || [])
+                    : (currentCustomer.gsbTests || []);
+                const idx = testArray.findIndex(t => t.id === testId);
+                if (idx === -1) return;
+                testArray[idx].hodSigned = false;
+                delete testArray[idx].hodSignedAt;
+                delete testArray[idx].hodSignedBy;
+
+                const updateData = testType === 'cube'
+                    ? { cubeTests: testArray, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() }
+                    : { gsbTests: testArray, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() };
+
+                await firebaseHelpers.updateCustomer(currentCustomer.id, updateData);
+                showAlert('HOD signature removed.', 'warning');
+            } catch (error) {
+                console.error("Error removing HOD sign:", error);
+                showAlert('Error: ' + error.message, 'error');
             }
         }
 
@@ -2938,11 +3086,11 @@
 
             if (!testsCompleted) return 'red';
 
-            const allTestsApproved =
-                cubeTests.every(t => t.status === 'approved') &&
-                gsbTests.every(t => t.status === 'approved');
+            const allTests = [...cubeTests, ...gsbTests];
+            const allTestsApproved = allTests.length > 0 && allTests.every(t => t.status === 'approved');
+            const allTestsHodSigned = allTests.length > 0 && allTests.every(t => t.hodSigned);
 
-            if (testsCompleted && customer.paymentStatus === 'paid' && allTestsApproved) return 'green';
+            if (testsCompleted && customer.paymentStatus === 'paid' && allTestsApproved && allTestsHodSigned) return 'green';
             else if (testsCompleted) return 'yellow';
             else return 'red';
         }

@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Progress Tracker | CEV Lab</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0d0f14;
+            --surface: #151820;
+            --surface2: #1c2030;
+            --border: #252a3a;
+            --primary: #4f8ef7;
+            --primary-glow: rgba(79,142,247,0.15);
+            --success: #22c55e;
+            --success-glow: rgba(34,197,94,0.12);
+            --warning: #f59e0b;
+            --warning-glow: rgba(245,158,11,0.12);
+            --danger: #ef4444;
+            --text: #e8eaf0;
+            --text-muted: #7a8099;
+            --text-dim: #4a5068;
+            --pin-color: #f59e0b;
+            --step-done: #22c55e;
+            --step-active: #4f8ef7;
+            --step-wait: #2d3348;
+            --card-radius: 16px;
+            --font: 'DM Sans', sans-serif;
+            --mono: 'DM Mono', monospace;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            min-height: 100vh;
+            background-image: radial-gradient(ellipse at 20% 0%, rgba(79,142,247,0.07) 0%, transparent 50%),
+                              radial-gradient(ellipse at 80% 100%, rgba(34,197,94,0.05) 0%, transparent 50%);
+        }
+
+        /* ── HEADER ── */
+        .header {
+            background: rgba(21,24,32,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 100;
+            padding: 14px 20px;
+        }
+        .header-inner {
+            max-width: 1100px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        }
+        .logo {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 1rem; font-weight: 700; color: var(--text);
+            letter-spacing: -0.3px;
+        }
+        .logo-icon {
+            width: 34px; height: 34px; border-radius: 10px;
+            background: linear-gradient(135deg, #4f8ef7, #7c3aed);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; color: #fff;
+        }
+        .live-badge {
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25);
+            padding: 4px 10px; border-radius: 20px;
+            font-size: 0.72rem; font-weight: 600; color: var(--success); letter-spacing: 0.5px;
+        }
+        .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+
+        /* ── SEARCH / FILTER ── */
+        .controls {
+            max-width: 1100px; margin: 28px auto 0; padding: 0 20px;
+            display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+        }
+        .search-wrap {
+            position: relative; flex: 1; min-width: 200px;
+        }
+        .search-wrap i {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); font-size: 0.85rem; pointer-events: none;
+        }
+        .search-input {
+            width: 100%; padding: 10px 14px 10px 38px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 0.9rem;
+            outline: none; transition: border-color 0.2s;
+        }
+        .search-input::placeholder { color: var(--text-dim); }
+        .search-input:focus { border-color: var(--primary); }
+
+        .sort-btn {
+            padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text-muted); font-family: var(--font);
+            font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; gap: 6px; white-space: nowrap;
+        }
+        .sort-btn:hover, .sort-btn.active { border-color: var(--primary); color: var(--primary); }
+
+        .stats-bar {
+            max-width: 1100px; margin: 16px auto 0; padding: 0 20px;
+            display: flex; gap: 20px; flex-wrap: wrap;
+        }
+        .stat-pill {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.78rem; color: var(--text-muted);
+        }
+        .stat-pill strong { color: var(--text); font-weight: 600; }
+        .stat-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+        /* ── GRID ── */
+        .grid {
+            max-width: 1100px; margin: 24px auto 40px; padding: 0 20px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;
+        }
+
+        /* ── CARD ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            cursor: pointer;
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+            position: relative; overflow: hidden;
+            animation: fadeUp 0.4s ease both;
+        }
+        .card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        .card.pinned {
+            border-color: rgba(245,158,11,0.4);
+            background: linear-gradient(135deg, var(--surface), rgba(245,158,11,0.04));
+        }
+        .card.pinned::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--pin-color), transparent);
+        }
+
+        .card-top {
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+            margin-bottom: 14px;
+        }
+        .avatar {
+            width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1rem; letter-spacing: -0.5px;
+        }
+        .card-meta { flex: 1; min-width: 0; }
+        .card-name {
+            font-size: 0.95rem; font-weight: 700; color: var(--text);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px;
+        }
+        .card-phone {
+            font-size: 0.78rem; color: var(--text-muted); font-family: var(--mono);
+        }
+
+        .pin-btn {
+            background: none; border: none; cursor: pointer;
+            width: 30px; height: 30px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-dim); font-size: 0.85rem;
+            transition: all 0.2s; flex-shrink: 0;
+        }
+        .pin-btn:hover { background: rgba(245,158,11,0.1); color: var(--pin-color); }
+        .pin-btn.pinned { color: var(--pin-color); }
+
+        /* test count chips */
+        .test-chips {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
+        }
+        .chip {
+            padding: 4px 10px; border-radius: 6px;
+            font-size: 0.72rem; font-weight: 600; display: flex; align-items: center; gap: 4px;
+        }
+        .chip-cube { background: rgba(79,142,247,0.1); color: var(--primary); border: 1px solid rgba(79,142,247,0.2); }
+        .chip-gsb { background: rgba(245,158,11,0.1); color: var(--warning); border: 1px solid rgba(245,158,11,0.2); }
+        .chip-total { background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border); }
+
+        /* progress */
+        .progress-row { margin-bottom: 6px; }
+        .progress-label {
+            display: flex; justify-content: space-between;
+            font-size: 0.72rem; color: var(--text-muted); margin-bottom: 5px;
+        }
+        .progress-track {
+            height: 5px; border-radius: 999px;
+            background: var(--step-wait); overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; border-radius: 999px;
+            transition: width 0.6s ease;
+        }
+        .progress-fill.cube { background: linear-gradient(90deg, #4f8ef7, #7c3aed); }
+        .progress-fill.gsb { background: linear-gradient(90deg, #f59e0b, #f97316); }
+
+        /* overall progress mini */
+        .overall-bar { margin-top: 10px; }
+        .overall-label { font-size: 0.7rem; color: var(--text-dim); margin-bottom: 4px; }
+        .overall-track {
+            height: 4px; border-radius: 999px;
+            background: var(--step-wait); overflow: hidden;
+        }
+        .overall-fill {
+            height: 100%; border-radius: 999px;
+            transition: width 0.6s ease;
+            background: linear-gradient(90deg, #4f8ef7, #22c55e);
+        }
+
+        /* status badge */
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 9px; border-radius: 20px;
+            font-size: 0.68rem; font-weight: 600; letter-spacing: 0.3px;
+            margin-bottom: 10px;
+        }
+        .badge-active { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
+        .badge-progress { background: rgba(79,142,247,0.1); color: var(--primary); border: 1px solid rgba(79,142,247,0.2); }
+        .badge-done { background: rgba(34,197,94,0.1); color: var(--success); border: 1px solid rgba(34,197,94,0.2); }
+
+        /* ── SECTIONS ── */
+        .section-label {
+            max-width: 1100px; margin: 8px auto 0; padding: 0 20px;
+            font-size: 0.7rem; font-weight: 700; color: var(--text-dim);
+            letter-spacing: 1.5px; text-transform: uppercase;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-label::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+
+        /* ── MODAL ── */
+        .modal-backdrop {
+            position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+            opacity: 0; pointer-events: none; transition: opacity 0.25s;
+        }
+        .modal-backdrop.open { opacity: 1; pointer-events: all; }
+
+        .modal {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 20px; width: 100%; max-width: 520px; max-height: 90vh;
+            overflow-y: auto; transform: translateY(20px) scale(0.97);
+            transition: transform 0.25s ease;
+        }
+        .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
+
+        .modal-header {
+            padding: 24px 24px 0;
+            display: flex; align-items: center; gap: 14px;
+        }
+        .modal-avatar {
+            width: 54px; height: 54px; border-radius: 14px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 1.2rem; letter-spacing: -1px;
+        }
+        .modal-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 3px; }
+        .modal-phone { font-size: 0.82rem; color: var(--text-muted); font-family: var(--mono); }
+        .modal-close {
+            margin-left: auto; background: none; border: none; cursor: pointer;
+            width: 34px; height: 34px; border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted); font-size: 1rem;
+            transition: all 0.2s; flex-shrink: 0;
+        }
+        .modal-close:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+
+        .modal-body { padding: 20px 24px 24px; }
+
+        .modal-status-row {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+        }
+
+        /* workspace overall progress in modal */
+        .ws-progress-block {
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 12px; padding: 16px; margin-bottom: 20px;
+        }
+        .ws-progress-title {
+            font-size: 0.72rem; font-weight: 700; color: var(--text-dim);
+            letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px;
+        }
+        .ws-bar-row { margin-bottom: 10px; }
+        .ws-bar-label {
+            display: flex; justify-content: space-between;
+            font-size: 0.8rem; margin-bottom: 5px;
+        }
+        .ws-bar-label span:first-child { color: var(--text); font-weight: 500; }
+        .ws-bar-label span:last-child { color: var(--text-muted); font-family: var(--mono); }
+        .ws-track { height: 8px; border-radius: 999px; background: var(--step-wait); overflow: hidden; }
+        .ws-fill { height: 100%; border-radius: 999px; transition: width 0.7s ease; }
+        .ws-fill.cube { background: linear-gradient(90deg, #4361ee, #4f8ef7); }
+        .ws-fill.gsb { background: linear-gradient(90deg, #f59e0b, #f97316); }
+        .ws-fill.overall { background: linear-gradient(90deg, #4f8ef7, #22c55e); }
+
+        /* tracking timeline */
+        .timeline-title {
+            font-size: 0.72rem; font-weight: 700; color: var(--text-dim);
+            letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px;
+        }
+        .timeline { display: flex; flex-direction: column; gap: 0; }
+        .t-step {
+            display: flex; gap: 14px; position: relative;
+        }
+        .t-step:not(:last-child)::after {
+            content: '';
+            position: absolute; left: 14px; top: 28px; bottom: -1px;
+            width: 2px; background: var(--border);
+            z-index: 0;
+        }
+        .t-step.done:not(:last-child)::after { background: var(--step-done); opacity: 0.4; }
+        .t-step.active:not(:last-child)::after { background: var(--step-active); opacity: 0.3; }
+
+        .t-icon-wrap {
+            width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; z-index: 1; margin-top: 2px;
+            border: 2px solid var(--border);
+            transition: all 0.3s;
+        }
+        .t-step.done .t-icon-wrap { background: var(--step-done); border-color: var(--step-done); color: #fff; }
+        .t-step.active .t-icon-wrap { background: var(--step-active); border-color: var(--step-active); color: #fff; animation: glow-pulse 2s infinite; }
+        .t-step.waiting .t-icon-wrap { background: var(--surface2); color: var(--text-dim); }
+
+        .t-content { padding-bottom: 20px; flex: 1; }
+        .t-label { font-size: 0.88rem; font-weight: 600; margin-bottom: 2px; }
+        .t-step.done .t-label { color: var(--success); }
+        .t-step.active .t-label { color: var(--primary); }
+        .t-step.waiting .t-label { color: var(--text-dim); }
+        .t-desc { font-size: 0.75rem; color: var(--text-muted); }
+        .t-waiting-tag {
+            display: inline-flex; align-items: center; gap: 4px; margin-top: 5px;
+            padding: 3px 8px; border-radius: 6px;
+            background: rgba(79,142,247,0.08); border: 1px solid rgba(79,142,247,0.2);
+            font-size: 0.68rem; color: var(--primary); font-weight: 600;
+        }
+        .t-waiting-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--primary); animation: pulse 1.5s infinite; }
+
+        .ws-open-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 12px; margin-top: 8px;
+            background: linear-gradient(135deg, #4f8ef7, #4361ee);
+            border: none; border-radius: 10px; color: #fff;
+            font-family: var(--font); font-size: 0.88rem; font-weight: 600;
+            cursor: pointer; transition: opacity 0.2s, transform 0.2s;
+        }
+        .ws-open-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* Loading */
+        .loading-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 80px 20px; gap: 14px; color: var(--text-muted);
+        }
+        .spinner {
+            width: 36px; height: 36px; border: 3px solid var(--border);
+            border-top-color: var(--primary); border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        .empty-state {
+            max-width: 1100px; margin: 0 auto; padding: 80px 20px;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            color: var(--text-muted); text-align: center;
+        }
+        .empty-state i { font-size: 2.5rem; opacity: 0.3; margin-bottom: 8px; }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse {
+            0%,100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+        @keyframes glow-pulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(79,142,247,0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(79,142,247,0); }
+        }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+            .controls { gap: 8px; }
+            .sort-btn span { display: none; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div class="header-inner">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <button onclick="history.back()" style="
+                display:flex;align-items:center;gap:6px;
+                background:rgba(79,142,247,0.1);border:1px solid rgba(79,142,247,0.25);
+                color:#4f8ef7;padding:7px 13px;border-radius:9px;cursor:pointer;
+                font-family:var(--font);font-size:0.82rem;font-weight:600;
+                transition:all 0.2s;white-space:nowrap;
+            " onmouseover="this.style.background='rgba(79,142,247,0.2)'" onmouseout="this.style.background='rgba(79,142,247,0.1)'">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-flask"></i></div>
+                <span>CEV Lab Tracker</span>
+            </div>
+        </div>
+        <div class="live-badge">
+            <span class="live-dot"></span> LIVE
+        </div>
+    </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+    <div class="search-wrap">
+        <i class="fas fa-search"></i>
+        <input class="search-input" id="searchInput" type="text" placeholder="Search by name or phone…">
+    </div>
+    <button class="sort-btn" id="sortProgress" onclick="toggleSort('progress')">
+        <i class="fas fa-chart-bar"></i><span>Sort: Progress</span>
+    </button>
+    <button class="sort-btn" id="sortName" onclick="toggleSort('name')">
+        <i class="fas fa-sort-alpha-down"></i><span>Name</span>
+    </button>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar" id="statsBar">
+    <div class="stat-pill"><span class="stat-dot" style="background:#4f8ef7"></span>Active: <strong id="statActive">–</strong></div>
+    <div class="stat-pill"><span class="stat-dot" style="background:#f59e0b"></span>In Progress: <strong id="statProgress">–</strong></div>
+    <div class="stat-pill" style="margin-left:auto;"><span class="stat-dot" style="background:#f59e0b"></span>Pinned: <strong id="statPinned">–</strong></div>
+</div>
+
+<!-- CARDS CONTAINER -->
+<div id="cardsRoot"></div>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="handleBackdropClick(event)">
+    <div class="modal" id="modalContent">
+        <!-- filled by JS -->
+    </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────
+const COMPLETED_HIDE_DAYS = 7;          // hide completed after N days
+const TRACKING_STEPS = [
+    { key: 'created',   label: 'Profile Created',      desc: 'Customer profile added to the system',       icon: 'fa-user-plus' },
+    { key: 'tested',    label: 'Tests Conducted',       desc: 'All required tests have been performed',     icon: 'fa-vial' },
+    { key: 'approved',  label: 'Results Approved',      desc: 'Test results reviewed and approved',         icon: 'fa-clipboard-check' },
+    { key: 'hod',       label: 'HOD Signature Obtained',desc: 'Head of Department has signed the report',   icon: 'fa-stamp' },
+    { key: 'ready',     label: 'Report Ready',          desc: 'Final report is ready for collection',       icon: 'fa-file-circle-check' },
+];
+
+// ── STATE ───────────────────────────────────────────────
+let allCustomers = [];
+let pinnedIds     = new Set(JSON.parse(localStorage.getItem('trackerPins') || '[]'));
+let sortMode      = 'default';          // 'default' | 'progress' | 'name'
+let searchQuery   = '';
+let unsubscribe   = null;
+let settings      = null;
+
+// ── COLOUR PALETTE ──────────────────────────────────────
+const AVATARS = [
+    ['#4361ee','#c7d2fe'],['#7c3aed','#ddd6fe'],['#0891b2','#cffafe'],
+    ['#059669','#a7f3d0'],['#d97706','#fde68a'],['#dc2626','#fecaca'],
+];
+function avatarColours(name) {
+    let h = 0; for (let c of name) h = (h*31 + c.charCodeAt(0)) & 0xffff;
+    return AVATARS[h % AVATARS.length];
+}
+function initials(name) {
+    return name.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+
+// ── CUSTOMER LOGIC ──────────────────────────────────────
+function getOverallProgress(c) {
+    const cubeExp = c.expectedCubeTests || 0;
+    const gsbExp  = c.expectedGSBTests  || 0;
+    const cubeDone= (c.cubeTests||[]).length;
+    const gsbDone = (c.gsbTests||[]).length;
+    if (cubeExp + gsbExp === 0) return { pct: 0, cubePct: 0, gsbPct: 0, cubeDone, gsbDone, cubeExp, gsbExp };
+    const cubePct = cubeExp > 0 ? Math.min(100, Math.round(cubeDone/cubeExp*100)) : 100;
+    const gsbPct  = gsbExp  > 0 ? Math.min(100, Math.round(gsbDone/gsbExp*100))  : 100;
+    const pct = Math.round((cubeDone+gsbDone)/(cubeExp+gsbExp)*100);
+    return { pct: Math.min(100,pct), cubePct, gsbPct, cubeDone, gsbDone, cubeExp, gsbExp };
+}
+
+function isCompleted(c) {
+    const {cubeExp,gsbExp,cubeDone,gsbDone} = getOverallProgress(c);
+    if (cubeExp+gsbExp === 0) return false;
+    return cubeDone >= cubeExp && gsbDone >= gsbExp;
+}
+
+function completedDaysAgo(c) {
+    const dates = [...(c.cubeTests||[]),...(c.gsbTests||[])].map(t=>new Date(t.date||t.testDate||t.createdAt)).filter(d=>!isNaN(d));
+    if (!dates.length) return 999;
+    const latest = new Date(Math.max(...dates));
+    return Math.floor((Date.now()-latest)/(86400000));
+}
+
+function shouldHide(c) {
+    return isCompleted(c) && completedDaysAgo(c) > COMPLETED_HIDE_DAYS;
+}
+
+function getStatusInfo(c) {
+    const {pct} = getOverallProgress(c);
+    if (isCompleted(c)) return {key:'done',    label:'Completed',   cls:'badge-done'};
+    if (pct > 0)        return {key:'progress',label:'In Progress',  cls:'badge-progress'};
+    return               {key:'active',  label:'Active',      cls:'badge-active'};
+}
+
+// Derive tracking step states from customer data
+function getStepStates(c) {
+    const {cubeExp, gsbExp, cubeDone, gsbDone} = getOverallProgress(c);
+    const allTested = isCompleted(c);
+
+    // Count approved tests
+    const cubeApproved = (c.cubeTests||[]).filter(t => t.approved || t.status === 'approved').length;
+    const gsbApproved  = (c.gsbTests||[]).filter(t => t.approved || t.status === 'approved').length;
+    const totalApproved = cubeApproved + gsbApproved;
+    const totalDone     = cubeDone + gsbDone;
+    const approvedAll   = totalDone > 0 && totalApproved >= totalDone;
+
+    // Count HOD signed tests
+    const allTests = [...(c.cubeTests||[]), ...(c.gsbTests||[])];
+    const totalHodSigned = allTests.filter(t => t.hodSigned).length;
+    const hodAll = totalDone > 0 && totalHodSigned >= totalDone;
+
+    const approved = !!(c.approved || c.resultsApproved) || approvedAll;
+    const hod      = hodAll;
+    // Report Ready step: done only if ALL tests signed
+    const ready    = allTested && approved && hod;
+    // But show partial count for report ready
+    const reportReadyCount = totalHodSigned; // each signed test = 1 report ready
+
+    const states = [true, allTested, approved, hod, ready];
+    let activeIdx = states.findIndex(s => !s);
+    if (activeIdx === -1) activeIdx = states.length;
+
+    return TRACKING_STEPS.map((step, i) => ({
+        ...step,
+        state: i < activeIdx ? 'done' : (i === activeIdx ? 'active' : 'waiting'),
+        approvedCount: step.key === 'approved' ? { done: totalApproved, total: totalDone } : null,
+        hodCount: step.key === 'hod' ? { done: totalHodSigned, total: totalDone } : null,
+        readyCount: step.key === 'ready' ? { done: reportReadyCount, total: totalDone } : null,
+    }));
+}
+
+// ── RENDER ──────────────────────────────────────────────
+function renderCards() {
+    let visible = allCustomers.filter(c => !shouldHide(c));
+
+    // search
+    if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        visible = visible.filter(c =>
+            (c.name||'').toLowerCase().includes(q) ||
+            (c.phone||'').toLowerCase().includes(q)
+        );
+    }
+
+    // separate pinned
+    const pinned    = visible.filter(c => pinnedIds.has(c.id));
+    let unpinned    = visible.filter(c => !pinnedIds.has(c.id));
+
+    // sort unpinned
+    if (sortMode === 'progress') {
+        unpinned.sort((a,b) => getOverallProgress(b).pct - getOverallProgress(a).pct);
+    } else if (sortMode === 'name') {
+        unpinned.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+    }
+
+    // completed vs active in unpinned
+    const active    = unpinned.filter(c => !isCompleted(c));
+    const completed = unpinned.filter(c =>  isCompleted(c));
+
+    // stats
+    const all = allCustomers.filter(c => !shouldHide(c));
+    document.getElementById('statActive').textContent   = all.filter(c => getStatusInfo(c).key==='active').length;
+    document.getElementById('statProgress').textContent = all.filter(c => getStatusInfo(c).key==='progress').length;
+    document.getElementById('statPinned').textContent   = pinnedIds.size;
+
+    // build HTML
+    let html = '';
+
+    if (pinned.length) {
+        html += `<div class="section-label">📌 Pinned</div><div class="grid">`;
+        html += pinned.map(c => cardHtml(c, true)).join('');
+        html += `</div>`;
+    }
+
+    if (active.length) {
+        html += `<div class="section-label" style="margin-top:${pinned.length?'4px':'0'}">🔬 Active</div><div class="grid">`;
+        html += active.map(c => cardHtml(c, false)).join('');
+        html += `</div>`;
+    }
+
+    if (completed.length) {
+        html += `<div class="section-label" style="margin-top:4px">✅ Completed</div><div class="grid">`;
+        html += completed.map(c => cardHtml(c, false)).join('');
+        html += `</div>`;
+    }
+
+    if (!html) {
+        html = `<div class="empty-state"><i class="fas fa-user-slash"></i><p>No active customers found</p><small>Completed profiles are hidden after ${COMPLETED_HIDE_DAYS} days</small></div>`;
+    }
+
+    document.getElementById('cardsRoot').innerHTML = html;
+}
+
+function cardHtml(c, isPinned) {
+    const [bg,fg] = avatarColours(c.name||'?');
+    const ini = initials(c.name||'?');
+    const status = getStatusInfo(c);
+    const {pct,cubePct,gsbPct,cubeDone,cubeExp,gsbDone,gsbExp} = getOverallProgress(c);
+    const totalTests = cubeDone + gsbDone;
+
+    const pinIcon = isPinned
+        ? `<button class="pin-btn pinned" onclick="togglePin(event,'${c.id}')" title="Unpin"><i class="fas fa-thumbtack"></i></button>`
+        : `<button class="pin-btn" onclick="togglePin(event,'${c.id}')" title="Pin"><i class="fas fa-thumbtack"></i></button>`;
+
+    const cubeBar = cubeExp > 0 ? `
+        <div class="progress-row">
+            <div class="progress-label"><span><i class="fas fa-cube" style="font-size:0.65rem"></i> Cube</span><span>${cubeDone}/${cubeExp}</span></div>
+            <div class="progress-track"><div class="progress-fill cube" style="width:${cubePct}%"></div></div>
+        </div>` : '';
+
+    const gsbBar = gsbExp > 0 ? `
+        <div class="progress-row">
+            <div class="progress-label"><span><i class="fas fa-filter" style="font-size:0.65rem"></i> GSB</span><span>${gsbDone}/${gsbExp}</span></div>
+            <div class="progress-track"><div class="progress-fill gsb" style="width:${gsbPct}%"></div></div>
+        </div>` : '';
+
+    return `
+    <div class="card${isPinned?' pinned':''}" onclick="openModal('${c.id}')" style="animation-delay:${Math.random()*0.15}s">
+        <div class="card-top">
+            <div class="avatar" style="background:${bg};color:${fg}">${ini}</div>
+            <div class="card-meta">
+                <div class="card-name">${c.name||'Unknown'}</div>
+                <div class="card-phone">${c.phone||'—'}</div>
+            </div>
+            ${pinIcon}
+        </div>
+        <span class="status-badge ${status.cls}">
+            <span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block"></span>
+            ${status.label}
+        </span>
+        <div class="test-chips">
+            ${cubeExp>0?`<span class="chip chip-cube"><i class="fas fa-cube"></i>${cubeDone}/${cubeExp} Cube</span>`:''}
+            ${gsbExp>0?`<span class="chip chip-gsb"><i class="fas fa-filter"></i>${gsbDone}/${gsbExp} GSB</span>`:''}
+            <span class="chip chip-total"><i class="fas fa-vial"></i>${totalTests} Total</span>
+        </div>
+        ${cubeBar}${gsbBar}
+        ${cubeExp+gsbExp>0?`<div class="overall-bar"><div class="overall-label">Overall ${pct}%</div><div class="overall-track"><div class="overall-fill" style="width:${pct}%"></div></div></div>`:''}
+    </div>`;
+}
+
+// ── MODAL ───────────────────────────────────────────────
+function openModal(id) {
+    const c = allCustomers.find(x => x.id === id);
+    if (!c) return;
+    const [bg,fg] = avatarColours(c.name||'?');
+    const status = getStatusInfo(c);
+    const {pct,cubePct,gsbPct,cubeDone,cubeExp,gsbDone,gsbExp} = getOverallProgress(c);
+    const steps = getStepStates(c);
+    const totalTests = cubeDone + gsbDone;
+
+    const wsProgress = (cubeExp+gsbExp > 0) ? `
+        <div class="ws-progress-block">
+            <div class="ws-progress-title">Test Progress</div>
+            ${cubeExp>0?`<div class="ws-bar-row">
+                <div class="ws-bar-label"><span><i class="fas fa-cube"></i> Cube Tests</span><span>${cubeDone}/${cubeExp}</span></div>
+                <div class="ws-track"><div class="ws-fill cube" style="width:${cubePct}%"></div></div>
+            </div>`:''}
+            ${gsbExp>0?`<div class="ws-bar-row">
+                <div class="ws-bar-label"><span><i class="fas fa-filter"></i> GSB Tests</span><span>${gsbDone}/${gsbExp}</span></div>
+                <div class="ws-track"><div class="ws-fill gsb" style="width:${gsbPct}%"></div></div>
+            </div>`:''}
+            <div class="ws-bar-row" style="margin-top:4px">
+                <div class="ws-bar-label"><span style="font-weight:700">Overall Progress</span><span>${pct}%</span></div>
+                <div class="ws-track" style="height:10px"><div class="ws-fill overall" style="width:${pct}%"></div></div>
+            </div>
+        </div>` : '';
+
+    // Find current active step index for "waiting" tag
+    const activeStepIdx = steps.findIndex(s => s.state === 'active');
+
+    const timeline = steps.map((s, i) => {
+        const isNextWaiting = s.state === 'waiting' && i === activeStepIdx + 1;
+        const approvedTag = s.approvedCount && s.approvedCount.total > 0
+            ? `<div style="margin-top:5px;font-size:0.72rem;color:var(--text-muted);">
+                <i class="fas fa-check-double" style="color:var(--success);margin-right:3px"></i>
+                ${s.approvedCount.done} of ${s.approvedCount.total} results approved
+               </div>` : '';
+        const hodTag = s.hodCount && s.hodCount.total > 0
+            ? `<div style="margin-top:5px;font-size:0.72rem;color:var(--text-muted);">
+                <i class="fas fa-stamp" style="color:var(--warning);margin-right:3px"></i>
+                ${s.hodCount.done} of ${s.hodCount.total} tests HOD signed
+               </div>` : '';
+        const readyTag = s.readyCount && s.readyCount.total > 0
+            ? `<div style="margin-top:5px;font-size:0.72rem;color:var(--text-muted);">
+                <i class="fas fa-file-circle-check" style="color:var(--success);margin-right:3px"></i>
+                ${s.readyCount.done} Report${s.readyCount.done !== 1 ? 's' : ''} Ready
+               </div>` : '';
+        return `
+        <div class="t-step ${s.state}">
+            <div class="t-icon-wrap"><i class="fas ${s.icon}"></i></div>
+            <div class="t-content">
+                <div class="t-label">${s.label}</div>
+                <div class="t-desc">${s.desc}</div>
+                ${approvedTag}
+                ${hodTag}
+                ${readyTag}
+                ${s.state === 'active' ? `<div class="t-waiting-tag"><span class="t-waiting-dot"></span>Currently Here</div>` : ''}
+                ${isNextWaiting ? `<div class="t-waiting-tag" style="margin-top:4px;opacity:0.6"><i class="fas fa-clock" style="font-size:0.6rem"></i> Waiting</div>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+
+    const remark = c.remark ? `<span class="chip chip-total" style="font-size:0.75rem;padding:4px 10px;margin-bottom:14px;display:inline-flex"><i class="fas fa-tag"></i> ${c.remark}</span><br>` : '';
+
+    document.getElementById('modalContent').innerHTML = `
+        <div class="modal-header">
+            <div class="modal-avatar" style="background:${bg};color:${fg}">${initials(c.name||'?')}</div>
+            <div>
+                <div class="modal-name">${c.name||'Unknown'}</div>
+                <div class="modal-phone">${c.phone||'—'}</div>
+            </div>
+            <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-status-row">
+                <span class="status-badge ${status.cls}" style="font-size:0.72rem">
+                    <span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block"></span>
+                    ${status.label}
+                </span>
+                <span class="chip chip-total"><i class="fas fa-vial"></i>${totalTests} Tests Done</span>
+            </div>
+            ${remark}
+            ${wsProgress}
+            <div class="timeline-title">Tracking Timeline</div>
+            <div class="timeline">${timeline}</div>
+        </div>`;
+
+    document.getElementById('modalBackdrop').classList.add('open');
+}
+
+function closeModal() {
+    document.getElementById('modalBackdrop').classList.remove('open');
+}
+function handleBackdropClick(e) {
+    if (e.target === document.getElementById('modalBackdrop')) closeModal();
+}
+function goToWorkspace(id) {
+    localStorage.setItem('currentCustomerId', id);
+    window.location.href = 'workspace.html';
+}
+
+// ── PIN ─────────────────────────────────────────────────
+function togglePin(e, id) {
+    e.stopPropagation();
+    if (pinnedIds.has(id)) pinnedIds.delete(id);
+    else                    pinnedIds.add(id);
+    localStorage.setItem('trackerPins', JSON.stringify([...pinnedIds]));
+    renderCards();
+}
+
+// ── SORT ────────────────────────────────────────────────
+function toggleSort(mode) {
+    sortMode = (sortMode === mode) ? 'default' : mode;
+    document.getElementById('sortProgress').classList.toggle('active', sortMode==='progress');
+    document.getElementById('sortName').classList.toggle('active', sortMode==='name');
+    renderCards();
+}
+
+// ── SEARCH ──────────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input', e => {
+    searchQuery = e.target.value;
+    renderCards();
+});
+
+// ── FIREBASE LOAD ────────────────────────────────────────
+async function init() {
+    document.getElementById('cardsRoot').innerHTML = `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <span>Loading customers…</span>
+        </div>`;
+
+    try {
+        const firestore = firebase.firestore();
+
+        // Real-time listener — no auth required (public page)
+        unsubscribe = firestore.collection('customers')
+            .orderBy('createdDate', 'desc')
+            .onSnapshot(snapshot => {
+                allCustomers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderCards();
+            }, err => {
+                console.warn('OrderBy failed, trying without:', err.message);
+                // fallback without orderBy
+                firestore.collection('customers').onSnapshot(snapshot => {
+                    allCustomers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderCards();
+                }, err2 => {
+                    document.getElementById('cardsRoot').innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p>Failed to load data</p>
+                            <small>${err2.message}</small>
+                        </div>`;
+                });
+            });
+    } catch(e) {
+        document.getElementById('cardsRoot').innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>Failed to load data</p>
+                <small>${e.message}</small>
+            </div>`;
+    }
+}
+
+init();
+</script>
+</body>
+</html>
