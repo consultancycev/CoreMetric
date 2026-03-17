@@ -473,9 +473,15 @@
         const warningMessage = document.getElementById('warning-message');
         const warningText = document.getElementById('warning-text');
 
-        // Detect mobile (non-desktop mode)
-        const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent)
-                         && !/Windows NT|Macintosh|Linux x86/i.test(navigator.userAgent);
+        // Check already logged in
+        auth.onAuthStateChanged(user => {
+            if (user) window.location.href = 'dashboard.html';
+        });
+
+        function resetButton() {
+            googleSignInBtn.disabled = false;
+            googleSignInBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon"> Sign in with Google';
+        }
 
         function showError(message) {
             errorText.textContent = message;
@@ -500,24 +506,13 @@
             setTimeout(() => { warningMessage.style.display = 'none'; }, 5000);
         }
 
-        function resetButton() {
-            googleSignInBtn.disabled = false;
-            googleSignInBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon"> Sign in with Google';
-        }
-
-        function setLoadingButton() {
-            googleSignInBtn.disabled = true;
-            googleSignInBtn.innerHTML = '<div class="loading-spinner"></div> Signing in...';
-        }
-
-        // Core: validate user and redirect to dashboard
-        async function handleSignedInUser(user) {
+        async function processUser(user) {
             try {
                 const userDoc = await db.collection(USERS_COLLECTION).doc(user.email).get();
 
                 if (!userDoc.exists) {
                     await auth.signOut();
-                    showError('Access Denied: Your email is not authorized. Contact admin.');
+                    showError('Access Denied: Your email is not authorized. Please contact admin.');
                     resetButton();
                     return;
                 }
@@ -526,19 +521,19 @@
 
                 if (!userData.role) {
                     await auth.signOut();
-                    showError('Access Denied: No role assigned. Contact admin.');
+                    showError('Access Denied: No role assigned. Please contact admin.');
                     resetButton();
                     return;
                 }
 
                 if (userData.status === 'inactive') {
                     await auth.signOut();
-                    showError('Access Denied: Your account is deactivated. Contact admin.');
+                    showError('Access Denied: Your account is deactivated. Please contact admin.');
                     resetButton();
                     return;
                 }
 
-                // ✅ Authorized — update Firestore
+                // Authorized — update Firestore
                 const updateData = {
                     displayName: user.displayName || userData.displayName,
                     photoURL: user.photoURL || userData.photoURL,
@@ -560,10 +555,6 @@
                     lastLogin: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
 
-                localStorage.setItem('userRole', userData.role || 'staff');
-                localStorage.setItem('userEmail', user.email);
-                localStorage.setItem('userName', user.displayName || userData.nickname || user.email.split('@')[0]);
-                localStorage.setItem('userStatus', userData.status || 'active');
                 sessionStorage.setItem('userRole', userData.role || 'staff');
                 sessionStorage.setItem('userEmail', user.email);
                 sessionStorage.setItem('userName', user.displayName || userData.nickname || user.email.split('@')[0]);
@@ -573,80 +564,48 @@
                 setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
 
             } catch (err) {
-                console.error('handleSignedInUser error:', err);
+                console.error('processUser error:', err);
                 showError('Login error: ' + (err.message || 'Unknown error'));
                 resetButton();
             }
         }
 
-        // On page load: check redirect result first, then existing session
-        (async function init() {
-            try {
-                // Always check redirect result — this handles mobile after Google redirect
-                const result = await auth.getRedirectResult();
-                if (result && result.user) {
-                    setLoadingButton();
-                    await handleSignedInUser(result.user);
-                    return; // Done
-                }
-            } catch (err) {
-                console.error('getRedirectResult error:', err);
-                if (err.code !== 'auth/no-auth-event') {
-                    showError('Login failed: ' + (err.message || 'Unknown error'));
+        // IMPORTANT: signInWithPopup must be called DIRECTLY inside click handler
+        // with NO async/await before it — otherwise mobile browsers block the popup
+        googleSignInBtn.addEventListener('click', function() {
+            googleSignInBtn.disabled = true;
+            googleSignInBtn.innerHTML = '<div class="loading-spinner"></div> Signing in...';
+
+            const provider = new firebase.auth.GoogleAuthProvider();
+            provider.addScope('profile');
+            provider.addScope('email');
+            provider.setCustomParameters({ prompt: 'select_account' });
+
+            // Call signInWithPopup immediately — no await before this line
+            auth.signInWithPopup(provider)
+                .then(function(result) {
+                    return processUser(result.user);
+                })
+                .catch(function(error) {
+                    console.error('SignInWithPopup error:', error);
+                    let errorMsg;
+                    switch (error.code) {
+                        case 'auth/popup-closed-by-user':
+                        case 'auth/cancelled-popup-request':
+                            errorMsg = 'Login cancelled.'; break;
+                        case 'auth/popup-blocked':
+                            errorMsg = 'Pop-up blocked. Please allow pop-ups for this site and try again.'; break;
+                        case 'auth/network-request-failed':
+                            errorMsg = 'Network error. Check your internet connection.'; break;
+                        default:
+                            errorMsg = 'Login failed: ' + (error.message || 'Unknown error');
+                    }
+                    showError(errorMsg);
                     resetButton();
-                    return;
-                }
-            }
-
-            // Check if already logged in (existing session)
-            auth.onAuthStateChanged(async (user) => {
-                if (user) {
-                    // Already authenticated — go to dashboard
-                    window.location.href = 'dashboard.html';
-                }
-            });
-        })();
-
-        // Button click handler
-        googleSignInBtn.addEventListener('click', async () => {
-            try {
-                setLoadingButton();
-
-                const provider = new firebase.auth.GoogleAuthProvider();
-                provider.addScope('profile');
-                provider.addScope('email');
-                provider.setCustomParameters({ prompt: 'select_account' });
-
-                if (isMobile) {
-                    // Mobile normal mode: redirect flow (no popup)
-                    await auth.signInWithRedirect(provider);
-                    // ↑ Page navigates away — result handled in init() above on return
-                } else {
-                    // Desktop / desktop-mode: popup flow
-                    const result = await auth.signInWithPopup(provider);
-                    await handleSignedInUser(result.user);
-                }
-
-            } catch (error) {
-                console.error('Sign-In click error:', error);
-                let errorMsg;
-                switch (error.code) {
-                    case 'auth/popup-closed-by-user':
-                    case 'auth/cancelled-popup-request':
-                        errorMsg = 'Login cancelled.'; break;
-                    case 'auth/popup-blocked':
-                        errorMsg = 'Pop-up blocked. Please allow pop-ups for this site.'; break;
-                    case 'auth/network-request-failed':
-                        errorMsg = 'Network error. Check your internet connection.'; break;
-                    default:
-                        errorMsg = 'Login failed: ' + (error.message || 'Unknown error');
-                }
-                showError(errorMsg);
-                resetButton();
-            }
+                });
         });
 
-        document.addEventListener('keypress', (e) => {
+        document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') googleSignInBtn.click();
         });
     </script>
