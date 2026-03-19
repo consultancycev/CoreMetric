@@ -729,25 +729,40 @@ function openModal(id) {
     const [bg,fg] = avatarColours(c.name||'?');
     const status = getStatusInfo(c);
     const {pct,cubePct,gsbPct,cubeDone,cubeExp,gsbDone,gsbExp} = getOverallProgress(c);
+    const detailedPct = getDetailedPct(c);
     const steps = getStepStates(c);
     const totalTests = cubeDone + gsbDone;
+    const totalExp = cubeExp + gsbExp;
 
-    const wsProgress = (cubeExp+gsbExp > 0) ? `
+    const wsProgress = `
         <div class="ws-progress-block">
-            <div class="ws-progress-title">Test Progress</div>
+            <div class="ws-progress-title">Overall Progress</div>
+            <div class="ws-bar-row">
+                <div class="ws-bar-label">
+                    <span style="font-weight:700;display:flex;align-items:center;gap:6px;">
+                        <i class="fas fa-tasks" style="color:var(--primary)"></i> Overall Progress
+                    </span>
+                    <span style="font-size:1rem;font-weight:800;color:var(--primary)">${detailedPct}%</span>
+                </div>
+                <div class="ws-track" style="height:12px;border-radius:999px;background:var(--step-wait);overflow:hidden;">
+                    <div style="height:100%;width:${detailedPct}%;border-radius:999px;background:linear-gradient(90deg,#4f8ef7,#22c55e);transition:width 0.7s ease;"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:0.72rem;color:var(--text-muted);">
+                    <span>${totalTests}${totalExp>0?' / '+totalExp+' tests':' tests done'}</span>
+                    <span>${detailedPct < 100 ? 'In Progress' : '✅ Complete'}</span>
+                </div>
+            </div>
+            ${(cubeExp+gsbExp > 0) ? `
+            <div style="height:1px;background:var(--border);margin:12px 0;"></div>
             ${cubeExp>0?`<div class="ws-bar-row">
-                <div class="ws-bar-label"><span><i class="fas fa-cube"></i> Cube Tests</span><span>${cubeDone}/${cubeExp}</span></div>
+                <div class="ws-bar-label"><span><i class="fas fa-cube" style="color:var(--primary)"></i> Cube Tests</span><span>${cubeDone}/${cubeExp}</span></div>
                 <div class="ws-track"><div class="ws-fill cube" style="width:${cubePct}%"></div></div>
             </div>`:''}
             ${gsbExp>0?`<div class="ws-bar-row">
-                <div class="ws-bar-label"><span><i class="fas fa-filter"></i> GSB Tests</span><span>${gsbDone}/${gsbExp}</span></div>
+                <div class="ws-bar-label"><span><i class="fas fa-filter" style="color:var(--warning)"></i> GSB Tests</span><span>${gsbDone}/${gsbExp}</span></div>
                 <div class="ws-track"><div class="ws-fill gsb" style="width:${gsbPct}%"></div></div>
-            </div>`:''}
-            <div class="ws-bar-row" style="margin-top:4px">
-                <div class="ws-bar-label"><span style="font-weight:700">Overall Progress</span><span>${pct}%</span></div>
-                <div class="ws-track" style="height:10px"><div class="ws-fill overall" style="width:${pct}%"></div></div>
-            </div>
-        </div>` : '';
+            </div>`:''}` : ''}
+        </div>`;
 
     // Find current active step index for "waiting" tag
     const activeStepIdx = steps.findIndex(s => s.state === 'active');
@@ -809,7 +824,6 @@ function openModal(id) {
                 </span>
                 <span class="chip chip-total"><i class="fas fa-vial"></i>${totalTests} Tests Done</span>
             </div>
-            ${remark}
             ${wsProgress}
             <div class="timeline-title">Tracking Timeline</div>
             <div class="timeline">${timeline}</div>
