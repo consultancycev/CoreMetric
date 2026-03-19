@@ -2334,10 +2334,20 @@
             }
 
             // ==================== TOTAL WORK APPROVAL PROGRESS BAR ====================
+            // Per-test scoring (each filled field = 1 point, max points per test type):
+            // Cube test fields: projectName, clientDepartment, castingDate, testDate, testAge, grade,
+            //                   each cube weight, each cube pressure, remarks, linkedFileUrl
+            //                   → approve (+big bonus), hodSigned (+big bonus)
+            // GSB test fields:  projectName, clientDepartment, testDate, sieves data,
+            //                   totalWeight, remarks, linkedFileUrl
+            //                   → approve (+big bonus), hodSigned (+big bonus)
+            // Once a test is approved+hodSigned it counts as fully complete for that test slot.
+
             const allCubeTests = customer.cubeTests || [];
             const allGsbTests = customer.gsbTests || [];
             const allTestsAll = [...allCubeTests, ...allGsbTests];
             const totalExpectedAll = (customer.expectedCubeTests || 0) + (customer.expectedGSBTests || 0);
+            const cubeSetPerTest2 = customer.cubeSetPerTest || 3;
             const totalApproved =
                 allCubeTests.filter(t => t.status === 'approved').length +
                 allGsbTests.filter(t => t.status === 'approved').length;
@@ -2346,18 +2356,67 @@
                 allGsbTests.filter(t => t.hodSigned).length;
             const progressTarget = totalExpectedAll > 0 ? totalExpectedAll : allTestsAll.length;
 
-            // Each test: approved=0.5 credit, hodSigned=0.5 credit (total 1.0 per test)
-            // HOD Sign max contribution capped at 5 tests
-            const HOD_CAP = 5;
-            let weightedScore = 0;
-            allTestsAll.forEach(t => {
-                if (t.status === 'approved') weightedScore += 0.5;
-            });
-            const hodContrib = Math.min(totalHodSigned, HOD_CAP);
-            weightedScore += hodContrib * 0.5;
+            // Score each test: fields filled out of total possible fields
+            // If test is approved+hodSigned → 100% for that test
+            function scoreTest(t, type) {
+                // If fully done, score 100%
+                if (t.status === 'approved' && t.hodSigned) return { earned: 1, max: 1 };
 
-            const progressPct = progressTarget > 0 ? Math.min(100, Math.round((weightedScore / progressTarget) * 100)) : 0;
-            const isComplete = totalApproved >= progressTarget && totalHodSigned >= progressTarget && progressTarget > 0;
+                let earned = 0, max = 0;
+
+                // Common fields (both cube & gsb)
+                const commonFields = ['projectName', 'clientDepartment', 'testDate', 'remarks', 'linkedFileUrl'];
+                commonFields.forEach(f => { max++; if (t[f]) earned++; });
+
+                if (type === 'cube') {
+                    // Cube-specific fields
+                    max += 3; // castingDate, testAge, grade
+                    if (t.castingDate) earned++;
+                    if (t.testAge) earned++;
+                    if (t.grade) earned++;
+
+                    // Cube measurements (weight + pressure per cube)
+                    const numCubes = cubeSetPerTest2;
+                    const cubes = t.cubes || [];
+                    for (let ci = 0; ci < numCubes; ci++) {
+                        max += 2; // weight + pressure
+                        if (cubes[ci]?.weight) earned++;
+                        if (cubes[ci]?.pressure) earned++;
+                    }
+                } else {
+                    // GSB-specific fields
+                    max += 1; // totalWeight
+                    if (t.totalWeight) earned++;
+
+                    // Sieve data: count how many sieves have weight filled
+                    const sieves = (t.sieves || []).filter(s => s.size !== 'Pan');
+                    const sieveCount = Math.max(sieves.length, 1);
+                    const filledSieves = sieves.filter(s => s.weight != null && s.weight !== '').length;
+                    max += sieveCount;
+                    earned += filledSieves;
+                }
+
+                // Approval status (big impact milestones)
+                max += 2; // approved + hodSigned each worth 1 slot
+                if (t.status === 'approved') earned++;
+                if (t.hodSigned) earned++;
+
+                return { earned, max };
+            }
+
+            let totalEarned = 0, totalMax = 0;
+            allCubeTests.forEach(t => {
+                const s = scoreTest(t, 'cube');
+                totalEarned += s.earned; totalMax += s.max;
+            });
+            allGsbTests.forEach(t => {
+                const s = scoreTest(t, 'gsb');
+                totalEarned += s.earned; totalMax += s.max;
+            });
+
+            // If no tests added yet but customer exists, show a small base progress
+            const progressPct = totalMax > 0 ? Math.min(100, Math.round((totalEarned / totalMax) * 100)) : 0;
+            const isComplete = progressTarget > 0 && totalApproved >= progressTarget && totalHodSigned >= progressTarget;
             const reportReady = isComplete && customer.paymentStatus === 'paid';
 
             const fillEl = document.getElementById('total-work-progress-bar-fill');
@@ -2373,7 +2432,9 @@
                 pctEl.className = 'total-work-progress-pct' + (isComplete ? ' complete' : '');
             }
             if (countEl) {
-                let countHtml = `✅ Approved: ${totalApproved}/${progressTarget} &nbsp;|&nbsp; <i class="fas fa-stamp"></i> HOD Signed: ${totalHodSigned}/${Math.min(progressTarget, 5)}`;
+                const testsDone = allTestsAll.length;
+                const targetLabel = progressTarget > 0 ? progressTarget : '∞';
+                let countHtml = `✅ Approved: ${totalApproved}/${targetLabel} &nbsp;|&nbsp; <i class="fas fa-stamp"></i> HOD: ${totalHodSigned}/${targetLabel}`;
                 if (reportReady) {
                     countHtml += ` &nbsp;|&nbsp; <span style="color:var(--status-green);font-weight:700;">📋 Report Ready</span>`;
                 }
@@ -2473,12 +2534,27 @@
                         <span class="history-detail-item"><i class="fas fa-layer-group"></i> Grade: ${test.grade}</span>
                         <span class="history-detail-item"><i class="fas fa-calendar-alt"></i> Age: ${test.testAge} day</span>
                         <span class="history-detail-item"><i class="fas fa-calendar-plus"></i> Casting: ${castingDate}</span>
+                        ${test.status === 'approved' && test.cubes && test.cubes.length > 0 ? (() => {
+                            const pressures = test.cubes.map(c => c.pressure || 0);
+                            const avgPressure = pressures.reduce((a,b)=>a+b,0)/pressures.length;
+                            const avgStrength = (avgPressure * 1000 / 22500).toFixed(2);
+                            const weights = test.cubes.map(c => c.weight || 0);
+                            const avgWeight = (weights.reduce((a,b)=>a+b,0)/weights.length).toFixed(2);
+                            return `<span class="history-detail-item" style="color:var(--status-green);font-weight:600;"><i class="fas fa-tachometer-alt"></i> Avg Strength: ${avgStrength} N/mm²</span>
+                            <span class="history-detail-item" style="color:var(--status-green);font-weight:600;"><i class="fas fa-weight-hanging"></i> Avg Weight: ${avgWeight} kg</span>
+                            <span class="history-detail-item" style="color:var(--status-green);font-weight:600;"><i class="fas fa-compress-arrows-alt"></i> Avg Pressure: ${avgPressure.toFixed(2)} kN</span>`;
+                        })() : ''}
                     `;
                 } else {
                     details = `
                         ${projectName ? `<span class="history-detail-item"><i class="fas fa-building"></i> Pname: ${projectName}</span>` : ''}
                         ${clientDepartment ? `<span class="history-detail-item"><i class="fas fa-user-tie"></i> Client: ${clientDepartment}</span>` : ''}
                         <span class="history-detail-item"><i class="fas fa-filter"></i> Sieve Analysis Test</span>
+                        ${test.status === 'approved' && test.totalWeight ? `<span class="history-detail-item" style="color:var(--status-green);font-weight:600;"><i class="fas fa-balance-scale"></i> Total Weight: ${test.totalWeight.toFixed(3)} kg</span>` : ''}
+                        ${test.status === 'approved' && test.sieves && test.sieves.length > 0 ? (() => {
+                            const mainSieves = test.sieves.filter(s => s.size !== 'Pan' && s.weight > 0).slice(0,3);
+                            return mainSieves.map(s => `<span class="history-detail-item" style="color:var(--status-green);font-weight:600;"><i class="fas fa-sieve"></i> ${s.size}mm: ${(s.weight||0).toFixed(3)}kg</span>`).join('');
+                        })() : ''}
                     `;
                 }
 
