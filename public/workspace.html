@@ -1364,85 +1364,275 @@
         /* Mobile Responsive - UPDATED */
         @media (max-width: 768px) {
             .container {
-                padding: 15px;
+                padding: 10px;
             }
 
             .workspace-header {
-                padding: 20px;
+                padding: 14px;
             }
 
-            .customer-progress {
-                flex-direction: column;
+            /* ── ROW 1: Customer Name + Phone in one row ── */
+            .customer-info {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px 12px;
             }
 
-            .progress-container {
-                width: 100%;
+            /* Row 1: Name | Phone */
+            /* Row 2: Remark | Created */
+            .customer-info .info-item {
+                min-width: 0;
             }
 
-            .fee-display .form-row {
-                gap: 15px;
+            .customer-info .info-item h4 {
+                font-size: 0.65rem;
+                margin-bottom: 3px;
             }
 
-            .fee-display .info-item {
-                min-width: 120px;
-            }
-
-            .fee-amount-large {
-                font-size: 1.3rem;
-            }
-
-            .cubes-per-set-badge {
-                padding: 6px 12px;
-                font-size: 0.9rem;
-            }
-
-            .cubes-per-set-badge i {
-                font-size: 1rem;
-            }
-
-            .action-buttons-row {
-                flex-direction: row;
-                align-items: stretch;
-                gap: 10px;
-            }
-
-            .action-buttons-row .btn {
-                flex: 1;
-                width: auto;
-                justify-content: center;
-                padding: 12px 10px;
+            .customer-info .info-item p {
                 font-size: 0.85rem;
-                white-space: normal;
                 word-break: break-word;
             }
 
-            .created-by-badge {
-                padding: 6px 12px;
-                font-size: 0.8rem;
+            /* ── PROGRESS BARS: both in one row ── */
+            .customer-progress {
+                flex-direction: row !important;
+                gap: 8px;
+            }
+
+            .progress-container {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .progress-container .test-badge {
+                font-size: 0.68rem;
+                padding: 3px 6px;
+                white-space: nowrap;
+            }
+
+            /* ── FEE DISPLAY: compact mobile layout ── */
+            .fee-display {
+                padding: 10px 12px;
+            }
+
+            /* Hide mobile-paid-item on desktop — shown on mobile below */
+            /* Mobile ROW 1: Total Tests Done | Total Fee */
+            .fee-display .form-row {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap;
+                gap: 8px;
+                align-items: flex-start;
+            }
+
+            /* Hide Payment Status and paid button from form-row on mobile */
+            .fee-display .form-row .info-item:nth-child(3),
+            .mobile-paid-item {
+                display: none !important;
+            }
+
+            .fee-display .info-item {
+                min-width: 0;
+                flex: 1;
+            }
+
+            .fee-display .info-item h4 {
+                font-size: 0.6rem;
+                margin-bottom: 2px;
+                white-space: nowrap;
+            }
+
+            .fee-display .info-item p {
+                font-size: 0.85rem;
+                font-weight: 700;
+            }
+
+            .fee-amount-large {
+                font-size: 0.9rem !important;
+            }
+
+            /* ── MOBILE ROW 2: Payment Status | Paid button | Eye button ── */
+            .action-buttons-row {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 6px;
+                margin-top: 8px;
+            }
+
+            /* Row break for mobile: badges on new line */
+            .mobile-badge-break {
+                display: block !important;
                 width: 100%;
+                height: 0;
+            }
+
+            #mobile-payment-status-display {
+                display: inline-flex !important;
+                align-items: center;
+                flex-shrink: 0;
+            }
+
+            /* Keep Mark as Paid in action row (it becomes row 2) */
+            .action-buttons-row #mark-paid-btn {
+                font-size: 0.78rem;
+                padding: 7px 10px;
+                flex-shrink: 0;
+            }
+
+            .action-buttons-row .btn-icon {
+                flex-shrink: 0;
+                width: 34px;
+                height: 34px;
+                padding: 0;
+                display: flex;
+                align-items: center;
                 justify-content: center;
             }
 
+            /* Force badges to next row */
+            .action-buttons-row #cubes-per-set-display,
+            .action-buttons-row #created-by-badge {
+                flex-basis: auto;
+            }
+
+            /* ── MOBILE ROW 3: cubes/set | added by ── */
+            .created-by-badge {
+                padding: 4px 7px;
+                font-size: 0.68rem;
+                flex-shrink: 0;
+                width: auto !important;
+                justify-content: center;
+            }
+
+            /* ── PROGRESS BAR: smaller, one line count ── */
+            .total-work-progress-wrap {
+                margin-top: 8px;
+                padding: 8px 10px 6px;
+            }
+
+            .total-work-progress-header {
+                flex-wrap: nowrap;
+                gap: 4px;
+                margin-bottom: 5px;
+                align-items: center;
+            }
+
+            .total-work-progress-label {
+                font-size: 0.65rem;
+                gap: 4px;
+                flex-shrink: 0;
+            }
+
+            .total-work-progress-count {
+                font-size: 0.6rem;
+                width: auto;
+                text-align: right;
+                flex: 1;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .total-work-progress-bar-bg {
+                height: 7px;
+            }
+
+            .total-work-progress-pct {
+                font-size: 0.62rem;
+                margin-top: 2px;
+            }
+
+            /* ── WORKSPACE ACTIONS ── */
             .workspace-actions {
                 flex-direction: row;
-                align-items: stretch;
-                gap: 10px;
+                align-items: center;
+                gap: 8px;
+                margin-top: 10px;
+                justify-content: center;
             }
 
             .workspace-actions .btn {
                 flex: 1;
-                width: auto;
                 justify-content: center;
-                padding: 12px 10px;
+                padding: 10px 8px;
                 font-size: 0.85rem;
             }
 
-            .history-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
+            /* ── TEST HISTORY: mobile card style ── */
+            .history-header {
+                padding: 14px 16px;
             }
 
+            .history-header h3 {
+                font-size: 1rem;
+            }
+
+            .history-item {
+                padding: 14px 16px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .history-item-content {
+                width: 100%;
+                gap: 12px;
+            }
+
+            .test-number {
+                width: 34px;
+                height: 34px;
+                font-size: 0.9rem;
+                flex-shrink: 0;
+            }
+
+            .history-info h4 {
+                font-size: 0.9rem;
+                margin-bottom: 5px;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .history-details {
+                gap: 8px;
+                font-size: 0.78rem;
+            }
+
+            .history-detail-item {
+                font-size: 0.78rem;
+            }
+
+            .history-date {
+                font-size: 0.78rem;
+                margin-top: 4px;
+            }
+
+            .history-actions {
+                width: 100%;
+                justify-content: flex-end;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .history-actions .btn {
+                font-size: 0.78rem;
+                padding: 6px 10px;
+            }
+
+            .test-badge {
+                font-size: 0.72rem;
+                padding: 3px 8px;
+            }
+
+            .approval-badge {
+                font-size: 0.72rem;
+                padding: 3px 8px;
+            }
+
+            /* ── DOCUMENTS ── */
             .document-card {
                 width: 140px;
             }
@@ -1451,6 +1641,7 @@
                 height: 100px;
             }
 
+            /* ── MISC ── */
             .alert-toast {
                 top: 20px;
                 right: 20px;
@@ -1478,41 +1669,21 @@
         }
 
         @media (max-width: 480px) {
-            .fee-display .form-row {
-                flex-direction: row;
-                gap: 10px;
-            }
-
             .fee-display .info-item h4 {
-                font-size: 0.7rem;
+                font-size: 0.58rem;
             }
 
             .fee-display .info-item p {
-                font-size: 0.9rem;
+                font-size: 0.78rem;
             }
 
             .fee-amount-large {
-                font-size: 1.1rem;
-            }
-
-            .cubes-per-set-badge {
-                padding: 4px 8px;
-                font-size: 0.8rem;
-            }
-
-            .action-buttons-row .btn {
-                padding: 10px 6px;
-                font-size: 0.75rem;
-            }
-
-            .workspace-actions .btn {
-                padding: 10px 6px;
-                font-size: 0.75rem;
+                font-size: 0.82rem !important;
             }
 
             .created-by-badge {
-                font-size: 0.7rem;
-                padding: 4px 8px;
+                font-size: 0.65rem;
+                padding: 3px 6px;
             }
 
             .document-card {
@@ -1526,19 +1697,23 @@
             .document-icon {
                 font-size: 36px;
             }
+
+            .history-detail-item {
+                font-size: 0.75rem;
+            }
         }
 
         @media (max-width: 360px) {
+            .customer-info {
+                grid-template-columns: 1fr !important;
+            }
+
+            .customer-progress {
+                flex-direction: column !important;
+            }
+
             .fee-display .form-row {
-                flex-wrap: wrap;
-            }
-
-            .fee-display .info-item {
-                min-width: 100%;
-            }
-
-            .action-buttons-row {
-                flex-wrap: wrap;
+                flex-wrap: wrap !important;
             }
 
             .workspace-actions {
@@ -1547,8 +1722,25 @@
 
             .workspace-actions .btn {
                 flex: 1 1 calc(50% - 5px);
-                min-width: 120px;
+                min-width: 100px;
             }
+        }
+
+        /* Mobile-only paid button in fee row */
+        .mobile-paid-item {
+            display: none;
+        }
+        .mobile-paid-btn {
+            font-size: 0.72rem !important;
+            padding: 6px 8px !important;
+            white-space: nowrap;
+        }
+        /* Hide mobile-only elements on desktop */
+        .mobile-badge-break {
+            display: none;
+        }
+        #mobile-payment-status-display {
+            display: none;
         }
 
         /* Touch-friendly improvements */
@@ -1639,10 +1831,20 @@
                         <h4>Payment Status</h4>
                         <p id="payment-status-display">Pending</p>
                     </div>
+                    <!-- Mobile only: Paid button inside fee row -->
+                    <div class="info-item mobile-paid-item" style="display:none;">
+                        <h4 style="opacity:0;">.</h4>
+                        <button class="btn btn-success btn-sm mobile-paid-btn" onclick="markAsPaid()" id="mark-paid-btn-mobile">
+                            <i class="fas fa-check-circle"></i> Paid
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Action Buttons Row with Created By -->
                 <div class="action-buttons-row">
+                    <!-- Mobile: payment status shown here -->
+                    <span id="mobile-payment-status-display"></span>
+
                     <button class="btn btn-success btn-sm" onclick="markAsPaid()" id="mark-paid-btn">
                         <i class="fas fa-check-circle"></i> Mark as Paid
                     </button>
@@ -1650,6 +1852,9 @@
                     <button class="btn-icon btn-eye" onclick="toggleDocumentsGallery()" id="documents-gallery-btn">
                         <i class="fas fa-eye"></i>
                     </button>
+
+                    <!-- Row break for mobile: badges go to next line -->
+                    <span class="mobile-badge-break"></span>
 
                     <!-- Cubes per Set Badge -->
                     <div class="created-by-badge" id="cubes-per-set-display">
@@ -2314,15 +2519,24 @@
                 </span>
             `;
 
+            // Update mobile payment status span
+            const mobilePaySpan = document.getElementById('mobile-payment-status-display');
+            if (mobilePaySpan) {
+                mobilePaySpan.innerHTML = `<span class="payment-status payment-${paymentStatus}" style="font-size:0.72rem;padding:3px 7px;">${paymentStatus === 'paid' ? '✅ Paid' : '⏳ Pending'}</span>`;
+            }
+
             const markPaidBtn = document.getElementById('mark-paid-btn');
+            const markPaidBtnMobile = document.getElementById('mark-paid-btn-mobile');
             if (paymentStatus === 'paid') {
                 markPaidBtn.disabled = true;
                 markPaidBtn.innerHTML = '<i class="fas fa-check-circle"></i> Paid';
                 markPaidBtn.className = 'btn btn-success btn-sm';
+                if (markPaidBtnMobile) { markPaidBtnMobile.disabled = true; markPaidBtnMobile.innerHTML = '<i class="fas fa-check-circle"></i> Paid'; }
             } else {
                 markPaidBtn.disabled = false;
                 markPaidBtn.innerHTML = '<i class="fas fa-check-circle"></i> Mark as Paid';
                 markPaidBtn.className = 'btn btn-success btn-sm';
+                if (markPaidBtnMobile) { markPaidBtnMobile.disabled = false; markPaidBtnMobile.innerHTML = '<i class="fas fa-check-circle"></i> Paid'; }
             }
 
             // Update Created By Badge

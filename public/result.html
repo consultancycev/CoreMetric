@@ -877,8 +877,16 @@
             }
             
             .details-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px 16px;
+            }
+            
+            .details-grid .detail-item h4 {
+                font-size: 0.75rem;
+            }
+            
+            .details-grid .detail-item p {
+                font-size: 0.95rem;
             }
             
             .approval-section {
@@ -893,28 +901,115 @@
             }
             
             .form-actions {
-                flex-direction: column;
+                flex-direction: row;
                 align-items: stretch;
+                flex-wrap: nowrap;
+                gap: 8px;
+            }
+
+            .form-actions > div:first-child {
+                flex-shrink: 0;
+            }
+
+            .form-actions > div:first-child .btn {
+                width: auto;
+                flex: none;
+                padding: 10px 14px;
+                font-size: 0.85rem;
+                height: 100%;
             }
             
             .action-buttons {
-                flex-direction: column;
-                width: 100%;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                gap: 6px;
+                flex: 1;
+                min-width: 0;
             }
             
-            .btn, .dropdown-btn {
-                width: 100%;
+            .action-buttons .btn,
+            .action-buttons .dropdown-btn,
+            .action-buttons .mobile-download-btn {
+                width: auto;
+                flex: 1;
+                min-width: 0;
                 justify-content: center;
+                padding: 10px 6px;
+                font-size: 0.85rem;
             }
             
             .action-dropdown {
+                flex: 1;
+                min-width: 0;
+                display: flex;
+            }
+
+            .action-dropdown .dropdown-btn {
                 width: 100%;
+            }
+
+            .mobile-download-buttons {
+                flex: 1;
+                min-width: 0;
+                display: flex;
+            }
+
+            .mobile-download-buttons .mobile-download-btn {
+                width: 100%;
+            }
+
+            .btn-text {
+                display: none;
+            }
+
+            /* Calculations mobile: smaller text, Grade+Result compact */
+            .calculations h4 {
+                font-size: 0.85rem;
+            }
+
+            .calc-item {
+                padding: 6px 0;
+                flex-wrap: wrap;
+                gap: 2px;
+            }
+
+            .calc-label {
+                font-size: 0.75rem;
+                flex: 1 1 100%;
+            }
+
+            .calc-value {
+                font-size: 0.8rem;
+                flex: 1 1 100%;
+                text-align: right;
+            }
+
+            /* Grade line and Result line: label + value same row */
+            .calc-item.calc-compact {
+                flex-wrap: nowrap;
+                align-items: center;
+            }
+
+            .calc-item.calc-compact .calc-label {
+                flex: 1 1 auto;
+                font-size: 0.72rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .calc-item.calc-compact .calc-value {
+                flex: 0 0 auto;
+                font-size: 0.78rem;
+                text-align: right;
+                white-space: nowrap;
             }
 
             /* Mobile: Show download button full width */
             .mobile-download-buttons {
                 display: flex !important;
-                width: 100%;
+                flex: 1;
+                min-width: 0;
             }
 
             .desktop-download-dropdown {
@@ -924,11 +1019,12 @@
             .mobile-download-btn {
                 background-color: var(--success);
                 color: white;
-                padding: 12px 24px;
+                padding: 10px;
                 border: none;
                 border-radius: 8px;
                 cursor: pointer;
                 font-weight: 600;
+                font-size: 0.82rem;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -1002,23 +1098,23 @@
                     </div>
                     <div class="action-buttons">
                         <button class="btn btn-copy" onclick="copyResultData()" id="copy-result-btn">
-                            <i class="far fa-copy"></i> Copy Result
+                            <i class="far fa-copy"></i> <span class="btn-text">Copy Result</span>
                         </button>
                         <!-- Desktop: Download Popup Button -->
                         <div class="action-dropdown desktop-download-dropdown">
                             <button class="dropdown-btn" id="downloadDropdownBtn" onclick="showDownloadPopup()">
-                                <i class="fas fa-download"></i> Download
+                                <i class="fas fa-download"></i> <span class="btn-text">Download</span>
                             </button>
                         </div>
                         <!-- Mobile: Download Popup Button (same as desktop now) -->
                         <div class="mobile-download-buttons">
                             <button class="mobile-download-btn" onclick="showDownloadPopup()">
-                                <i class="fas fa-download"></i> Download
+                                <i class="fas fa-download"></i> <span class="btn-text">Download</span>
                             </button>
                         </div>
                         <div class="action-dropdown">
                             <button class="dropdown-btn share-btn" onclick="shareViaNative()">
-                                <i class="fas fa-share-alt"></i> Share
+                                <i class="fas fa-share-alt"></i> <span class="btn-text">Share</span>
                             </button>
                         </div>
                     </div>
@@ -1656,11 +1752,11 @@
                             <span class="calc-label">Average Compressive Strength:</span>
                             <span class="calc-value">${avgStrength.toFixed(2)} N/mm²</span>
                         </div>
-                        <div class="calc-item">
+                        <div class="calc-item calc-compact">
                             <span class="calc-label">Grade ${grade} at ${testAge} days (Min / Exp / Max):</span>
                             <span class="calc-value">${minStrength} / ${expStrength} / ${maxStrength} N/mm²</span>
                         </div>
-                        <div class="calc-item">
+                        <div class="calc-item calc-compact">
                             <span class="calc-label">Test Result:</span>
                             <span class="calc-value" style="color: ${color}; font-weight: 700;">
                                 ${icon} ${assessment} (${avgStrength.toFixed(2)} N/mm²)

@@ -934,35 +934,38 @@
         /* Dashboard Controls */
         .dashboard-controls {
             display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 25px;
-            flex-wrap: wrap;
             gap: 12px;
-            padding: 15px 20px;
+            padding: 12px 20px;
             background: var(--light);
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             color: var(--dark);
+            overflow-x: auto;
         }
 
         .search-box {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             flex-shrink: 0;
-            width: 280px;
+            width: 260px;
         }
 
         .search-box input {
             flex-grow: 1;
-            padding: 10px 15px;
+            padding: 9px 13px;
             border: 1px solid var(--border);
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             transition: all 0.3s ease;
             background: var(--light);
             color: var(--dark);
+            min-width: 0;
         }
 
         .search-box input:focus {
@@ -973,20 +976,20 @@
 
         .filter-controls {
             display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
             align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
+            gap: 8px;
             justify-content: flex-end;
             flex: 1;
         }
         .filter-left-group {
-            display: none; /* hidden - moved into filter-controls directly */
+            display: none;
         }
         .filter-right-group {
             display: flex;
             align-items: center;
             gap: 8px;
-            flex-wrap: wrap;
         }
 
         .status-filter,
@@ -1989,88 +1992,231 @@
             border-color: rgba(239, 35, 60, 0.8);
         }
 
+        /* ===== MOBILE DASHBOARD CONTROLS (2-row layout) ===== */
+        .mobile-controls-row1,
+        .mobile-controls-row2 {
+            display: none;
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .container {
-                padding: 15px;
+                padding: 10px;
             }
 
+            /* ── HEADER MOBILE ── */
             header {
-                padding: 20px;
-            }
-
-            .logo h1 {
-                font-size: 1.6rem;
-            }
-
-            .logo .subtitle {
-                font-size: 0.8rem;
+                padding: 14px 14px 12px;
             }
 
             .header-content {
                 flex-direction: column;
                 align-items: flex-start;
+                gap: 10px;
             }
 
-            .header-right {
-                width: 100%;
-                align-items: flex-end;
+            /* Logo: title one line, badge below, college below */
+            .logo {
+                gap: 10px;
             }
 
-            .user-info {
-                margin: 10px 0;
-                width: 100%;
-                justify-content: flex-start;
-            }
-
-            .header-actions {
-                width: 100%;
-                justify-content: flex-end;
-            }
-
-            .dashboard-controls {
-                flex-direction: column;
-                align-items: stretch;
-                padding: 15px;
-            }
-
-            .search-box {
-                width: 100%;
-            }
-
-            .filter-controls {
-                width: 100%;
-                justify-content: flex-start;
-            }
-
-            .refresh-container {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .stats-cards {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
-            }
-
-            .stat-card {
-                padding: 20px;
-            }
-
-            .stat-icon {
-                width: 60px;
-                height: 60px;
-                font-size: 1.8rem;
-            }
-
-            .stat-number {
+            .logo i {
                 font-size: 2rem;
             }
 
-            th,
-            td {
-                padding: 12px 10px;
-                font-size: 0.9rem;
+            .logo h1 {
+                font-size: 1.1rem;
+                font-weight: 700;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 2px;
+                flex-wrap: nowrap;
+                line-height: 1.25;
+            }
+
+            .logo .contest-badge {
+                font-size: 0.7rem;
+                padding: 2px 8px;
+                margin: 0;
+                display: inline-block;
+                width: fit-content;
+            }
+
+            .logo .subtitle {
+                font-size: 0.72rem;
+                margin-top: 1px;
+            }
+
+            /* Header right: all buttons in ONE compact row */
+            .header-right {
+                width: 100%;
+                flex-direction: row;
+                align-items: center;
+                gap: 6px;
+                justify-content: space-between;
+            }
+
+            /* User info compact */
+            .user-info {
+                margin: 0;
+                width: auto;
+                flex: 1;
+                min-width: 0;
+                padding: 5px 10px;
+                border-radius: 20px;
+            }
+
+            .user-name {
+                font-size: 0.78rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 80px;
+            }
+
+            .user-role {
+                font-size: 0.65rem;
+            }
+
+            /* Theme button compact */
+            #theme-toggle-btn {
+                width: 32px !important;
+                height: 32px !important;
+                flex-shrink: 0;
+            }
+
+            /* All action buttons in one row */
+            .header-actions {
+                display: flex;
+                flex-direction: row;
+                gap: 5px;
+                align-items: center;
+                flex-wrap: nowrap;
+                justify-content: flex-end;
+                flex-shrink: 0;
+            }
+
+            .header-action-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 0.8rem;
+            }
+
+            .header-action-btn i {
+                font-size: 0.85rem;
+            }
+
+            /* Logout: icon only on mobile */
+            .btn-logout {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                padding: 0;
+                gap: 0;
+            }
+
+            .btn-logout span {
+                display: none;
+            }
+
+            /* ── STATS CARDS: 2x2 grid ── */
+            .stats-cards {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 14px 12px;
+                gap: 12px;
+                flex-direction: row;
+                align-items: center;
+            }
+
+            .stat-icon {
+                width: 44px;
+                height: 44px;
+                font-size: 1.3rem;
+                border-radius: 10px;
+                flex-shrink: 0;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+            }
+
+            .tap-hint {
+                display: none;
+            }
+
+            /* ── DASHBOARD CONTROLS: 2-row mobile layout ── */
+            /* Hide the original single-row controls on mobile */
+            .dashboard-controls {
+                display: none;
+            }
+
+            /* Show mobile 2-row controls */
+            .mobile-controls-row1,
+            .mobile-controls-row2 {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: var(--light);
+                padding: 8px 10px;
+                border-radius: 10px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                margin-bottom: 8px;
+                overflow-x: auto;
+            }
+
+            /* ── TABLE: hide columns after Total Fee ── */
+            th, td {
+                padding: 10px 8px;
+                font-size: 0.82rem;
+            }
+
+            /* Hide: Payment, Created Date, Actions columns on mobile */
+            table thead tr th:nth-child(7),
+            table thead tr th:nth-child(8),
+            table thead tr th:nth-child(9),
+            table tbody tr td:nth-child(7),
+            table tbody tr td:nth-child(8),
+            table tbody tr td:nth-child(9) {
+                display: none;
+            }
+
+            /* Make fee badge smaller */
+            .fee-badge {
+                font-size: 0.8rem;
+                padding: 4px 8px;
+            }
+
+            /* Test badges smaller */
+            .test-badge {
+                font-size: 0.75rem;
+                padding: 3px 8px;
+            }
+
+            /* Status dot compact */
+            .status-dot {
+                width: 10px;
+                height: 10px;
+            }
+
+            /* Refresh container: hide label text on mobile */
+            .refresh-label {
+                display: none;
+            }
+
+            .refresh-container {
+                flex-shrink: 0;
+                padding: 4px 8px;
+                border-radius: 20px;
+                gap: 0;
             }
 
             .actions {
@@ -2099,7 +2245,6 @@
 
             .watermark {
                 font-size: 0.8rem;
-                bottom: 5px;
             }
 
             .add-user-form {
@@ -2115,23 +2260,37 @@
                 width: 100%;
                 justify-content: flex-end;
             }
+
+            /* Customer name link smaller */
+            .customer-name-link {
+                font-size: 0.85rem;
+            }
         }
 
         @media (max-width: 480px) {
+            /* Keep 2x2 stats grid even on small phones */
             .stats-cards {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
             }
 
             .stat-card {
-                flex-direction: column;
-                text-align: center;
-                gap: 15px;
+                padding: 10px 8px;
+                gap: 8px;
+            }
+
+            .stat-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 1.1rem;
+            }
+
+            .stat-number {
+                font-size: 1.3rem;
             }
 
             .logo h1 {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 5px;
+                font-size: 1rem;
             }
 
             .verification-input input {
@@ -2598,6 +2757,51 @@
                         <i class="fas fa-sync-alt"></i>
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <!-- ===== MOBILE CONTROLS: Row 1 - Search + Pending Sign ===== -->
+        <div class="mobile-controls-row1">
+            <div class="search-box" style="flex:1; min-width:0;">
+                <input type="text" id="mobile-customer-search" placeholder="Search..." 
+                    onkeyup="document.getElementById('customer-search').value=this.value; debounceSearch();"
+                    oninput="document.getElementById('customer-search').value=this.value; handleSearchInput();"
+                    style="width:100%;">
+                <button class="btn btn-outline btn-sm" onclick="document.getElementById('customer-search').value=''; document.getElementById('mobile-customer-search').value=''; clearSearch();" title="Clear">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <button class="filter-icon-btn btn-pending-sign" onclick="openPendingModal()" title="Pending Approve &amp; Sign" style="flex-shrink:0; font-size:0.78rem; padding:8px 10px;">
+                <i class="fas fa-clock"></i> Pending
+                <span class="pending-badge-count hidden" id="mobile-pending-count">0</span>
+            </button>
+        </div>
+
+        <!-- ===== MOBILE CONTROLS: Row 2 - Help, Tracking, Status, Month, Refresh ===== -->
+        <div class="mobile-controls-row2">
+            <button class="filter-icon-btn btn-help-filter" onclick="window.location.href='help.html'" title="Calendar" style="padding:8px 10px; font-size:0.8rem;">
+                <i class="fas fa-calendar"></i>
+            </button>
+            <button class="filter-icon-btn btn-tracking-filter" onclick="window.location.href='tracking.html'" title="Tracking" style="padding:8px 10px; font-size:0.8rem;">
+                <i class="fas fa-map-marker-alt"></i>
+            </button>
+            <select class="status-filter" id="mobile-status-filter" onchange="document.getElementById('status-filter').value=this.value; filterCustomers();" style="flex:1; min-width:80px; padding:8px 6px; font-size:0.78rem;">
+                <option value="all">All</option>
+                <option value="red">🔴 Active</option>
+                <option value="yellow">🟡 Complete</option>
+                <option value="green">🟢 Closed</option>
+            </select>
+            <select class="date-filter" id="mobile-date-filter" onchange="document.getElementById('date-filter').value=this.value; filterByDate();" style="flex:1; min-width:80px; padding:8px 6px; font-size:0.78rem;">
+                <option value="all">All</option>
+                <option value="today">Today</option>
+                <option value="week">Week</option>
+                <option value="month" selected>Month</option>
+                <option value="range">Range</option>
+            </select>
+            <div class="refresh-container" style="flex-shrink:0; background:transparent; box-shadow:none; padding:0;">
+                <button class="refresh-button" onclick="refreshData()" title="Refresh" style="width:36px; height:36px;">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
             </div>
         </div>
 
@@ -4651,12 +4855,15 @@
                     if (t.status !== 'approved') total++;
                 });
             });
-            const badge = document.getElementById('pending-count');
-            if (badge) {
-                badge.textContent = total;
-                if (total > 0) badge.classList.remove('hidden');
-                else badge.classList.add('hidden');
-            }
+            // Update both desktop and mobile badges
+            ['pending-count', 'mobile-pending-count'].forEach(id => {
+                const badge = document.getElementById(id);
+                if (badge) {
+                    badge.textContent = total;
+                    if (total > 0) badge.classList.remove('hidden');
+                    else badge.classList.add('hidden');
+                }
+            });
         }
 
         // Initialize app
