@@ -2175,19 +2175,11 @@
 
             /* ── TABLE: hide columns after Total Fee ── */
             th, td {
-                padding: 10px 8px;
-                font-size: 0.82rem;
+                padding: 10px 10px;
+                font-size: 0.78rem;
             }
 
-            /* Hide: Payment, Created Date, Actions columns on mobile */
-            table thead tr th:nth-child(7),
-            table thead tr th:nth-child(8),
-            table thead tr th:nth-child(9),
-            table tbody tr td:nth-child(7),
-            table tbody tr td:nth-child(8),
-            table tbody tr td:nth-child(9) {
-                display: none;
-            }
+            
 
             /* Make fee badge smaller */
             .fee-badge {
@@ -2263,7 +2255,7 @@
 
             /* Customer name link smaller */
             .customer-name-link {
-                font-size: 0.85rem;
+                font-size: 0.90rem;
             }
         }
 
@@ -2431,14 +2423,21 @@
         .filter-icon-btn.btn-pending-sign:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(114,9,183,0.35); }
         .filter-icon-btn.btn-help-filter {
             background: rgba(72,149,239,0.1); color: #4895ef; border-color: #4895ef;
+        }.filter-icon-btn.btn-help-filter {
+            background: rgba(72,149,239,0.1); color: #4895ef; border-color: #4895ef;
         }
         .filter-icon-btn.btn-help-filter:hover { background: #4895ef; color: white; }
+        .filter-icon-btn.btn-gallery-filter {
+            background: rgba(76,201,240,0.1); color: rgb(0, 174, 255); border-color:rgb(0, 174, 255);
+        }
         .filter-icon-btn.btn-tracking-filter {
             background: rgba(76,201,240,0.1); color: var(--success); border-color: var(--success);
         }
         .filter-icon-btn.btn-tracking-filter:hover { background: var(--success); color: white; }
+        .filter-icon-btn.btn-gallery-filter:hover { background: var(--success); color: white; }
         body.dark-theme .filter-icon-btn.btn-help-filter { background: rgba(72,149,239,0.15); }
         body.dark-theme .filter-icon-btn.btn-tracking-filter { background: rgba(76,201,240,0.12); }
+        body.dark-theme .filter-icon-btn.btn-gallery-filter { background: rgba(76,201,240,0.12); }
         .pending-badge-count {
             background: rgba(255,255,255,0.9); color: var(--secondary); border-radius: 50%;
             min-width: 20px; height: 20px; font-size: 0.72rem; font-weight: 800;
@@ -2733,6 +2732,9 @@
                 <button class="filter-icon-btn btn-tracking-filter" onclick="window.location.href='tracking.html'" title="Tracking">
                     <i class="fas fa-map-marker-alt"></i>
                 </button>
+                <button class="filter-icon-btn btn-gallery-filter" onclick="window.location.href='gallery.html'" title="Gallery">
+                    <i class="fas fa-images"></i>
+                </button>
                 <select class="status-filter" id="status-filter" onchange="filterCustomers()">
                     <option value="all">All Status</option>
                     <option value="red">🔴 Active</option>
@@ -2784,6 +2786,9 @@
             </button>
             <button class="filter-icon-btn btn-tracking-filter" onclick="window.location.href='tracking.html'" title="Tracking" style="padding:8px 10px; font-size:0.8rem;">
                 <i class="fas fa-map-marker-alt"></i>
+            </button>
+            <button class="filter-icon-btn btn-gallery-filter" onclick="window.location.href='gallery.html'" title="Gallery" style="padding:8px 10px; font-size:0.8rem;">
+                <i class="fas fa-images"></i>
             </button>
             <select class="status-filter" id="mobile-status-filter" onchange="document.getElementById('status-filter').value=this.value; filterCustomers();" style="flex:1; min-width:80px; padding:8px 6px; font-size:0.78rem;">
                 <option value="all">All</option>

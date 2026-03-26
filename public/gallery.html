@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery | Cube & GSB Test Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="assets/logo.png">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg:        #0b0d12;
+            --surface:   #11141c;
+            --surface2:  #181c28;
+            --border:    #1f2435;
+            --border2:   #2a3048;
+            --primary:   #4f8ef7;
+            --primary2:  #7bb3ff;
+            --accent:    #f7c94f;
+            --success:   #3dd68c;
+            --danger:    #f75c5c;
+            --warning:   #f7a94f;
+            --text:      #e8edf8;
+            --text-muted:#7a85a3;
+            --text-dim:  #3e4560;
+            --font:      'Syne', sans-serif;
+            --mono:      'DM Mono', monospace;
+            --radius:    14px;
+            --card-r:    18px;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse 70% 40% at 15% 0%, rgba(79,142,247,0.07) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 30% at 85% 100%, rgba(61,214,140,0.05) 0%, transparent 60%);
+        }
+
+        /* ── HEADER ── */
+        .header {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(11,13,18,0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .header-inner {
+            max-width: 1280px; margin: 0 auto;
+            padding: 14px 24px;
+            display: flex; align-items: center; gap: 16px;
+        }
+        .back-btn {
+            display: flex; align-items: center; gap: 7px;
+            background: var(--surface2); border: 1px solid var(--border2);
+            color: var(--text-muted); padding: 8px 14px; border-radius: 9px;
+            cursor: pointer; font-family: var(--font); font-size: 0.83rem; font-weight: 600;
+            text-decoration: none; transition: all 0.2s; white-space: nowrap;
+        }
+        .back-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+        .logo-wrap {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .logo-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: linear-gradient(135deg, #4f8ef7, #7c3aed);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; color: white; flex-shrink: 0;
+        }
+        .logo-text { font-size: 1rem; font-weight: 800; letter-spacing: -0.3px; }
+        .logo-sub  { font-size: 0.7rem; color: var(--text-muted); font-weight: 400; margin-top: -2px; }
+
+        .header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+        /* ── CONTROLS ── */
+        .controls {
+            max-width: 1280px; margin: 28px auto 0; padding: 0 24px;
+            display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+        }
+        .search-wrap {
+            position: relative; flex: 1; min-width: 200px;
+        }
+        .search-wrap i {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); font-size: 0.85rem; pointer-events: none;
+        }
+        .search-input {
+            width: 100%; padding: 10px 14px 10px 38px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 0.88rem;
+            outline: none; transition: border-color 0.2s;
+        }
+        .search-input::placeholder { color: var(--text-dim); }
+        .search-input:focus { border-color: var(--primary); }
+
+        .filter-tabs {
+            display: flex; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 4px; gap: 2px;
+        }
+        .filter-tab {
+            padding: 7px 15px; border-radius: 7px; border: none;
+            background: transparent; color: var(--text-muted); font-family: var(--font);
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .filter-tab.active { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
+
+        .sort-select {
+            padding: 10px 14px; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text); font-family: var(--font); font-size: 0.85rem;
+            outline: none; cursor: pointer; transition: border-color 0.2s;
+        }
+        .sort-select:focus { border-color: var(--primary); }
+
+        /* ── STATS BAR ── */
+        .stats-bar {
+            max-width: 1280px; margin: 16px auto 0; padding: 0 24px;
+            display: flex; gap: 20px; flex-wrap: wrap; align-items: center;
+        }
+        .stat-pill { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--text-muted); }
+        .stat-pill strong { color: var(--text); font-weight: 700; }
+        .stat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .stat-pill.ml { margin-left: auto; }
+
+        /* ── AUTO-DELETE BANNER ── */
+        .auto-delete-banner {
+            max-width: 1280px; margin: 16px auto 0; padding: 0 24px;
+        }
+        .adb-inner {
+            background: linear-gradient(135deg, rgba(247,169,79,0.1), rgba(247,92,92,0.07));
+            border: 1px solid rgba(247,169,79,0.25);
+            border-radius: 12px; padding: 12px 18px;
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        }
+        .adb-inner i { color: var(--warning); font-size: 1rem; flex-shrink: 0; }
+        .adb-text { font-size: 0.82rem; color: var(--text-muted); flex: 1; }
+        .adb-text strong { color: var(--warning); }
+        .adb-settings-btn {
+            padding: 5px 12px; background: rgba(247,169,79,0.12); border: 1px solid rgba(247,169,79,0.3);
+            border-radius: 7px; color: var(--warning); font-family: var(--font); font-size: 0.75rem;
+            font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+        }
+        .adb-settings-btn:hover { background: rgba(247,169,79,0.2); }
+
+        /* ── GRID ── */
+        .section-label {
+            max-width: 1280px; margin: 24px auto 0; padding: 0 24px;
+            font-size: 0.68rem; font-weight: 700; color: var(--text-dim);
+            letter-spacing: 1.5px; text-transform: uppercase;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-label::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+
+        .grid {
+            max-width: 1280px; margin: 16px auto 0; padding: 0 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
+        }
+
+        /* ── FILE CARD ── */
+        .file-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--card-r);
+            overflow: hidden;
+            cursor: pointer;
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+            animation: popIn 0.35s ease both;
+            position: relative;
+        }
+        .file-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 36px rgba(0,0,0,0.4);
+        }
+        .file-card.pdf { border-top: 3px solid rgba(247,92,92,0.5); }
+        .file-card.image { border-top: 3px solid rgba(79,142,247,0.5); }
+        .file-card.expiring-soon { border-color: rgba(247,169,79,0.4); }
+        .file-card.expiring-soon::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--warning), transparent);
+        }
+
+        /* Image preview area */
+        .card-preview {
+            height: 140px; position: relative;
+            background: var(--surface2);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .card-preview img {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+        .file-card:hover .card-preview img { transform: scale(1.05); }
+        .card-preview .file-icon {
+            font-size: 3rem; opacity: 0.6;
+        }
+        .card-preview .file-icon.pdf { color: var(--danger); }
+        .card-preview .file-icon.image { color: var(--primary); }
+
+        /* PDF first-page thumbnail overlay */
+        .pdf-page-badge {
+            position: absolute; bottom: 8px; right: 8px;
+            background: rgba(247,92,92,0.85); color: white;
+            padding: 3px 7px; border-radius: 5px;
+            font-size: 0.65rem; font-weight: 700;
+            font-family: var(--mono); letter-spacing: 0.5px;
+        }
+        .img-badge {
+            position: absolute; bottom: 8px; right: 8px;
+            background: rgba(79,142,247,0.85); color: white;
+            padding: 3px 7px; border-radius: 5px;
+            font-size: 0.65rem; font-weight: 700;
+            font-family: var(--mono); letter-spacing: 0.5px;
+        }
+
+        /* Expiry countdown pill */
+        .expiry-pill {
+            position: absolute; top: 8px; left: 8px;
+            padding: 3px 9px; border-radius: 20px;
+            font-size: 0.62rem; font-weight: 700; letter-spacing: 0.3px;
+            backdrop-filter: blur(6px);
+        }
+        .expiry-pill.critical {
+            background: rgba(247,92,92,0.85); color: white;
+        }
+        .expiry-pill.warning {
+            background: rgba(247,169,79,0.85); color: #1a1000;
+        }
+        .expiry-pill.ok {
+            background: rgba(61,214,140,0.7); color: #002a17;
+        }
+
+        .card-body { padding: 12px 14px 14px; }
+        .card-name {
+            font-size: 0.83rem; font-weight: 700; color: var(--text);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 3px;
+        }
+        .card-customer {
+            font-size: 0.73rem; color: var(--primary); font-weight: 600;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 6px; display: flex; align-items: center; gap: 4px;
+        }
+        .card-meta {
+            display: flex; gap: 8px; flex-wrap: wrap;
+            font-size: 0.68rem; color: var(--text-muted); font-family: var(--mono);
+        }
+        .card-meta span { display: flex; align-items: center; gap: 3px; }
+
+        .card-actions {
+            display: flex; gap: 6px; padding: 0 14px 14px;
+            border-top: 1px solid var(--border); padding-top: 10px;
+        }
+        .ca-btn {
+            flex: 1; padding: 7px; border: 1px solid var(--border);
+            background: var(--surface2); border-radius: 8px;
+            color: var(--text-muted); font-size: 0.78rem; font-weight: 600;
+            font-family: var(--font); cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .ca-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .ca-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+        /* ── LOADING / EMPTY ── */
+        .state-wrap {
+            max-width: 1280px; margin: 0 auto; padding: 80px 24px;
+            display: flex; flex-direction: column; align-items: center; gap: 14px;
+            color: var(--text-muted);
+        }
+        .spinner {
+            width: 38px; height: 38px; border: 3px solid var(--border);
+            border-top-color: var(--primary); border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        .empty-icon { font-size: 2.5rem; opacity: 0.2; }
+        .empty-text { font-size: 0.95rem; }
+        .empty-sub  { font-size: 0.8rem; color: var(--text-dim); }
+
+        /* ── PREVIEW MODAL ── */
+        .preview-backdrop {
+            position: fixed; inset: 0; z-index: 300;
+            background: rgba(0,0,0,0.92); backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+            opacity: 0; pointer-events: none; transition: opacity 0.25s;
+        }
+        .preview-backdrop.open { opacity: 1; pointer-events: all; }
+
+        .preview-box {
+            position: relative;
+            max-width: min(900px, 95vw); max-height: 90vh;
+            transform: scale(0.95); transition: transform 0.25s;
+        }
+        .preview-backdrop.open .preview-box { transform: scale(1); }
+        .preview-box img {
+            max-width: 100%; max-height: 88vh; border-radius: 10px;
+            box-shadow: 0 0 60px rgba(0,0,0,0.6);
+            display: block;
+        }
+        .preview-pdf-wrap {
+            width: min(820px, 90vw); height: 88vh;
+            background: #fff; border-radius: 10px; overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+        .preview-pdf-header {
+            padding: 12px 18px; background: var(--surface);
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        }
+        .preview-pdf-header h4 { font-size: 0.9rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
+        .preview-pdf-body { flex: 1; }
+        .preview-pdf-body iframe { width: 100%; height: 100%; border: none; }
+
+        .preview-close {
+            position: absolute; top: -44px; right: 0;
+            background: var(--danger); color: white; border: none;
+            border-radius: 50%; width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 1rem; transition: opacity 0.2s;
+        }
+        .preview-close:hover { opacity: 0.85; }
+        .preview-pdf-wrap .preview-close {
+            position: static; border-radius: 8px; width: auto; height: auto;
+            padding: 7px 14px; font-size: 0.82rem;
+            background: rgba(247,92,92,0.18); color: var(--danger);
+            border: 1px solid rgba(247,92,92,0.3);
+        }
+
+        .preview-dl-btn {
+            padding: 7px 14px; background: rgba(79,142,247,0.12);
+            border: 1px solid rgba(79,142,247,0.3); color: var(--primary);
+            border-radius: 8px; font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; font-family: var(--font); display: flex;
+            align-items: center; gap: 6px; transition: all 0.2s;
+        }
+        .preview-dl-btn:hover { background: rgba(79,142,247,0.22); }
+
+        .preview-nav {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+            color: white; width: 44px; height: 44px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 1.1rem; transition: all 0.2s;
+        }
+        .preview-nav:hover { background: rgba(255,255,255,0.18); }
+        .preview-nav.prev { right: calc(100% + 14px); }
+        .preview-nav.next { left: calc(100% + 14px); }
+        @media (max-width: 700px) {
+            .preview-nav { top: auto; bottom: -54px; }
+            .preview-nav.prev { right: auto; left: 30%; }
+            .preview-nav.next { left: auto; right: 30%; }
+        }
+
+        /* ── SETTINGS MODAL ── */
+        .modal-backdrop {
+            position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+            opacity: 0; pointer-events: none; transition: opacity 0.25s;
+        }
+        .modal-backdrop.open { opacity: 1; pointer-events: all; }
+
+        .modal-box {
+            background: var(--surface); border: 1px solid var(--border2);
+            border-radius: 20px; width: 100%; max-width: 440px;
+            padding: 0; overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            transform: translateY(16px) scale(0.97); transition: transform 0.25s;
+        }
+        .modal-backdrop.open .modal-box { transform: translateY(0) scale(1); }
+
+        .modal-header {
+            padding: 22px 24px 0;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .modal-header h3 { font-size: 1.05rem; font-weight: 800; }
+        .modal-close-btn {
+            background: none; border: none; color: var(--text-muted);
+            width: 30px; height: 30px; border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 1rem; transition: all 0.2s;
+        }
+        .modal-close-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+
+        .modal-body { padding: 20px 24px 24px; }
+        .modal-body p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+
+        .days-options { display: flex; flex-direction: column; gap: 8px; }
+        .day-option {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 16px; border: 1px solid var(--border2);
+            border-radius: 11px; cursor: pointer; transition: all 0.2s;
+        }
+        .day-option:hover { border-color: var(--primary); }
+        .day-option.selected { border-color: var(--primary); background: rgba(79,142,247,0.07); }
+        .day-option input[type="radio"] {
+            width: 16px; height: 16px; accent-color: var(--primary); flex-shrink: 0;
+        }
+        .day-option-label { font-size: 0.88rem; font-weight: 600; }
+        .day-option-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+        .modal-save-btn {
+            width: 100%; margin-top: 20px;
+            padding: 13px; background: linear-gradient(135deg, #4f8ef7, #7c3aed);
+            border: none; border-radius: 11px; color: white;
+            font-family: var(--font); font-size: 0.88rem; font-weight: 700;
+            cursor: pointer; transition: opacity 0.2s;
+        }
+        .modal-save-btn:hover { opacity: 0.9; }
+
+        /* ── DELETE CONFIRM ── */
+        .delete-confirm-modal {
+            max-width: 380px;
+        }
+        .delete-confirm-modal .modal-body { text-align: center; padding-top: 10px; }
+        .dc-icon {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: rgba(247,92,92,0.12); border: 1px solid rgba(247,92,92,0.3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: var(--danger); margin: 0 auto 16px;
+        }
+        .dc-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 8px; }
+        .dc-text { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 22px; }
+        .dc-actions { display: flex; gap: 10px; }
+        .dc-cancel { flex: 1; padding: 11px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; color: var(--text-muted); font-family: var(--font); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .dc-cancel:hover { color: var(--text); border-color: var(--text-muted); }
+        .dc-delete { flex: 1; padding: 11px; background: linear-gradient(135deg, #f75c5c, #dc2626); border: none; border-radius: 10px; color: white; font-family: var(--font); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+        .dc-delete:hover { opacity: 0.88; }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed; bottom: 28px; right: 28px; z-index: 500;
+            padding: 12px 20px; border-radius: 12px;
+            font-size: 0.85rem; font-weight: 600; color: white;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            transform: translateY(30px); opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            pointer-events: none; display: flex; align-items: center; gap: 9px;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { background: linear-gradient(135deg, #1a7a4a, #22c55e); }
+        .toast.error   { background: linear-gradient(135deg, #7a1a1a, #ef4444); }
+        .toast.info    { background: linear-gradient(135deg, #1a3a7a, #4f8ef7); }
+        .toast.warning { background: linear-gradient(135deg, #7a4a1a, #f59e0b); }
+
+        /* ── BOTTOM PADDING ── */
+        .bottom-pad { height: 60px; }
+
+        /* ── ANIMATIONS ── */
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.92) translateY(10px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+            .controls { gap: 8px; }
+            .header-inner { padding: 12px 16px; }
+            .stats-bar, .auto-delete-banner, .section-label { padding: 0 16px; }
+            .grid { padding: 0 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div class="header-inner">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <div class="logo-wrap">
+            <div class="logo-icon"><i class="fas fa-images"></i></div>
+            <div>
+                <div class="logo-text">Gallery</div>
+                <div class="logo-sub">All Uploaded Documents</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="adb-settings-btn" onclick="openSettingsModal()" style="padding:8px 14px;font-size:0.8rem;">
+                <i class="fas fa-cog"></i> Auto-Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+    <div class="search-wrap">
+        <i class="fas fa-search"></i>
+        <input class="search-input" id="searchInput" type="text" placeholder="Search by customer name or file name…">
+    </div>
+    <div class="filter-tabs">
+        <button class="filter-tab active" id="tab-all"   onclick="setFilter('all',   this)">All</button>
+        <button class="filter-tab"        id="tab-image" onclick="setFilter('image', this)">Images</button>
+        <button class="filter-tab"        id="tab-pdf"   onclick="setFilter('pdf',   this)">PDFs</button>
+    </div>
+    <select class="sort-select" id="sortSelect" onchange="renderGallery()">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="name">File Name</option>
+        <option value="customer">Customer Name</option>
+        <option value="expiry">Expiry Soonest</option>
+    </select>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar" id="statsBar">
+    <div class="stat-pill"><span class="stat-dot" style="background:#4f8ef7"></span>Total: <strong id="statTotal">–</strong></div>
+    <div class="stat-pill"><span class="stat-dot" style="background:#3dd68c"></span>Images: <strong id="statImages">–</strong></div>
+    <div class="stat-pill"><span class="stat-dot" style="background:#f75c5c"></span>PDFs: <strong id="statPdfs">–</strong></div>
+    <div class="stat-pill ml"><span class="stat-dot" style="background:#f7a94f"></span>Expiring Soon: <strong id="statExpiring">–</strong></div>
+</div>
+
+<!-- AUTO DELETE BANNER -->
+<div class="auto-delete-banner">
+    <div class="adb-inner">
+        <i class="fas fa-clock"></i>
+        <div class="adb-text">
+            <strong>Auto-Delete</strong>: Uploaded files in the <em>Test Completed</em> category are automatically deleted after
+            <strong id="adbDays">30</strong> days. Files in pending tests are kept until manually deleted.
+        </div>
+        <button class="adb-settings-btn" onclick="openSettingsModal()">
+            <i class="fas fa-sliders-h"></i> Change
+        </button>
+    </div>
+</div>
+
+<!-- CARDS ROOT -->
+<div id="galleryRoot"></div>
+
+<div class="bottom-pad"></div>
+
+<!-- PREVIEW MODAL -->
+<div class="preview-backdrop" id="previewBackdrop" onclick="handlePreviewBackdrop(event)">
+    <div class="preview-box" id="previewBox">
+        <!-- filled by JS -->
+    </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-backdrop" id="settingsBackdrop" onclick="handleModalBackdrop(event, 'settingsBackdrop')">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>⏱ Auto-Delete Settings</h3>
+            <button class="modal-close-btn" onclick="closeModal('settingsBackdrop')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p>Choose how long to keep uploaded files for <strong style="color:var(--text)">completed-test</strong> customers before automatically deleting them.</p>
+            <div class="days-options" id="daysOptions">
+                <label class="day-option" onclick="selectDays(this, 14)">
+                    <input type="radio" name="days" value="14">
+                    <div><div class="day-option-label">14 Days</div><div class="day-option-sub">Quick cleanup</div></div>
+                </label>
+                <label class="day-option selected" onclick="selectDays(this, 30)">
+                    <input type="radio" name="days" value="30" checked>
+                    <div><div class="day-option-label">30 Days (Default)</div><div class="day-option-sub">Recommended</div></div>
+                </label>
+                <label class="day-option" onclick="selectDays(this, 60)">
+                    <input type="radio" name="days" value="60">
+                    <div><div class="day-option-label">60 Days</div><div class="day-option-sub">Extended retention</div></div>
+                </label>
+                <label class="day-option" onclick="selectDays(this, 90)">
+                    <input type="radio" name="days" value="90">
+                    <div><div class="day-option-label">90 Days</div><div class="day-option-sub">Long-term storage</div></div>
+                </label>
+            </div>
+            <button class="modal-save-btn" onclick="saveSettings()">Save Settings</button>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-backdrop" id="deleteBackdrop" onclick="handleModalBackdrop(event, 'deleteBackdrop')">
+    <div class="modal-box delete-confirm-modal">
+        <div class="modal-body">
+            <div class="dc-icon"><i class="fas fa-trash"></i></div>
+            <div class="dc-title">Delete File?</div>
+            <div class="dc-text" id="dcText">This will permanently remove the file.</div>
+            <div class="dc-actions">
+                <button class="dc-cancel" onclick="closeModal('deleteBackdrop')">Cancel</button>
+                <button class="dc-delete" id="dcConfirmBtn">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let allFiles     = [];   // flat list of {customerId, customerName, customerPhone, doc, testCompleted, uploadedAt}
+let autoDelDays  = parseInt(localStorage.getItem('gallery_autodel_days') || '30');
+let filterMode   = 'all';
+let searchQuery  = '';
+let previewList  = [];   // currently visible image/pdf list for navigation
+let previewIdx   = 0;
+let pendingDeleteInfo = null;
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+function isPDF(url, name) {
+    return (url && (url.includes('/raw/upload/') || url.toLowerCase().includes('.pdf'))) ||
+           (name && name.toLowerCase().endsWith('.pdf'));
+}
+
+function getCloudThumb(url) {
+    if (!url) return url;
+    if (url.includes('cloudinary.com')) {
+        if (url.includes('/raw/upload/') || url.toLowerCase().includes('.pdf')) {
+            return url.replace('/raw/upload/', '/image/upload/').replace('/upload/', '/upload/c_fill,w_400,h_280,g_auto,f_jpg,q_60/') + '?pg=1';
+        }
+        if (url.includes('/image/upload/')) {
+            return url.replace('/upload/', '/upload/c_fill,w_400,h_280,g_auto,f_auto,q_70/');
+        }
+    }
+    return url;
+}
+
+function daysAgo(dateVal) {
+    if (!dateVal) return 0;
+    let d;
+    if (dateVal?.toDate)   d = dateVal.toDate();
+    else if (dateVal?.seconds) d = new Date(dateVal.seconds * 1000);
+    else d = new Date(dateVal);
+    if (isNaN(d)) return 0;
+    return Math.floor((Date.now() - d) / 86400000);
+}
+
+function isTestCompleted(customer) {
+    const cubeExp = customer.expectedCubeTests || 0;
+    const gsbExp  = customer.expectedGSBTests  || 0;
+    const cubeDone= (customer.cubeTests||[]).length;
+    const gsbDone = (customer.gsbTests||[]).length;
+    if (cubeExp + gsbExp === 0) return cubeDone + gsbDone > 0;
+    return cubeDone >= cubeExp && gsbDone >= gsbExp;
+}
+
+function fmtDate(dateVal) {
+    if (!dateVal) return '—';
+    let d;
+    if (dateVal?.toDate)   d = dateVal.toDate();
+    else if (dateVal?.seconds) d = new Date(dateVal.seconds * 1000);
+    else d = new Date(dateVal);
+    if (isNaN(d)) return '—';
+    return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function initials(name) {
+    return (name||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+
+function showToast(msg, type='info') {
+    const t = document.getElementById('toast');
+    const icons = { success:'fa-check-circle', error:'fa-times-circle', info:'fa-info-circle', warning:'fa-exclamation-triangle' };
+    t.className = `toast ${type}`;
+    t.innerHTML = `<i class="fas ${icons[type]||icons.info}"></i> ${msg}`;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ─────────────────────────────────────────────
+// LOAD DATA
+// ─────────────────────────────────────────────
+function showLoading() {
+    document.getElementById('galleryRoot').innerHTML = `
+        <div class="state-wrap">
+            <div class="spinner"></div>
+            <span>Loading gallery…</span>
+        </div>`;
+}
+
+async function loadGallery() {
+    showLoading();
+    try {
+        await firebaseHelpers.checkAuthAndRedirect();
+        const db = firebase.firestore();
+
+        const snap = await db.collection('customers').get();
+        allFiles = [];
+
+        snap.docs.forEach(doc => {
+            const cust = { id: doc.id, ...doc.data() };
+            const docs = cust.documents || [];
+            const completed = isTestCompleted(cust);
+
+            docs.forEach(d => {
+                if (!d.url) return;
+                const uploadedAt = d.uploadedAt || cust.createdAt || cust.createdDate || null;
+                const ago = daysAgo(uploadedAt);
+                const willExpire = completed;     // only completed ones expire
+                const daysLeft = willExpire ? Math.max(0, autoDelDays - ago) : null;
+
+                allFiles.push({
+                    customerId:    cust.id,
+                    customerName:  cust.name || 'Unknown',
+                    customerPhone: cust.phone || '',
+                    doc:           d,
+                    testCompleted: completed,
+                    uploadedAt:    uploadedAt,
+                    ago:           ago,
+                    daysLeft:      daysLeft,
+                    isPdf:         isPDF(d.url, d.name),
+                });
+            });
+        });
+
+        // Auto-delete expired completed-test files from Firestore
+        await runAutoDelete(snap.docs);
+
+        renderGallery();
+    } catch (e) {
+        console.error(e);
+        document.getElementById('galleryRoot').innerHTML = `
+            <div class="state-wrap">
+                <div class="empty-icon"><i class="fas fa-exclamation-circle"></i></div>
+                <div class="empty-text">Failed to load gallery</div>
+                <div class="empty-sub">${e.message}</div>
+            </div>`;
+    }
+}
+
+// ─────────────────────────────────────────────
+// AUTO DELETE
+// ─────────────────────────────────────────────
+async function runAutoDelete(customerDocs) {
+    const db = firebase.firestore();
+    let deletedCount = 0;
+
+    for (const custDoc of customerDocs) {
+        const cust = { id: custDoc.id, ...custDoc.data() };
+        const completed = isTestCompleted(cust);
+        if (!completed) continue;
+
+        const docs = cust.documents || [];
+        const surviving = docs.filter(d => {
+            if (!d.url) return false;
+            const ago = daysAgo(d.uploadedAt || cust.createdAt || cust.createdDate);
+            return ago < autoDelDays;
+        });
+
+        const deleted = docs.filter(d => {
+            if (!d.url) return false;
+            const ago = daysAgo(d.uploadedAt || cust.createdAt || cust.createdDate);
+            return ago >= autoDelDays;
+        });
+
+        if (deleted.length > 0) {
+            await db.collection('customers').doc(cust.id).update({
+                documents: surviving,
+                hasDocuments: surviving.length > 0,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            deletedCount += deleted.length;
+        }
+    }
+
+    if (deletedCount > 0) {
+        showToast(`Auto-deleted ${deletedCount} expired file${deletedCount > 1 ? 's' : ''}`, 'warning');
+    }
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function renderGallery() {
+    const sortMode = document.getElementById('sortSelect').value;
+    const q = searchQuery.toLowerCase();
+
+    // Filter
+    let files = allFiles.filter(f => {
+        if (filterMode === 'image' &&  f.isPdf) return false;
+        if (filterMode === 'pdf'   && !f.isPdf) return false;
+        if (q) {
+            const fn = (f.doc.name||'').toLowerCase();
+            const cn = f.customerName.toLowerCase();
+            return fn.includes(q) || cn.includes(q);
+        }
+        return true;
+    });
+
+    // Sort
+    files.sort((a,b) => {
+        if (sortMode === 'oldest')   return a.ago - b.ago;
+        if (sortMode === 'name')     return (a.doc.name||'').localeCompare(b.doc.name||'');
+        if (sortMode === 'customer') return a.customerName.localeCompare(b.customerName);
+        if (sortMode === 'expiry')   {
+            const da = a.daysLeft === null ? 9999 : a.daysLeft;
+            const db2 = b.daysLeft === null ? 9999 : b.daysLeft;
+            return da - db2;
+        }
+        return b.ago - a.ago; // newest
+    });
+
+    // Stats
+    const imgs = allFiles.filter(f => !f.isPdf).length;
+    const pdfs = allFiles.filter(f =>  f.isPdf).length;
+    const expiring = allFiles.filter(f => f.daysLeft !== null && f.daysLeft <= 7).length;
+    document.getElementById('statTotal').textContent    = allFiles.length;
+    document.getElementById('statImages').textContent   = imgs;
+    document.getElementById('statPdfs').textContent     = pdfs;
+    document.getElementById('statExpiring').textContent = expiring;
+    document.getElementById('adbDays').textContent      = autoDelDays;
+
+    // Build preview list (for modal navigation)
+    previewList = files;
+
+    const root = document.getElementById('galleryRoot');
+
+    if (!files.length) {
+        root.innerHTML = `
+            <div class="state-wrap">
+                <div class="empty-icon"><i class="fas fa-folder-open"></i></div>
+                <div class="empty-text">No files found</div>
+                <div class="empty-sub">${q ? 'Try a different search' : 'Upload documents from customer workspaces'}</div>
+            </div>`;
+        return;
+    }
+
+    // Group: completed vs active
+    const completed = files.filter(f => f.testCompleted);
+    const active    = files.filter(f => !f.testCompleted);
+
+    let html = '';
+
+    if (active.length) {
+        html += `<div class="section-label">🔬 Active / Pending Tests (${active.length})</div>`;
+        html += `<div class="grid">`;
+        active.forEach((f, idx) => { html += cardHtml(f, files.indexOf(f)); });
+        html += `</div>`;
+    }
+    if (completed.length) {
+        html += `<div class="section-label">✅ Completed Tests (${completed.length})</div>`;
+        html += `<div class="grid">`;
+        completed.forEach((f, idx) => { html += cardHtml(f, files.indexOf(f)); });
+        html += `</div>`;
+    }
+
+    root.innerHTML = html;
+}
+
+function cardHtml(f, idx) {
+    const thumb  = getCloudThumb(f.doc.url);
+    const name   = f.doc.name || 'document';
+    const short  = name.length > 22 ? name.slice(0,19) + '…' : name;
+    const date   = fmtDate(f.uploadedAt);
+    const pdf    = f.isPdf;
+    const typeClass = pdf ? 'pdf' : 'image';
+
+    // Expiry badge
+    let expiryHtml = '';
+    if (f.daysLeft !== null) {
+        const cls = f.daysLeft <= 3 ? 'critical' : f.daysLeft <= 7 ? 'warning' : 'ok';
+        const label = f.daysLeft === 0 ? 'Today' : `${f.daysLeft}d left`;
+        expiryHtml = `<div class="expiry-pill ${cls}">${label}</div>`;
+        if (cls !== 'ok') {
+            // mark card
+        }
+    }
+
+    const expiringSoonClass = (f.daysLeft !== null && f.daysLeft <= 7) ? ' expiring-soon' : '';
+
+    return `
+    <div class="file-card ${typeClass}${expiringSoonClass}" style="animation-delay:${(idx % 20) * 0.03}s">
+        <div class="card-preview" onclick="openPreview(${idx})">
+            ${pdf
+                ? `<img src="${thumb}" alt="${name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                   <i class="fas fa-file-pdf file-icon pdf" style="display:none"></i>
+                   <span class="pdf-page-badge">PDF</span>`
+                : `<img src="${thumb}" alt="${name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                   <i class="fas fa-image file-icon image" style="display:none"></i>
+                   <span class="img-badge">IMG</span>`
+            }
+            ${expiryHtml}
+        </div>
+        <div class="card-body">
+            <div class="card-name" title="${name}">${short}</div>
+            <div class="card-customer" onclick="openCustomerWorkspace('${f.customerId}')">
+                <i class="fas fa-user"></i> ${f.customerName}
+            </div>
+            <div class="card-meta">
+                <span><i class="fas fa-calendar-alt"></i> ${date}</span>
+                ${f.daysLeft !== null ? `<span><i class="fas fa-hourglass-half"></i> ${f.daysLeft}d left</span>` : ''}
+            </div>
+        </div>
+        <div class="card-actions">
+            <button class="ca-btn" onclick="openPreview(${idx})" title="View">
+                <i class="fas fa-eye"></i> View
+            </button>
+            <button class="ca-btn" onclick="downloadFile('${f.doc.url.replace(/'/g,"\\'")}', '${name.replace(/'/g,"\\'")}')">
+                <i class="fas fa-download"></i>
+            </button>
+            <button class="ca-btn danger" onclick="confirmDelete(${idx})" title="Delete">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────
+// FILTERS
+// ─────────────────────────────────────────────
+function setFilter(mode, el) {
+    filterMode = mode;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderGallery();
+}
+
+document.getElementById('searchInput').addEventListener('input', e => {
+    searchQuery = e.target.value;
+    renderGallery();
+});
+
+// ─────────────────────────────────────────────
+// PREVIEW MODAL
+// ─────────────────────────────────────────────
+function openPreview(idx) {
+    previewIdx = idx;
+    const f = previewList[idx];
+    if (!f) return;
+    const box = document.getElementById('previewBox');
+    const pdf = f.isPdf;
+    const name = f.doc.name || 'document';
+    const url = f.doc.url;
+
+    if (pdf) {
+        box.innerHTML = `
+            <div class="preview-pdf-wrap">
+                <div class="preview-pdf-header">
+                    <h4><i class="fas fa-file-pdf" style="color:var(--danger)"></i> ${name}</h4>
+                    <div style="display:flex;gap:8px">
+                        <button class="preview-dl-btn" onclick="downloadFile('${url.replace(/'/g,"\\'")}','${name.replace(/'/g,"\\'")}')">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                        <button class="preview-close" onclick="closePreview()">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                </div>
+                <div class="preview-pdf-body"><iframe src="${url}" title="${name}"></iframe></div>
+            </div>`;
+    } else {
+        box.innerHTML = `
+            <button class="preview-close" onclick="closePreview()"><i class="fas fa-times"></i></button>
+            <img src="${url}" alt="${name}" onerror="this.src='${getCloudThumb(url)}'">
+            <button class="preview-nav prev" onclick="navigatePreview(-1)"><i class="fas fa-chevron-left"></i></button>
+            <button class="preview-nav next" onclick="navigatePreview(1)"><i class="fas fa-chevron-right"></i></button>`;
+    }
+
+    document.getElementById('previewBackdrop').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePreview() {
+    document.getElementById('previewBackdrop').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function navigatePreview(dir) {
+    let newIdx = previewIdx + dir;
+    if (newIdx < 0) newIdx = previewList.length - 1;
+    if (newIdx >= previewList.length) newIdx = 0;
+    openPreview(newIdx);
+}
+
+function handlePreviewBackdrop(e) {
+    if (e.target === document.getElementById('previewBackdrop')) closePreview();
+}
+
+document.addEventListener('keydown', e => {
+    if (!document.getElementById('previewBackdrop').classList.contains('open')) return;
+    if (e.key === 'Escape')       closePreview();
+    if (e.key === 'ArrowRight')   navigatePreview(1);
+    if (e.key === 'ArrowLeft')    navigatePreview(-1);
+});
+
+// ─────────────────────────────────────────────
+// DOWNLOAD
+// ─────────────────────────────────────────────
+async function downloadFile(url, name) {
+    try {
+        const res = await fetch(url, { mode: 'cors' });
+        if (!res.ok) throw new Error('fetch fail');
+        const blob = await res.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name || 'document';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast('Download started!', 'success');
+    } catch {
+        window.open(url, '_blank');
+        showToast('Opened in new tab — use Save As to download.', 'info');
+    }
+}
+
+// ─────────────────────────────────────────────
+// DELETE
+// ─────────────────────────────────────────────
+function confirmDelete(idx) {
+    pendingDeleteInfo = { idx, file: previewList[idx] };
+    const f = previewList[idx];
+    document.getElementById('dcText').textContent =
+        `"${f.doc.name || 'document'}" from customer "${f.customerName}" will be permanently removed.`;
+
+    document.getElementById('dcConfirmBtn').onclick = () => {
+        closeModal('deleteBackdrop');
+        doDelete(pendingDeleteInfo);
+    };
+
+    document.getElementById('deleteBackdrop').classList.add('open');
+}
+
+async function doDelete({ file }) {
+    try {
+        const db = firebase.firestore();
+        const custRef = db.collection('customers').doc(file.customerId);
+        const custSnap = await custRef.get();
+        if (!custSnap.exists) { showToast('Customer not found', 'error'); return; }
+
+        const existing = custSnap.data().documents || [];
+        const updated = existing.filter(d => d.url !== file.doc.url);
+
+        await custRef.update({
+            documents: updated,
+            hasDocuments: updated.length > 0,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        showToast('File deleted successfully', 'success');
+        await loadGallery();
+    } catch (e) {
+        console.error(e);
+        showToast('Delete failed: ' + e.message, 'error');
+    }
+}
+
+// ─────────────────────────────────────────────
+// NAVIGATE TO WORKSPACE
+// ─────────────────────────────────────────────
+function openCustomerWorkspace(customerId) {
+    localStorage.setItem('currentCustomerId', customerId);
+    window.location.href = 'workspace.html';
+}
+
+// ─────────────────────────────────────────────
+// SETTINGS MODAL
+// ─────────────────────────────────────────────
+function openSettingsModal() {
+    // Sync radio to current setting
+    document.querySelectorAll('#daysOptions .day-option').forEach(opt => {
+        const radio = opt.querySelector('input[type=radio]');
+        const val = parseInt(radio.value);
+        if (val === autoDelDays) {
+            opt.classList.add('selected');
+            radio.checked = true;
+        } else {
+            opt.classList.remove('selected');
+            radio.checked = false;
+        }
+    });
+    document.getElementById('settingsBackdrop').classList.add('open');
+}
+
+function selectDays(el, days) {
+    document.querySelectorAll('#daysOptions .day-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+    autoDelDays = days;
+}
+
+function saveSettings() {
+    localStorage.setItem('gallery_autodel_days', autoDelDays);
+    document.getElementById('adbDays').textContent = autoDelDays;
+    closeModal('settingsBackdrop');
+    showToast(`Auto-delete set to ${autoDelDays} days`, 'success');
+    loadGallery(); // re-run to apply new threshold
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function handleModalBackdrop(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', loadGallery);
+</script>
+</body>
+</html>
