@@ -525,9 +525,12 @@ function getDetailedPct(c) {
     const cubeSetPerTest = c.cubeSetPerTest || 3;
     const cubeTests = c.cubeTests || [];
     const gsbTests  = c.gsbTests  || [];
+    const totalExpected = (c.expectedCubeTests || 0) + (c.expectedGSBTests || 0);
+    const totalSlots    = totalExpected > 0 ? totalExpected : cubeTests.length + gsbTests.length;
+    if (totalSlots === 0) return 0;
 
-    function scoreTest(t, type) {
-        if (t.status === 'approved' && t.hodSigned) return { earned: 1, max: 1 };
+    function scoreTestFraction(t, type) {
+        if (t.status === 'approved' && t.hodSigned) return 1.0;
         let earned = 0, max = 0;
         const common = ['projectName','clientDepartment','testDate','remarks','linkedFileUrl'];
         common.forEach(f => { max++; if (t[f]) earned++; });
@@ -538,11 +541,11 @@ function getDetailedPct(c) {
             if (t.grade) earned++;
             for (let ci = 0; ci < cubeSetPerTest; ci++) {
                 max += 2;
-                if (t.cubes?.[ci]?.weight) earned++;
+                if (t.cubes?.[ci]?.weight)   earned++;
                 if (t.cubes?.[ci]?.pressure) earned++;
             }
         } else {
-            max += 1;
+            max++;
             if (t.totalWeight) earned++;
             const sieves = (t.sieves||[]).filter(s=>s.size!=='Pan');
             const sieveCount = Math.max(sieves.length,1);
@@ -551,14 +554,15 @@ function getDetailedPct(c) {
         }
         max += 2;
         if (t.status === 'approved') earned++;
-        if (t.hodSigned) earned++;
-        return { earned, max };
+        if (t.hodSigned)             earned++;
+        return max > 0 ? earned / max : 0;
     }
 
-    let totalEarned = 0, totalMax = 0;
-    cubeTests.forEach(t => { const s=scoreTest(t,'cube'); totalEarned+=s.earned; totalMax+=s.max; });
-    gsbTests.forEach(t  => { const s=scoreTest(t,'gsb');  totalEarned+=s.earned; totalMax+=s.max; });
-    return totalMax > 0 ? Math.min(100, Math.round((totalEarned/totalMax)*100)) : 0;
+    const slotShare = 100 / totalSlots;
+    let totalPct = 0;
+    cubeTests.forEach(t => { totalPct += scoreTestFraction(t,'cube') * slotShare; });
+    gsbTests.forEach(t  => { totalPct += scoreTestFraction(t,'gsb')  * slotShare; });
+    return Math.min(100, Math.round(totalPct));
 }
 
 function isCompleted(c) {
