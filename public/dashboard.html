@@ -55,10 +55,10 @@
             --border: #38383A;
             --cube-color: #8E5CFF;
             --gsb-color: #FF9F0A;
-            --status-red: #FF453A;
-            --status-yellow: #FF9F0A;
-            --status-green: #30D158;
-            --revenue-color: #30D158;
+            --status-red: #ff6b6b;
+            --status-yellow: #ffd166;
+            --status-green: #4caf50;
+            --revenue-color: #4caf50;
             --live-color: #00FF88;
             --live-off: #FF453A;
         }
@@ -138,6 +138,13 @@
             align-items: flex-end;
             gap: 12px;
             margin-left: auto;
+        }
+
+        .header-profile-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: flex-end;
         }
 
         .logo {
@@ -2006,7 +2013,7 @@
 
             /* ── HEADER MOBILE ── */
             header {
-                padding: 14px 14px 12px;
+                padding: 13px 13px 11px;
             }
 
             .header-content {
@@ -2166,31 +2173,84 @@
                 align-items: center;
                 gap: 8px;
                 background: var(--light);
-                padding: 8px 10px;
+                padding: 8px 9px;
                 border-radius: 10px;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
                 margin-bottom: 8px;
                 overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
             /* ── TABLE: hide columns after Total Fee ── */
             th, td {
-                padding: 10px 10px;
-                font-size: 0.78rem;
+                padding: 9px 9px;
+                font-size: 0.76rem;
             }
 
             
 
+            .table-container {
+                border-radius: 12px;
+            }
+
+            .search-box input,
+            .status-filter,
+            .date-filter,
+            .filter-icon-btn,
+            .refresh-button,
+            .payment-status {
+                font-size: 0.8rem;
+            }
+
+            .search-box input {
+                padding: 10px 12px 10px 38px;
+            }
+
+            .search-box .btn,
+            .filter-icon-btn,
+            .status-filter,
+            .date-filter {
+                min-height: 38px;
+            }
+
+            .filter-icon-btn {
+                height: 38px;
+                padding: 8px 10px;
+            }
+
+            #mobile-status-filter,
+            #mobile-date-filter,
+            .mobile-controls-row1 .btn-pending-sign,
+            .mobile-controls-row2 .filter-icon-btn,
+            .mobile-controls-row2 .refresh-button {
+                font-size: 0.78rem !important;
+            }
+
+            #mobile-status-filter,
+            #mobile-date-filter {
+                padding: 8px 6px !important;
+            }
+
+            .mobile-controls-row1 .btn-pending-sign,
+            .mobile-controls-row2 .filter-icon-btn {
+                padding: 8px 9px !important;
+            }
+
+            .mobile-controls-row2 .refresh-button {
+                width: 34px !important;
+                height: 34px !important;
+            }
+
             /* Make fee badge smaller */
             .fee-badge {
-                font-size: 0.8rem;
+                font-size: 0.78rem;
                 padding: 4px 8px;
             }
 
             /* Test badges smaller */
             .test-badge {
-                font-size: 0.75rem;
-                padding: 3px 8px;
+                font-size: 0.73rem;
+                padding: 3px 7px;
             }
 
             /* Status dot compact */
@@ -2226,6 +2286,64 @@
                 width: 95%;
             }
 
+            .pending-modal-box {
+                width: 96%;
+                max-height: 90vh;
+            }
+
+            .pending-modal-header {
+                padding: 16px 18px;
+            }
+
+            .pending-modal-header h2 {
+                font-size: 1.02rem;
+            }
+
+            .pending-modal-body {
+                padding: 16px 16px 22px;
+            }
+
+            .pending-section-title {
+                font-size: 0.9rem;
+                padding: 8px 12px;
+            }
+
+            .pending-customer-header {
+                padding: 10px 12px;
+                gap: 10px;
+            }
+
+            .pending-cust-avatar {
+                width: 34px;
+                height: 34px;
+                font-size: 0.88rem;
+            }
+
+            .pending-tests-list {
+                padding: 8px 10px;
+                gap: 6px;
+            }
+
+            .pending-test-item,
+            .pending-payment-row {
+                padding: 9px 10px;
+            }
+
+            .pending-test-info .test-label {
+                font-size: 0.82rem;
+            }
+
+            .pending-test-info .test-sub,
+            .pending-payment-summary {
+                font-size: 0.74rem;
+            }
+
+            .pending-action-btn,
+            .pending-result-btn {
+                padding: 5px 10px;
+                font-size: 0.74rem;
+            }
+
             .modal-footer {
                 flex-direction: column;
             }
@@ -2257,9 +2375,23 @@
             .customer-name-link {
                 font-size: 0.90rem;
             }
+
+            .phone-link {
+                font-size: 0.78rem;
+                gap: 5px;
+            }
+
+            .actions .btn {
+                padding: 7px 8px;
+                font-size: 0.74rem;
+            }
         }
 
         @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+            }
+
             /* Keep 2x2 stats grid even on small phones */
             .stats-cards {
                 grid-template-columns: repeat(2, 1fr);
@@ -2285,6 +2417,92 @@
                 font-size: 1rem;
             }
 
+            .user-info {
+                padding: 4px 8px;
+            }
+
+            .user-name {
+                max-width: 72px;
+                font-size: 0.74rem;
+            }
+
+            .header-actions {
+                gap: 4px;
+            }
+
+            .header-action-btn,
+            #theme-toggle-btn,
+            .btn-logout {
+                width: 30px !important;
+                height: 30px !important;
+            }
+
+            .mobile-controls-row1,
+            .mobile-controls-row2 {
+                gap: 6px;
+                padding: 7px 8px;
+                border-radius: 9px;
+            }
+
+            .filter-icon-btn,
+            .status-filter,
+            .date-filter {
+                min-height: 36px;
+                height: 36px;
+                font-size: 0.76rem;
+            }
+
+            #mobile-status-filter,
+            #mobile-date-filter,
+            .mobile-controls-row1 .btn-pending-sign,
+            .mobile-controls-row2 .filter-icon-btn {
+                font-size: 0.75rem !important;
+            }
+
+            .mobile-controls-row1 .btn-pending-sign,
+            .mobile-controls-row2 .filter-icon-btn {
+                padding: 7px 8px !important;
+            }
+
+            .mobile-controls-row2 .refresh-button {
+                width: 32px !important;
+                height: 32px !important;
+            }
+
+            .search-box input {
+                padding: 9px 10px 9px 36px;
+                font-size: 0.78rem;
+            }
+
+            th, td {
+                padding: 7px 8px;
+                font-size: 0.73rem;
+            }
+
+            .customer-name-link {
+                font-size: 0.84rem;
+            }
+
+            .phone-link {
+                font-size: 0.74rem;
+            }
+
+            .fee-badge,
+            .test-badge,
+            .payment-status {
+                font-size: 0.72rem;
+                padding: 3px 7px;
+            }
+
+            .actions {
+                gap: 4px;
+            }
+
+            .actions .btn {
+                padding: 6px 8px;
+                font-size: 0.71rem;
+            }
+
             .verification-input input {
                 width: 60px;
                 font-size: 1rem;
@@ -2301,6 +2519,59 @@
 
             .call-actions {
                 flex-direction: column;
+            }
+
+            .pending-modal-header {
+                padding: 14px 15px;
+            }
+
+            .pending-modal-header h2 {
+                font-size: 0.95rem;
+                gap: 8px;
+            }
+
+            .pending-modal-body {
+                padding: 14px 12px 18px;
+            }
+
+            .pending-section-title {
+                font-size: 0.86rem;
+                padding: 8px 10px;
+            }
+
+            .pending-section-count {
+                font-size: 0.7rem;
+            }
+
+            .pending-customer-header {
+                padding: 9px 10px;
+            }
+
+            .pending-cust-info h4 {
+                font-size: 0.84rem;
+            }
+
+            .pending-cust-info p,
+            .pending-payment-summary {
+                font-size: 0.72rem;
+            }
+
+            .pending-test-actions,
+            .pending-payment-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .pending-action-btn,
+            .pending-result-btn {
+                flex: 1;
+                justify-content: center;
+                min-width: 0;
+            }
+
+            .pending-tag {
+                font-size: 0.67rem;
+                padding: 3px 7px;
             }
         }
 
@@ -2348,8 +2619,15 @@
             background: rgba(239,35,60,0.07); color: var(--danger);
             border-left: 4px solid var(--danger);
         }
+        .pending-section-title.payment-needed {
+            background: rgba(251,191,36,0.12); color: #b45309;
+            border-left: 4px solid var(--status-yellow);
+        }
         body.dark-theme .pending-section-title.sign-needed { background: rgba(114,9,183,0.2); }
         body.dark-theme .pending-section-title.approve-needed { background: rgba(239,35,60,0.15); }
+        body.dark-theme .pending-section-title.payment-needed {
+            background: rgba(255,209,102,0.18); color: var(--status-yellow);
+        }
         .pending-section-count {
             margin-left: auto; font-size: 0.78rem; font-weight: 500; opacity: 0.75;
         }
@@ -2372,7 +2650,10 @@
             color: white; font-weight: 700; font-size: 0.95rem; flex-shrink: 0;
         }
         .pending-cust-info h4 { font-size: 0.92rem; font-weight: 700; margin: 0; color: var(--dark); }
-        .pending-cust-info p { font-size: 0.78rem; color: var(--gray); margin: 2px 0 0; }
+        .pending-cust-meta {
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;
+        }
+        .pending-cust-info p { font-size: 0.78rem; color: var(--gray); margin: 0; }
         .pending-tests-list { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
         .pending-test-item {
             display: flex; align-items: center; justify-content: space-between;
@@ -2384,8 +2665,28 @@
         body.dark-theme .pending-test-item.approve-item { background: rgba(239,35,60,0.12); border-color: rgba(239,35,60,0.3); }
         .pending-test-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
         .pending-test-info .test-label { font-size: 0.87rem; font-weight: 600; color: var(--dark); }
+        .pending-test-info .test-label i { margin-right: 6px; }
         .pending-test-info .test-sub { font-size: 0.76rem; color: var(--gray); }
         .pending-test-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; flex-shrink: 0; }
+        .pending-payment-row {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px; padding: 12px 14px; border-radius: 10px; flex-wrap: wrap;
+            background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.22);
+        }
+        body.dark-theme .pending-payment-row {
+            background: rgba(255,209,102,0.12); border-color: rgba(255,209,102,0.28);
+        }
+        .pending-payment-info {
+            flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px;
+        }
+        .pending-payment-summary {
+            font-size: 0.82rem; color: var(--gray); display: flex;
+            align-items: center; gap: 8px; flex-wrap: wrap;
+        }
+        .pending-payment-tags,
+        .pending-payment-actions {
+            display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+        }
         .pending-tag {
             padding: 3px 9px; border-radius: 20px; font-size: 0.73rem; font-weight: 600;
             display: inline-flex; align-items: center; gap: 4px;
@@ -2394,8 +2695,12 @@
         .pending-tag.not-approved { background: rgba(239,35,60,0.09); color: var(--danger); border: 1px solid var(--danger); }
         .pending-tag.signed { background: rgba(114,9,183,0.1); color: var(--secondary); border: 1px solid var(--secondary); }
         .pending-tag.not-signed { background: rgba(251,191,36,0.1); color: #b45309; border: 1px solid #fbbf24; }
+        .pending-tag.payment-pending { background: rgba(251,191,36,0.12); color: #b45309; border: 1px solid #f59e0b; }
+        .pending-tag.payment-progress { background: rgba(72,149,239,0.1); color: var(--info); border: 1px solid rgba(72,149,239,0.28); }
         body.dark-theme .pending-tag.approved { background: rgba(21,128,61,0.2); }
         body.dark-theme .pending-tag.not-signed { color: #fbbf24; }
+        body.dark-theme .pending-tag.payment-pending { background: rgba(255,209,102,0.18); color: var(--status-yellow); border-color: rgba(255,209,102,0.4); }
+        body.dark-theme .pending-tag.payment-progress { background: rgba(90,200,250,0.14); border-color: rgba(90,200,250,0.3); }
         .pending-result-btn {
             padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600;
             border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
@@ -2463,6 +2768,11 @@
             color: white;
         }
         .pending-action-btn.btn-do-sign:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+        .pending-action-btn.btn-do-paid {
+            background: linear-gradient(135deg, var(--status-green), #16a34a);
+            color: white;
+        }
+        .pending-action-btn.btn-do-paid:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
     </style>
 </head>
 
@@ -2615,7 +2925,7 @@
                 </div>
 
                 <div class="header-right">
-                    <div style="display:flex;align-items:center;gap:10px;">
+                    <div class="header-profile-row">
                         <div class="user-info" id="user-info" onclick="openProfileModal()">
                             <div class="user-avatar" id="user-avatar">
                                 <i class="fas fa-user-circle"></i>
@@ -2764,16 +3074,15 @@
 
         <!-- ===== MOBILE CONTROLS: Row 1 - Search + Pending Sign ===== -->
         <div class="mobile-controls-row1">
-            <div class="search-box" style="flex:1; min-width:0;">
+            <div class="search-box">
                 <input type="text" id="mobile-customer-search" placeholder="Search..." 
                     onkeyup="document.getElementById('customer-search').value=this.value; debounceSearch();"
-                    oninput="document.getElementById('customer-search').value=this.value; handleSearchInput();"
-                    style="width:100%;">
+                    oninput="document.getElementById('customer-search').value=this.value; handleSearchInput();">
                 <button class="btn btn-outline btn-sm" onclick="document.getElementById('customer-search').value=''; document.getElementById('mobile-customer-search').value=''; clearSearch();" title="Clear">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <button class="filter-icon-btn btn-pending-sign" onclick="openPendingModal()" title="Pending Approve &amp; Sign" style="flex-shrink:0; font-size:0.78rem; padding:8px 10px;">
+            <button class="filter-icon-btn btn-pending-sign" onclick="openPendingModal()" title="Pending Approve &amp; Sign">
                 <i class="fas fa-clock"></i> Pending
                 <span class="pending-badge-count hidden" id="mobile-pending-count">0</span>
             </button>
@@ -2781,30 +3090,30 @@
 
         <!-- ===== MOBILE CONTROLS: Row 2 - Help, Tracking, Status, Month, Refresh ===== -->
         <div class="mobile-controls-row2">
-            <button class="filter-icon-btn btn-help-filter" onclick="window.location.href='help.html'" title="Calendar" style="padding:8px 10px; font-size:0.8rem;">
+            <button class="filter-icon-btn btn-help-filter control-square" onclick="window.location.href='help.html'" title="Calendar">
                 <i class="fas fa-calendar"></i>
             </button>
-            <button class="filter-icon-btn btn-tracking-filter" onclick="window.location.href='tracking.html'" title="Tracking" style="padding:8px 10px; font-size:0.8rem;">
+            <button class="filter-icon-btn btn-tracking-filter control-square" onclick="window.location.href='tracking.html'" title="Tracking">
                 <i class="fas fa-map-marker-alt"></i>
             </button>
-            <button class="filter-icon-btn btn-gallery-filter" onclick="window.location.href='gallery.html'" title="Gallery" style="padding:8px 10px; font-size:0.8rem;">
+            <button class="filter-icon-btn btn-gallery-filter control-square" onclick="window.location.href='gallery.html'" title="Gallery">
                 <i class="fas fa-images"></i>
             </button>
-            <select class="status-filter" id="mobile-status-filter" onchange="document.getElementById('status-filter').value=this.value; filterCustomers();" style="flex:1; min-width:80px; padding:8px 6px; font-size:0.78rem;">
+            <select class="status-filter" id="mobile-status-filter" onchange="document.getElementById('status-filter').value=this.value; filterCustomers();">
                 <option value="all">All</option>
                 <option value="red">🔴 Active</option>
                 <option value="yellow">🟡 Complete</option>
                 <option value="green">🟢 Closed</option>
             </select>
-            <select class="date-filter" id="mobile-date-filter" onchange="document.getElementById('date-filter').value=this.value; filterByDate();" style="flex:1; min-width:80px; padding:8px 6px; font-size:0.78rem;">
+            <select class="date-filter" id="mobile-date-filter" onchange="document.getElementById('date-filter').value=this.value; filterByDate();">
                 <option value="all">All</option>
                 <option value="today">Today</option>
                 <option value="week">Week</option>
                 <option value="month" selected>Month</option>
                 <option value="range">Range</option>
             </select>
-            <div class="refresh-container" style="flex-shrink:0; background:transparent; box-shadow:none; padding:0;">
-                <button class="refresh-button" onclick="refreshData()" title="Refresh" style="width:36px; height:36px;">
+            <div class="refresh-container mobile-refresh-container">
+                <button class="refresh-button" onclick="refreshData()" title="Refresh">
                     <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
@@ -3498,7 +3807,7 @@
                 filteredCustomers = [...customers];
                 window.allCustomersData = customers;
                 filterCustomers(); // Apply default "This Month" filter on load
-                updatePendingCount();
+                refreshDashboardAfterPendingAction();
 
             } catch (error) {
                 console.error("Error loading customers:", error);
@@ -3787,7 +4096,8 @@
         }
 
         // ==================== FILTER FUNCTIONS ====================
-        function filterCustomers() {
+        function filterCustomers(options = {}) {
+            const { silent = false, resetPage = true } = options;
             const searchTerm = document.getElementById('customer-search').value.toLowerCase();
             const statusFilter = document.getElementById('status-filter').value;
             const dateFilter = document.getElementById('date-filter').value;
@@ -3850,11 +4160,17 @@
                 return matchesSearch && matchesStatus && matchesDate;
             });
 
-            currentPage = 1;
+            if (resetPage) {
+                currentPage = 1;
+            } else {
+                const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / itemsPerPage));
+                currentPage = Math.min(currentPage, totalPages);
+            }
+
             loadDashboard();
             updatePagination();
 
-            if (filteredCustomers.length !== customers.length) {
+            if (!silent && filteredCustomers.length !== customers.length) {
                 const searchTerm = document.getElementById('customer-search').value;
                 if (searchTerm || statusFilter !== 'all' || dateFilter !== 'all') {
                     showToast(`Showing ${filteredCustomers.length} of ${customers.length} customers`, 'info', 2000);
@@ -3876,35 +4192,45 @@
         }
 
         // ==================== STATUS CALCULATION ====================
-        function getCustomerStatus(customer) {
-            const cubeTests = customer.cubeTests || [];
-            const gsbTests = customer.gsbTests || [];
+        function getCustomerTestArrays(customer) {
+            return {
+                cubeTests: Array.isArray(customer?.cubeTests) ? customer.cubeTests : [],
+                gsbTests: Array.isArray(customer?.gsbTests) ? customer.gsbTests : []
+            };
+        }
 
+        function areCustomerTestsComplete(customer, testArrays = getCustomerTestArrays(customer)) {
             const cubeExpected = customer.expectedCubeTests || 0;
             const gsbExpected = customer.expectedGSBTests || 0;
 
-            const cubeTestsArray = Array.isArray(cubeTests) ? cubeTests : [];
-            const gsbTestsArray = Array.isArray(gsbTests) ? gsbTests : [];
+            return (cubeExpected === 0 || testArrays.cubeTests.length >= cubeExpected) &&
+                (gsbExpected === 0 || testArrays.gsbTests.length >= gsbExpected);
+        }
 
-            const testsCompleted =
-                (cubeExpected === 0 || cubeTestsArray.length >= cubeExpected) &&
-                (gsbExpected === 0 || gsbTestsArray.length >= gsbExpected);
+        function getCustomerCompletedFee(customer, testArrays = getCustomerTestArrays(customer)) {
+            const cubeSetPerTest = customer.cubeSetPerTest || 3;
+            const cubeRates = settings?.rates?.cubeSet || { 1: 400, 2: 800, 3: 1000 };
+            const cubeRate = cubeRates[cubeSetPerTest] || 1000;
 
-            if (!testsCompleted) {
-                return 'red';
-            }
+            return (testArrays.cubeTests.length * cubeRate) +
+                (testArrays.gsbTests.length * (settings?.rates?.gsbTest || 1500));
+        }
 
-            const allTestsApproved =
-                cubeTestsArray.every(t => t.status === 'approved') &&
-                gsbTestsArray.every(t => t.status === 'approved');
+        function getCustomerStatus(customer) {
+            const testArrays = getCustomerTestArrays(customer);
+            const testsCompleted = areCustomerTestsComplete(customer, testArrays);
 
-            if (testsCompleted && customer.paymentStatus === 'paid' && allTestsApproved) {
+            if (!testsCompleted) return 'red';
+
+            const allTests = [...testArrays.cubeTests, ...testArrays.gsbTests];
+            const allTestsApproved = allTests.length > 0 && allTests.every(t => t.status === 'approved');
+            const allTestsHodSigned = allTests.length > 0 && allTests.every(t => t.hodSigned);
+
+            if (customer.paymentStatus === 'paid' && allTestsApproved && allTestsHodSigned) {
                 return 'green';
-            } else if (testsCompleted) {
-                return 'yellow';
-            } else {
-                return 'red';
             }
+
+            return 'yellow';
         }
 
         function getStatusText(status) {
@@ -4581,23 +4907,78 @@
             document.getElementById('pending-modal-overlay').classList.add('hidden');
         }
 
+        function getPendingTestsWithTypes(customer) {
+            const testArrays = getCustomerTestArrays(customer);
+
+            return [
+                ...testArrays.cubeTests.map(test => ({ ...test, testType: 'cube' })),
+                ...testArrays.gsbTests.map(test => ({ ...test, testType: 'gsb' }))
+            ];
+        }
+
+        function isCustomerPaymentPending(customer, tests = getPendingTestsWithTypes(customer)) {
+            return tests.length > 0 &&
+                areCustomerTestsComplete(customer) &&
+                (customer.paymentStatus || 'pending') !== 'paid';
+        }
+
+        function formatPendingModalDate(rawDate) {
+            if (!rawDate) return 'N/A';
+
+            try {
+                return getDateFromFirebase(rawDate).toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+            } catch (error) {
+                return 'N/A';
+            }
+        }
+
+        function refreshDashboardAfterPendingAction() {
+            if (Array.isArray(window.allCustomersData)) {
+                customers = window.allCustomersData;
+            }
+
+            filterCustomers({ silent: true, resetPage: false });
+            updateStats();
+            updatePendingCount();
+
+            const overlay = document.getElementById('pending-modal-overlay');
+            if (overlay && !overlay.classList.contains('hidden')) {
+                renderPendingModal();
+            }
+        }
+
         function renderPendingModal() {
             const body = document.getElementById('pending-modal-body');
             const allCusts = window.allCustomersData || [];
-            const signNeededList = [], approveNeededList = [];
+            const signNeededList = [];
+            const approveNeededList = [];
+            const paymentNeededList = [];
 
             allCusts.forEach(customer => {
-                const cubeTests = (Array.isArray(customer.cubeTests) ? customer.cubeTests : []).map(t => ({...t, testType:'cube'}));
-                const gsbTests  = (Array.isArray(customer.gsbTests)  ? customer.gsbTests  : []).map(t => ({...t, testType:'gsb'}));
-                const allTests  = [...cubeTests, ...gsbTests];
-                const signNeeded    = allTests.filter(t => t.status === 'approved' && !t.hodSigned);
+                const allTests = getPendingTestsWithTypes(customer);
+                const signNeeded = allTests.filter(t => t.status === 'approved' && !t.hodSigned);
                 const approveNeeded = allTests.filter(t => t.status !== 'approved');
-                if (signNeeded.length > 0)    signNeededList.push({ customer, tests: signNeeded });
-                if (approveNeeded.length > 0) approveNeededList.push({ customer, tests: approveNeeded });
+
+                if (signNeeded.length > 0) {
+                    signNeededList.push({ customer, tests: signNeeded });
+                }
+
+                if (approveNeeded.length > 0) {
+                    approveNeededList.push({ customer, tests: approveNeeded });
+                }
+
+                if (isCustomerPaymentPending(customer, allTests)) {
+                    paymentNeededList.push(customer);
+                }
             });
 
-            const totalSign    = signNeededList.reduce((a,c)=>a+c.tests.length, 0);
-            const totalApprove = approveNeededList.reduce((a,c)=>a+c.tests.length, 0);
+            const totalSign = signNeededList.reduce((total, entry) => total + entry.tests.length, 0);
+            const totalApprove = approveNeededList.reduce((total, entry) => total + entry.tests.length, 0);
+            const totalPaymentPending = paymentNeededList.length;
             let html = '';
 
             html += `<div class="pending-section-title sign-needed">
@@ -4607,7 +4988,7 @@
             if (signNeededList.length === 0) {
                 html += `<div class="pending-empty"><i class="fas fa-check-circle" style="color:var(--status-green);font-size:1.1rem;"></i> No tests pending HOD sign</div>`;
             } else {
-                signNeededList.forEach(({customer, tests}) => { html += buildPendingCustomerCard(customer, tests, 'sign'); });
+                signNeededList.forEach(({customer, tests}) => { html += buildPendingCustomerCardV2(customer, tests, 'sign'); });
             }
             html += `<div class="pending-divider"></div>`;
 
@@ -4618,7 +4999,18 @@
             if (approveNeededList.length === 0) {
                 html += `<div class="pending-empty"><i class="fas fa-check-circle" style="color:var(--status-green);font-size:1.1rem;"></i> No tests pending approval</div>`;
             } else {
-                approveNeededList.forEach(({customer, tests}) => { html += buildPendingCustomerCard(customer, tests, 'approve'); });
+                approveNeededList.forEach(({customer, tests}) => { html += buildPendingCustomerCardV2(customer, tests, 'approve'); });
+            }
+            html += `<div class="pending-divider"></div>`;
+
+            html += `<div class="pending-section-title payment-needed">
+                <i class="fas fa-money-check-alt"></i> Test Complete - Payment Pending
+                <span class="pending-section-count">${totalPaymentPending} customer(s)</span>
+            </div>`;
+            if (paymentNeededList.length === 0) {
+                html += `<div class="pending-empty"><i class="fas fa-check-circle" style="color:var(--status-green);font-size:1.1rem;"></i> No customers pending payment</div>`;
+            } else {
+                paymentNeededList.forEach(customer => { html += buildPendingPaymentCard(customer); });
             }
             body.innerHTML = html;
         }
@@ -4626,16 +5018,17 @@
         function buildPendingCustomerCard(customer, tests, mode) {
             const initials = (customer.name || 'C').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
             const custId = customer.id;
+            const safeCustId = custId.replace(/'/g, "\\'");
+            const paymentStatus = customer.paymentStatus === 'paid' ? 'paid' : 'pending';
 
             const testsHtml = tests.map(t => {
-                const typeLabel = t.testType === 'cube' ? '🧊 Cube Test' : '🟡 GSB Test';
-                const rawDate = t.date || t.testDate || t.createdAt || t.approvedAt || '';
-                let dateStr = 'N/A';
-                if (rawDate) { try { dateStr = new Date(rawDate).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); } catch(e){} }
+                const typeLabel = t.testType === 'cube'
+                    ? '<i class="fas fa-cube"></i> Cube Test'
+                    : '<i class="fas fa-filter"></i> GSB Test';
                 const itemClass = mode === 'sign' ? 'sign-item' : 'approve-item';
                 const testId = t.id || t.testId || '';
                 const safeTestId = testId.replace(/'/g, "\\'");
-                const safeCustId = custId.replace(/'/g, "\\'");
+                const dateStr = formatPendingModalDate(t.date || t.testDate || t.createdAt || t.approvedAt || '');
 
                 // Only show Approved tag (not the "not approved" tag)
                 const approvedTag = t.status === 'approved'
@@ -4663,9 +5056,9 @@
                     <i class="fas fa-external-link-alt"></i>
                 </button>`;
 
-                return `<div class="pending-test-item ${itemClass}" id="ptitem-${custId}-${testId}">
+                return `<div class="pending-test-item ${itemClass}">
                     <div class="pending-test-info">
-                        <span class="test-label">${typeLabel}${testId ? ` <span style="font-weight:500;opacity:0.7;font-size:0.78rem;">— ${testId}</span>` : ''}</span>
+                        <span class="test-label">${typeLabel}</span>
                         <span class="test-sub"><i class="fas fa-calendar-alt" style="margin-right:3px;"></i>${dateStr}</span>
                     </div>
                     <div class="pending-test-actions">${approvedTag}${signedTag}${actionBtns}</div>
@@ -4684,6 +5077,129 @@
             </div>`;
         }
 
+        function buildPendingCustomerCardV2(customer, tests, mode) {
+            const initials = (customer.name || 'C').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+            const custId = customer.id;
+            const safeCustId = custId.replace(/'/g, "\\'");
+            const paymentStatus = customer.paymentStatus === 'paid' ? 'paid' : 'pending';
+
+            const testsHtml = tests.map(t => {
+                const typeLabel = t.testType === 'cube'
+                    ? '<i class="fas fa-cube"></i> Cube Test'
+                    : '<i class="fas fa-filter"></i> GSB Test';
+                const itemClass = mode === 'sign' ? 'sign-item' : 'approve-item';
+                const testId = t.id || t.testId || '';
+                const safeTestId = testId.replace(/'/g, "\\'");
+                const dateStr = formatPendingModalDate(t.date || t.testDate || t.createdAt || t.approvedAt || '');
+
+                const approvedTag = t.status === 'approved'
+                    ? `<span class="pending-tag approved"><i class="fas fa-check"></i> Approved</span>`
+                    : '';
+                const signedTag = t.hodSigned
+                    ? `<span class="pending-tag signed"><i class="fas fa-stamp"></i> Signed</span>`
+                    : '';
+
+                let actionBtns = '';
+                if (isCurrentUserAdmin) {
+                    if (t.status !== 'approved') {
+                        actionBtns += `<button class="pending-action-btn btn-do-approve" onclick="pendingApproveTest('${safeCustId}','${safeTestId}','${t.testType}',this)">
+                            <i class="fas fa-check-circle"></i> Approve
+                        </button>`;
+                    }
+                    if (t.status === 'approved' && !t.hodSigned) {
+                        actionBtns += `<button class="pending-action-btn btn-do-sign" onclick="pendingHodSign('${safeCustId}','${safeTestId}','${t.testType}',this)">
+                            <i class="fas fa-stamp"></i> Sign
+                        </button>`;
+                    }
+                }
+
+                actionBtns += `<button class="pending-result-btn" onclick="openResultFromPending('${safeCustId}','${safeTestId}','${t.testType}')" title="View in workspace">
+                    <i class="fas fa-external-link-alt"></i>
+                </button>`;
+
+                return `<div class="pending-test-item ${itemClass}">
+                    <div class="pending-test-info">
+                        <span class="test-label">${typeLabel}</span>
+                        <span class="test-sub"><i class="fas fa-calendar-alt" style="margin-right:3px;"></i>${dateStr}</span>
+                    </div>
+                    <div class="pending-test-actions">${approvedTag}${signedTag}${actionBtns}</div>
+                </div>`;
+            }).join('');
+
+            return `<div class="pending-customer-card" id="pccard-${mode}-${custId}">
+                <div class="pending-customer-header">
+                    <div class="pending-cust-avatar">${initials}</div>
+                    <div class="pending-cust-info">
+                        <h4>${customer.name || 'Unknown Customer'}</h4>
+                        <div class="pending-cust-meta">
+                            <p><i class="fas fa-phone-alt" style="margin-right:4px;font-size:0.75rem;"></i>${customer.phone || 'No phone'}</p>
+                            <span class="payment-status payment-${paymentStatus}">
+                                ${paymentStatus === 'paid' ? 'Paid' : 'Payment Pending'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="pending-tests-list">${testsHtml}</div>
+            </div>`;
+        }
+
+        function buildPendingPaymentCard(customer) {
+            const initials = (customer.name || 'C').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+            const custId = customer.id;
+            const safeCustId = custId.replace(/'/g, "\\'");
+            const testArrays = getCustomerTestArrays(customer);
+            const allTests = [...testArrays.cubeTests, ...testArrays.gsbTests];
+            const approvedCount = allTests.filter(t => t.status === 'approved').length;
+            const signedCount = allTests.filter(t => t.hodSigned).length;
+            const allApproved = allTests.length > 0 && approvedCount === allTests.length;
+            const allSigned = allTests.length > 0 && signedCount === allTests.length;
+            const totalFee = getCustomerCompletedFee(customer, testArrays);
+
+            let actionBtns = '';
+            if (isCurrentUserAdmin) {
+                actionBtns += `<button class="pending-action-btn btn-do-paid" onclick="pendingMarkPaid('${safeCustId}', this)">
+                    <i class="fas fa-check-circle"></i> Mark Paid
+                </button>`;
+            }
+            actionBtns += `<button class="pending-result-btn" onclick="openWorkspace('${safeCustId}')" title="Open workspace">
+                <i class="fas fa-external-link-alt"></i> Workspace
+            </button>`;
+
+            return `<div class="pending-customer-card payment-card" id="pccard-payment-${custId}">
+                <div class="pending-customer-header">
+                    <div class="pending-cust-avatar">${initials}</div>
+                    <div class="pending-cust-info">
+                        <h4>${customer.name || 'Unknown Customer'}</h4>
+                        <div class="pending-cust-meta">
+                            <p><i class="fas fa-phone-alt" style="margin-right:4px;font-size:0.75rem;"></i>${customer.phone || 'No phone'}</p>
+                            <span class="payment-status payment-pending">Payment Pending</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="pending-tests-list">
+                    <div class="pending-payment-row">
+                        <div class="pending-payment-info">
+                            <div class="pending-payment-summary">
+                                <span><i class="fas fa-flask" style="margin-right:4px;"></i>${allTests.length} completed test(s)</span>
+                                <span><i class="fas fa-rupee-sign" style="margin-right:4px;"></i>${totalFee.toLocaleString()}</span>
+                                <span>Cube ${testArrays.cubeTests.length} | GSB ${testArrays.gsbTests.length}</span>
+                            </div>
+                            <div class="pending-payment-tags">
+                                ${allApproved
+                                    ? `<span class="pending-tag approved"><i class="fas fa-check"></i> All Approved</span>`
+                                    : `<span class="pending-tag payment-progress"><i class="fas fa-hourglass-half"></i> ${approvedCount}/${allTests.length} Approved</span>`}
+                                ${allSigned
+                                    ? `<span class="pending-tag signed"><i class="fas fa-stamp"></i> All Signed</span>`
+                                    : `<span class="pending-tag payment-progress"><i class="fas fa-pen-nib"></i> ${signedCount}/${allTests.length} Signed</span>`}
+                                <span class="pending-tag payment-pending"><i class="fas fa-money-bill-wave"></i> Payment Pending</span>
+                            </div>
+                        </div>
+                        <div class="pending-payment-actions">${actionBtns}</div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
         async function pendingApproveTest(customerId, testId, testType, btn) {
             if (!isCurrentUserAdmin) { showToast('Only admin can approve tests.', 'error'); return; }
             btn.disabled = true;
@@ -4694,33 +5210,14 @@
                 if (custIdx === -1) throw new Error('Customer not found');
                 const arrKey = testType === 'cube' ? 'cubeTests' : 'gsbTests';
                 const testArr = [...(window.allCustomersData[custIdx][arrKey] || [])];
-                const tIdx = testArr.findIndex(t => t.id === testId);
+                const tIdx = testArr.findIndex(t => (t.id || t.testId) === testId);
                 if (tIdx === -1) throw new Error('Test not found');
                 const now = new Date().toISOString();
                 testArr[tIdx] = { ...testArr[tIdx], status: 'approved', approvedAt: now, approvedBy: firebaseHelpers.getUserEmail() || 'Admin' };
                 await firebaseHelpers.updateCustomer(customerId, { [arrKey]: testArr });
                 window.allCustomersData[custIdx][arrKey] = testArr;
 
-                // Remove item from approve section with fade
-                const itemEl = document.getElementById(`ptitem-${customerId}-${testId}`);
-                if (itemEl) {
-                    itemEl.style.transition = 'opacity 0.3s';
-                    itemEl.style.opacity = '0';
-                    setTimeout(() => {
-                        const approveCard = itemEl.closest('.pending-customer-card');
-                        itemEl.remove();
-                        // Remove approve-section card if empty
-                        if (approveCard && approveCard.querySelectorAll('.pending-test-item').length === 0) {
-                            approveCard.style.transition = 'opacity 0.3s';
-                            approveCard.style.opacity = '0';
-                            setTimeout(() => approveCard.remove(), 300);
-                        }
-                        // Add to sign section
-                        addItemToSignSection(customerId, testId, testType, testArr[tIdx], window.allCustomersData[custIdx]);
-                    }, 300);
-                }
-
-                updatePendingCount();
+                refreshDashboardAfterPendingAction();
                 showToast('Test approved ✅', 'success');
             } catch(e) {
                 btn.disabled = false;
@@ -4756,7 +5253,7 @@
 
             const newItemHtml = `<div class="pending-test-item sign-item" id="ptitem-${customerId}-${testId}" style="opacity:0;transition:opacity 0.4s;">
                 <div class="pending-test-info">
-                    <span class="test-label">${typeLabel}${testId ? ` <span style="font-weight:500;opacity:0.7;font-size:0.78rem;">— ${testId}</span>` : ''}</span>
+                    <span class="test-label">${typeLabel}</span>
                     <span class="test-sub"><i class="fas fa-calendar-alt" style="margin-right:3px;"></i>${dateStr}</span>
                 </div>
                 <div class="pending-test-actions">
@@ -4806,7 +5303,7 @@
                 if (custIdx === -1) throw new Error('Customer not found');
                 const arrKey = testType === 'cube' ? 'cubeTests' : 'gsbTests';
                 const testArr = [...(window.allCustomersData[custIdx][arrKey] || [])];
-                const tIdx = testArr.findIndex(t => t.id === testId);
+                const tIdx = testArr.findIndex(t => (t.id || t.testId) === testId);
                 if (tIdx === -1) throw new Error('Test not found');
                 const now = new Date().toISOString();
                 testArr[tIdx] = { ...testArr[tIdx], hodSigned: true, hodSignedAt: now, hodSignedBy: firebaseHelpers.getUserEmail() || 'Admin' };
@@ -4833,9 +5330,31 @@
                         }, 400);
                     }, 900);
                 }
-                updatePendingCount();
+                refreshDashboardAfterPendingAction();
                 showToast('HOD Signed ✅', 'success');
             } catch(e) {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        async function pendingMarkPaid(customerId, btn) {
+            if (!isCurrentUserAdmin) { showToast('Only admin can update payment status.', 'error'); return; }
+            btn.disabled = true;
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const custIdx = window.allCustomersData.findIndex(c => c.id === customerId);
+                if (custIdx === -1) throw new Error('Customer not found');
+
+                await firebaseHelpers.updateCustomer(customerId, { paymentStatus: 'paid' });
+                window.allCustomersData[custIdx].paymentStatus = 'paid';
+
+                refreshDashboardAfterPendingAction();
+                showToast('Payment status updated', 'success');
+            } catch (e) {
                 btn.disabled = false;
                 btn.innerHTML = origHtml;
                 showToast('Error: ' + e.message, 'error');
@@ -4853,12 +5372,15 @@
             const allCusts = window.allCustomersData || [];
             let total = 0;
             allCusts.forEach(customer => {
-                const cubeTests = Array.isArray(customer.cubeTests) ? customer.cubeTests : [];
-                const gsbTests  = Array.isArray(customer.gsbTests)  ? customer.gsbTests  : [];
-                [...cubeTests, ...gsbTests].forEach(t => {
+                const allTests = getPendingTestsWithTypes(customer);
+                allTests.forEach(t => {
                     if (t.status === 'approved' && !t.hodSigned) total++;
                     if (t.status !== 'approved') total++;
                 });
+
+                if (isCustomerPaymentPending(customer, allTests)) {
+                    total++;
+                }
             });
             // Update both desktop and mobile badges
             ['pending-count', 'mobile-pending-count'].forEach(id => {
